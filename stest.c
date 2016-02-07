@@ -17,6 +17,16 @@ int outit(char *line, void *data)
 
 int main(int argc, char *argv[])
 {
+	int c, major, minor;
+
+	while ((c = getopt(argc, argv, "-V")) != EOF)
+		if (c == 'V') {
+			samlib_version(&major, &minor);
+			printf("Version '%d.%d'  '%s'\n",
+				   major, minor, samlib_versionstr());
+			exit(0);
+		}
+
 	if (argc == 1) {
 		fputs("I need a filename!\n", stderr);
 		exit(1);

@@ -1,6 +1,9 @@
 #ifndef __SAMLIB_H__
 #define __SAMLIB_H__
 
+#define SAMLIB_MAJOR 1
+#define SAMLIB_MINOR 0
+
 /* Read a file line at a time calling line_func() for each
  * line. Removes the NL from the line. If line_func() returns
  * non-zero, it will stop reading the file and return 1.
@@ -21,5 +24,8 @@ int readfile(int (*line_func)(char *line, void *data), void *data, const char *p
  * the errno is set to EINTR.
  */
 int readcmd(int (*line_func)(char *line, void *data), void *data, const char *fmt, ...);
+
+void samlib_version(int *major, int *minor);
+const char *samlib_versionstr(void);
 
 #endif

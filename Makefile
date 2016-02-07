@@ -12,7 +12,7 @@ QUIET_AR      = $(Q:@=@echo    '     AR       '$@;)
 .c.o:
 	$(QUIET_CC)$(CC) -o $@ -c $(CFLAGS) $<
 
-CFILES = readfile.c readcmd.c do-system.c
+CFILES = version.c readfile.c readcmd.c do-system.c
 
 O := $(CFILES:.c=.o)
 
@@ -23,6 +23,10 @@ stest: stest.c libsamlib.a
 
 libsamlib.a: $O
 	$(QUIET_AR)$(AR) cr $@ $+
+
+install:
+	cp samlib.h /usr/include
+	cp libsamlib.a /usr/lib64/libsamlib.a
 
 clean:
 	rm -f *.o libsamlib.a stest
