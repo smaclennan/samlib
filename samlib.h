@@ -30,12 +30,20 @@ int readcmd(int (*line_func)(char *line, void *data), void *data, const char *fm
 void samlib_version(int *major, int *minor);
 const char *samlib_versionstr(void);
 
+/* The opaque walkfile structure. If you pass NULL to the walkfile
+ * functions they will use a builtin global. For multi-threaded apps
+ * you must supply a walkfile struct.
+ */
+struct walkfile_struct {
+	void *ignores;
+	void *filters;
+};
 
 /* Main function. Path can be a directory or a file. The file_func()
  * will be called on every file except . (dot) files. Honors both
  * ignores and filter if set.
  */
-int walkfiles(const char *path,
+int walkfiles(struct walkfile_struct *walk, const char *path,
 			  int (*file_func)(const char *path, struct stat *sbuf),
 			  int flags);
 
@@ -49,18 +57,18 @@ int walkfiles(const char *path,
 #define WALK_VERBOSE 2
 
 /* Adds a regular expression of paths to ignore. */
-void add_ignore(const char *str);
+void add_ignore(struct walkfile_struct *walk, const char *str);
 
 /* Check if a path matches one of the ignores. */
-int check_ignores(const char *path);
+int check_ignores(struct walkfile_struct *walk, const char *path);
 
 /* Sets a filter to match on every file. This uses file globbing, not
  * regular expressions.
  */
-void add_filter(const char *pat);
+void add_filter(struct walkfile_struct *walk, const char *pat);
 
 /* Check if the file name matches a filter */
-int check_filters(const char *fname);
+int check_filters(struct walkfile_struct *walk, const char *fname);
 
 /* Example of ignores vs filtering. If you only want to process text
  * files, you might use a filter of "*.txt". If you want to ignore all

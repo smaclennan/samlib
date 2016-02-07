@@ -16,7 +16,7 @@ CFILES = version.c readfile.c readcmd.c do-system.c walkfiles.c
 
 O := $(CFILES:.c=.o)
 
-all: libsamlib.a stest
+all: libsamlib.a
 
 stest: stest.c libsamlib.a
 	$(QUIET_CC)$(CC) -o $@ $+

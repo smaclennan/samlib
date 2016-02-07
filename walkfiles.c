@@ -12,20 +12,38 @@
 
 #include "samlib.h"
 
-static struct ignore {
+struct ignore {
 	regex_t regex;
 	struct ignore *next;
-} *ignores;
+};
 
-static struct filter {
+struct filter {
 	char *pat;
 	struct filter *next;
-} *filters;
+};
+
+static struct walkfile_struct global_walkfiles;
 
 #define walk_verbose (flags & WALK_VERBOSE)
 
-void add_ignore(const char *str)
+#define walk_ignores							\
+	struct ignore *ignores;						\
+	if (walk)									\
+		ignores = walk->ignores;				\
+	else										\
+		ignores = global_walkfiles.ignores
+
+#define walk_filters							\
+	struct filter *filters;						\
+	if (walk)									\
+		filters = walk->filters;				\
+	else										\
+		filters = global_walkfiles.filters
+
+void add_ignore(struct walkfile_struct *walk, const char *str)
 {
+	walk_ignores;
+
 	struct ignore *ignore = calloc(1, sizeof(struct ignore));
 	if (!ignore) {
 		puts("out of memory");
@@ -41,8 +59,9 @@ void add_ignore(const char *str)
 	ignores = ignore;
 }
 
-int check_ignores(const char *path)
+int check_ignores(struct walkfile_struct *walk, const char *path)
 {
+	walk_ignores;
 	if (!ignores) return 0;
 
 	struct ignore *ignore;
@@ -54,9 +73,10 @@ int check_ignores(const char *path)
 	return 0;
 }
 
-void add_filter(const char *pat)
+void add_filter(struct walkfile_struct *walk, const char *pat)
 {
 	struct filter *f;
+	walk_filters;
 
 	for (f = filters; f; f = f->next)
 		if (strcmp(f->pat, pat) == 0)
@@ -73,8 +93,9 @@ void add_filter(const char *pat)
 	filters = f;
 }
 
-int check_filters(const char *fname)
+int check_filters(struct walkfile_struct *walk, const char *fname)
 {
+	walk_filters;
 	if (!filters) return 1;
 
 	struct filter *f;
@@ -85,7 +106,7 @@ int check_filters(const char *fname)
 	return 0;
 }
 
-static int do_dir(const char *dname,
+static int do_dir(struct walkfile_struct *walk, const char *dname,
 				  int (*file_func)(const char *path, struct stat *sbuf),
 				  int flags)
 {
@@ -110,7 +131,7 @@ static int do_dir(const char *dname,
 			continue;
 		}
 
-		if (check_ignores(path)) {
+		if (check_ignores(walk, path)) {
 			if (walk_verbose) printf("Ignoring: %s\n", path);
 			continue;
 		}
@@ -125,10 +146,10 @@ static int do_dir(const char *dname,
 		/* Deal with links */
 
 		if (S_ISDIR(sbuf.st_mode))
-			error |= do_dir(path, file_func, flags);
+			error |= do_dir(walk, path, file_func, flags);
 		else if (S_ISLNK(sbuf.st_mode) && (flags & WALK_LINKS) == 0) {
 			if (walk_verbose) printf("Link %s\n", path);
-		} else if (check_filters(ent->d_name))
+		} else if (check_filters(walk, ent->d_name))
 			error |= file_func(path, &sbuf);
 		else if (walk_verbose)
 			printf("Skipping %s\n", ent->d_name);
@@ -142,7 +163,7 @@ static int do_dir(const char *dname,
 /* Path can be a directory or a file.
  * Note: directories ignore .(dot) files!
  */
-int walkfiles(const char *path,
+int walkfiles(struct walkfile_struct *walk, const char *path,
 			  int (*file_func)(const char *path, struct stat *sbuf),
 			  int flags)
 {
@@ -152,8 +173,11 @@ int walkfiles(const char *path,
 		return -1;
 	}
 
+	if (walk == NULL)
+		walk = &global_walkfiles;
+
 	if (S_ISDIR(sbuf.st_mode))
-		return do_dir(path, file_func, flags);
+		return do_dir(walk, path, file_func, flags);
 	else
 		return file_func(path, &sbuf);
 }
