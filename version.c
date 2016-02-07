@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "samlib.h"
 
 void samlib_version(int *major, int *minor)
