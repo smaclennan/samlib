@@ -9,7 +9,7 @@
 
 #include "samlib.h"
 
-static int outit(char *line, void *data)
+int outit(char *line, void *data)
 {
 	puts(line);
 	return 0;
@@ -24,7 +24,9 @@ int main(int argc, char *argv[])
 
 #if 0
 	return readfile(outit, NULL, argv[1]) != 0;
-#else
+#elif 0
 	return readcmd(outit, NULL, "ls %s", argv[1]);
+#else
+	return do_system("ls %s", argv[1]);
 #endif
 }
