@@ -22,5 +22,9 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	return readfile(argv[1], outit, NULL) != 0;
+#if 0
+	return readfile(outit, NULL, argv[1]) != 0;
+#else
+	return readcmd(outit, NULL, "ls %s", argv[1]);
+#endif
 }

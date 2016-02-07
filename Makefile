@@ -12,7 +12,7 @@ QUIET_AR      = $(Q:@=@echo    '     AR       '$@;)
 .c.o:
 	$(QUIET_CC)$(CC) -o $@ -c $(CFLAGS) $<
 
-CFILES = readfile.c
+CFILES = readfile.c readcmd.c
 
 O := $(CFILES:.c=.o)
 
