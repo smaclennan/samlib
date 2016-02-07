@@ -27,6 +27,9 @@ int readfile(int (*line_func)(char *line, void *data), void *data, const char *p
  */
 int readcmd(int (*line_func)(char *line, void *data), void *data, const char *fmt, ...);
 
+/* This mimics the shell's `mkdir -p' */
+int mkdir_p(const char *dir);
+
 void samlib_version(int *major, int *minor);
 const char *samlib_versionstr(void);
 
