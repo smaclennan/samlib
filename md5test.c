@@ -33,7 +33,7 @@ struct test {
 };
 #define N_TEST ((sizeof(test_suite) / sizeof(struct test)))
 
-int main(int argc, char *argv[])
+static int do_testsuite(void)
 {
 	uint8_t hash[16];
 	char str[34];
@@ -60,8 +60,37 @@ int main(int argc, char *argv[])
 	return rc;
 }
 
+static int md5sum(char *line, void *data)
+{
+	md5ctx *ctx = data;
+	md5_update(ctx, line, strlen(line));
+	md5_update(ctx, "\n", 1);
+	return 0;
+}
+
+int main(int argc, char *argv[])
+{
+	if (argc == 1)
+		return do_testsuite();
+
+	md5ctx ctx;
+	md5_init(&ctx);
+
+	if (readfile(md5sum, &ctx, argv[1])) {
+		puts("Readfile failed");
+		exit(1);
+	}
+
+	uint8_t hash[16];
+	char str[34];
+	md5_final(&ctx, hash);
+	printf("%s  %s\n", md5str(hash, str), argv[1]);
+
+	return 0;
+}
+
 /*
  * Local Variables:
- * compile-command: "gcc -O3 -Wall md5test.c -o md5test -lsamlib"
+ * compile-command: "gcc -O3 -Wall md5test.c -o md5test ./libsamlib.a"
  * End:
  */

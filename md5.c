@@ -37,7 +37,7 @@ static void md5_calc(md5ctx *ctx)
 	dd = D;
 
 	/* Round 1 */
-#define R1(a, b, c, d, k, s, t) a = b + ROTATE((a + F(b, c, d) + x[k] + t), s)
+#define R1(a, b, c, d, k, s, t) a = b + ROTATE((a + F(b,c,d) + x[k] + t), s)
 	R1(A, B, C, D,   0,  7, 0xd76aa478);
 	R1(D, A, B, C,   1, 12, 0xe8c7b756);
 	R1(C, D, A, B,   2, 17, 0x242070db);
