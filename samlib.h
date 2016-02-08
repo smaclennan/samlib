@@ -87,6 +87,8 @@ typedef struct md5_ctx {
 	uint32_t size;
 } md5ctx;
 
+#define MD5_DIGEST_LEN 16
+
 void md5(void *data, int len, uint8_t *hash);
 void md5_init(md5ctx *ctx);
 void md5_update(md5ctx *ctx, void *data, int len);

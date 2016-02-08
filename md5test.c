@@ -35,7 +35,7 @@ struct test {
 
 static int do_testsuite(void)
 {
-	uint8_t hash[16];
+	uint8_t hash[MD5_DIGEST_LEN];
 	char str[34];
 	int i, rc = 0;
 
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	uint8_t hash[16];
+	uint8_t hash[MD5_DIGEST_LEN];
 	char str[34];
 	md5_final(&ctx, hash);
 	printf("%s  %s\n", md5str(hash, str), argv[1]);
