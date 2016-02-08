@@ -4,6 +4,7 @@
 #define SAMLIB_MAJOR 1
 #define SAMLIB_MINOR 0
 
+#include <stdint.h>
 #include <sys/stat.h>
 
 /* Read a file line at a time calling line_func() for each
