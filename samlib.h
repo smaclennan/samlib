@@ -78,4 +78,19 @@ int check_filters(struct walkfile_struct *walk, const char *fname);
  * text files, you could use an ignore of "\.txt$".
  */
 
+/* md5 functions */
+
+typedef struct md5_ctx {
+	uint32_t abcd[4];
+	uint8_t buf[64];
+	int cur;
+	uint32_t size;
+} md5ctx;
+
+void md5(void *data, int len, uint8_t *hash);
+void md5_init(md5ctx *ctx);
+void md5_update(md5ctx *ctx, void *data, int len);
+void md5_final(md5ctx *ctx, uint8_t *hash);
+char *md5str(uint8_t *hash, char *str);
+
 #endif

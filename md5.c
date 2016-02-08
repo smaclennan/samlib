@@ -7,30 +7,19 @@
 #include <ctype.h>
 #include <errno.h>
 
+#include "samlib.h"
+
 /* RFC 1321 */
-
-typedef struct md5_ctx {
-	uint32_t abcd[4];
-	uint8_t buf[64]; /* 512 / 8 */
-	int cur;
-	uint32_t size; /* size in bytes */
-} md5ctx;
-
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-
-/* F(X,Y,Z) = XY v not(X) Z */
-#define F(x, y, z) (((x) & (y)) | ((~x) & (z)))
-/* G(X,Y,Z) = XZ v Y not(Z) */
-#define G(x, y, z) (((x) & (z)) | ((y) & (~z)))
-/* H(X,Y,Z) = X xor Y xor Z */
-#define H(x, y, z) ((x) ^ (y) ^ (z))
-/* I(X,Y,Z) = Y xor (X v not(Z)) */
-#define I(x, y, z) ((y) ^ ((x) | ~(z)))
 
 #define A (ctx->abcd[0])
 #define B (ctx->abcd[1])
 #define C (ctx->abcd[2])
 #define D (ctx->abcd[3])
+/* Nobody knows what happened to E... */
+#define F(x, y, z) (((x) & (y)) | ((~x) & (z)))
+#define G(x, y, z) (((x) & (z)) | ((y) & (~z)))
+#define H(x, y, z) ((x) ^ (y) ^ (z))
+#define I(x, y, z) ((y) ^ ((x) | ~(z)))
 
 #define ROTATE(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
 
@@ -123,13 +112,11 @@ static void md5_calc(md5ctx *ctx)
 	R4(C, D, A, B,   2, 15, 0x2ad7d2bb);
 	R4(B, C, D, A,   9, 21, 0xeb86d391);
 
-	/* Then perform the following additions. (That is increment each
-	 * of the four registers by the value it had before this block
-	 *was started.) */
-	A = A + aa;
-	B = B + bb;
-	C = C + cc;
-	D = D + dd;
+	/* Then perform the following additions. */
+	A += aa;
+	B += bb;
+	C += cc;
+	D += dd;
 }
 
 void md5_init(md5ctx *ctx)
@@ -139,7 +126,7 @@ void md5_init(md5ctx *ctx)
 	C = 0x98badcfe;
 	D = 0x10325476;
 
-	ctx->cur = 0;
+	ctx->cur  = 0;
 	ctx->size = 0;
 }
 
@@ -147,7 +134,7 @@ void md5_update(md5ctx *ctx, void *data, int len)
 {
 	while (len > 0) {
 		int left = 64 - ctx->cur;
-		int n = MIN(len, left);
+		int n = len < left ? len : left;
 
 		memcpy(ctx->buf + ctx->cur, data, n);
 		ctx->cur += n;
@@ -196,57 +183,11 @@ char *md5str(uint8_t *hash, char *str)
 	return str;
 }
 
-struct test {
-	char *in;
-	char *hash;
-} test_suite[] = {
-/* From RFC */
-{ "", "d41d8cd98f00b204e9800998ecf8427e" },
-{ "a", "0cc175b9c0f1b6a831c399e269772661" },
-{ "abc", "900150983cd24fb0d6963f7d28e17f72" },
-{ "message digest", "f96b697d7cb7938d525a2f31aaf161d0" },
-{ "abcdefghijklmnopqrstuvwxyz", "c3fcd3d76192e4007dfb496cca67e13b" },
-{ "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
-  "d174ab98d277d9f5a5611c2c9f419d9f" },
-{ "12345678901234567890123456789012345678901234567890123456789012345678901234567890",
-  "57edf4a22be3c955ac49da2e2107b67a" },
-/* Mine - results from md5sum */
-{ "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123", /* 56 */
-  "27eca74a76daae63f472b250b5bcff9d" },
-{ "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234", /* 57 */
-  "7b704b4e3d241d250fd327d433c27250" },
-{ "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789ab", /* 64 */
-  "a27155ae242d64584221b66416d22a61" },
-};
-#define N_TEST ((sizeof(test_suite) / sizeof(struct test)))
-
-int main(int argc, char *argv[])
+void md5(void *data, int len, uint8_t *hash)
 {
 	md5ctx ctx;
-	uint8_t hash[16];
-	char str[34];
-	int i;
 
-	for (i = 0; i < N_TEST; ++i) {
-		md5_init(&ctx);
-		md5_update(&ctx, test_suite[i].in, strlen(test_suite[i].in));
-		md5_final(&ctx, hash);
-
-		if (strcmp(md5str(hash, str), test_suite[i].hash)) {
-			printf("Mismatch: %s\n", test_suite[i].in);
-			puts(str);
-			puts(test_suite[i].hash);
-		}
-	}
-
-	return 0;
+	md5_init(&ctx);
+	md5_update(&ctx, data, len);
+	md5_final(&ctx, hash);
 }
-
-/*
-MD5 test suite:
-	*/
-/*
- * Local Variables:
- * compile-command: "gcc -O3 -Wall md5.c -o mymd5"
- * End:
- */
