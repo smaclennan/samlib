@@ -100,20 +100,6 @@ static uint32_t t[] = {
 	0xeb86d391,
 };
 
-void Decode(
-  uint32_t*      output,
-  unsigned char* input,
-  uint32_t       len)
-{
-  uint32_t i, j;
-
-  for (i = 0, j = 0; j < len; i++, j += 4)
-  {
-	output[i] = ((uint32_t)input[j]) | (((uint32_t)input[j + 1]) << 8) |
-				(((uint32_t)input[j + 2]) << 16) | (((uint32_t)input[j + 3]) << 24);
-  }
-}
-
 #define ROTATE(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
 
 /* Calculate one block */
@@ -225,7 +211,7 @@ void md5_init(md5ctx *ctx)
 	ctx->size = 0;
 }
 
-void md5_update(md5ctx *ctx, uint8_t *data, int len)
+void md5_update(md5ctx *ctx, void *data, int len)
 {
 	while (len > 0) {
 		int left = 64 - ctx->cur;
@@ -249,6 +235,12 @@ static void md5_pad(md5ctx *ctx)
 	ctx->buf[ctx->cur++] = 0x80;
 	memset(ctx->buf + ctx->cur, 0, 64 - ctx->cur);
 
+	if (ctx->cur > 56) {
+		md5_calc(ctx);
+		memset(ctx->buf, 0, sizeof(ctx->buf));
+		ctx->cur = 0;
+	}
+
 	/* append length */
 	uint64_t size = ctx->size * 8; /* convert to bits */
 	memcpy(ctx->buf + 56, &size, 8);
@@ -259,35 +251,67 @@ void md5_final(md5ctx *ctx, uint8_t *hash)
 	md5_pad(ctx);
 	md5_calc(ctx);
 	memcpy(hash, ctx->abcd, sizeof(ctx->abcd));
+	memset(ctx, 0, sizeof(md5ctx));
 }
+
+char *md5str(uint8_t *hash, char *str)
+{
+	int i;
+
+	for (i = 0; i < 32; i += 2, ++hash)
+		sprintf(str + i, "%02x", *hash);
+
+	return str;
+}
+
+struct test {
+	char *in;
+	char *hash;
+} test_suite[] = {
+/* From RFC */
+{ "", "d41d8cd98f00b204e9800998ecf8427e" },
+{ "a", "0cc175b9c0f1b6a831c399e269772661" },
+{ "abc", "900150983cd24fb0d6963f7d28e17f72" },
+{ "message digest", "f96b697d7cb7938d525a2f31aaf161d0" },
+{ "abcdefghijklmnopqrstuvwxyz", "c3fcd3d76192e4007dfb496cca67e13b" },
+{ "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+  "d174ab98d277d9f5a5611c2c9f419d9f" },
+{ "12345678901234567890123456789012345678901234567890123456789012345678901234567890",
+  "57edf4a22be3c955ac49da2e2107b67a" },
+/* Mine - results from md5sum */
+{ "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123", /* 56 */
+  "27eca74a76daae63f472b250b5bcff9d" },
+{ "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234", /* 57 */
+  "7b704b4e3d241d250fd327d433c27250" },
+{ "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789ab", /* 64 */
+  "a27155ae242d64584221b66416d22a61" },
+};
+#define N_TEST ((sizeof(test_suite) / sizeof(struct test)))
 
 int main(int argc, char *argv[])
 {
 	md5ctx ctx;
 	uint8_t hash[16];
-
-	md5_init(&ctx);
-	md5_final(&ctx, hash);
-
+	char str[34];
 	int i;
-	for (i = 0; i < 16; ++i)
-		printf("%02x", hash[i]);
-	putchar('\n');
-	puts("d41d8cd98f00b204e9800998ecf8427e");
+
+	for (i = 0; i < N_TEST; ++i) {
+		md5_init(&ctx);
+		md5_update(&ctx, test_suite[i].in, strlen(test_suite[i].in));
+		md5_final(&ctx, hash);
+
+		if (strcmp(md5str(hash, str), test_suite[i].hash)) {
+			printf("Mismatch: %s\n", test_suite[i].in);
+			puts(str);
+			puts(test_suite[i].hash);
+		}
+	}
+
 	return 0;
 }
 
 /*
 MD5 test suite:
-MD5 ("") = d41d8cd98f00b204e9800998ecf8427e
-MD5 ("a") = 0cc175b9c0f1b6a831c399e269772661
-MD5 ("abc") = 900150983cd24fb0d6963f7d28e17f72
-MD5 ("message digest") = f96b697d7cb7938d525a2f31aaf161d0
-MD5 ("abcdefghijklmnopqrstuvwxyz") = c3fcd3d76192e4007dfb496cca67e13b
-MD5 ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") =
-d174ab98d277d9f5a5611c2c9f419d9f
-MD5 ("123456789012345678901234567890123456789012345678901234567890123456
-78901234567890") = 57edf4a22be3c955ac49da2e2107b67a
 	*/
 /*
  * Local Variables:
