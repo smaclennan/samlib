@@ -32,74 +32,6 @@ typedef struct md5_ctx {
 #define C (ctx->abcd[2])
 #define D (ctx->abcd[3])
 
-static uint32_t t[] = {
-	0, /* RFC 1 based */
-	0xd76aa478,
-	0xe8c7b756,
-	0x242070db,
-	0xc1bdceee,
-	0xf57c0faf,
-	0x4787c62a,
-	0xa8304613,
-	0xfd469501,
-	0x698098d8,
-	0x8b44f7af,
-	0xffff5bb1,
-	0x895cd7be,
-	0x6b901122,
-	0xfd987193,
-	0xa679438e,
-	0x49b40821,
-	0xf61e2562,
-	0xc040b340,
-	0x265e5a51,
-	0xe9b6c7aa,
-	0xd62f105d,
-	0x2441453,
-	0xd8a1e681,
-	0xe7d3fbc8,
-	0x21e1cde6,
-	0xc33707d6,
-	0xf4d50d87,
-	0x455a14ed,
-	0xa9e3e905,
-	0xfcefa3f8,
-	0x676f02d9,
-	0x8d2a4c8a,
-	0xfffa3942,
-	0x8771f681,
-	0x6d9d6122,
-	0xfde5380c,
-	0xa4beea44,
-	0x4bdecfa9,
-	0xf6bb4b60,
-	0xbebfbc70,
-	0x289b7ec6,
-	0xeaa127fa,
-	0xd4ef3085,
-	0x4881d05,
-	0xd9d4d039,
-	0xe6db99e5,
-	0x1fa27cf8,
-	0xc4ac5665,
-	0xf4292244,
-	0x432aff97,
-	0xab9423a7,
-	0xfc93a039,
-	0x655b59c3,
-	0x8f0ccc92,
-	0xffeff47d,
-	0x85845dd1,
-	0x6fa87e4f,
-	0xfe2ce6e0,
-	0xa3014314,
-	0x4e0811a1,
-	0xf7537e82,
-	0xbd3af235,
-	0x2ad7d2bb,
-	0xeb86d391,
-};
-
 #define ROTATE(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
 
 /* Calculate one block */
@@ -116,80 +48,80 @@ static void md5_calc(md5ctx *ctx)
 	dd = D;
 
 	/* Round 1 */
-#define R1(a, b, c, d, k, s, i) a = b + ROTATE((a + F(b, c, d) + x[k] + t[i]), s)
-	R1(A, B, C, D,   0,  7,  1);
-	R1(D, A, B, C,   1, 12,  2);
-	R1(C, D, A, B,   2, 17,  3);
-	R1(B, C, D, A,   3, 22,  4);
-	R1(A, B, C, D,   4,  7,  5);
-	R1(D, A, B, C,   5, 12,  6);
-	R1(C, D, A, B,   6, 17,  7);
-	R1(B, C, D, A,   7, 22,  8);
-	R1(A, B, C, D,   8,  7,  9);
-	R1(D, A, B, C,   9, 12, 10);
-	R1(C, D, A, B,  10, 17, 11);
-	R1(B, C, D, A,  11, 22, 12);
-	R1(A, B, C, D,  12,  7, 13);
-	R1(D, A, B, C,  13, 12, 14);
-	R1(C, D, A, B,  14, 17, 15);
-	R1(B, C, D, A,  15, 22, 16);
+#define R1(a, b, c, d, k, s, t) a = b + ROTATE((a + F(b, c, d) + x[k] + t), s)
+	R1(A, B, C, D,   0,  7, 0xd76aa478);
+	R1(D, A, B, C,   1, 12, 0xe8c7b756);
+	R1(C, D, A, B,   2, 17, 0x242070db);
+	R1(B, C, D, A,   3, 22, 0xc1bdceee);
+	R1(A, B, C, D,   4,  7, 0xf57c0faf);
+	R1(D, A, B, C,   5, 12, 0x4787c62a);
+	R1(C, D, A, B,   6, 17, 0xa8304613);
+	R1(B, C, D, A,   7, 22, 0xfd469501);
+	R1(A, B, C, D,   8,  7, 0x698098d8);
+	R1(D, A, B, C,   9, 12, 0x8b44f7af);
+	R1(C, D, A, B,  10, 17, 0xffff5bb1);
+	R1(B, C, D, A,  11, 22, 0x895cd7be);
+	R1(A, B, C, D,  12,  7, 0x6b901122);
+	R1(D, A, B, C,  13, 12, 0xfd987193);
+	R1(C, D, A, B,  14, 17, 0xa679438e);
+	R1(B, C, D, A,  15, 22, 0x49b40821);
 
 	 /* Round 2 */
-#define R2(a, b, c, d, k, s, i) a = b + ROTATE((a + G(b,c,d) + x[k] + t[i]), s)
-	R2(A, B, C, D,   1,  5, 17);
-	R2(D, A, B, C,   6,  9, 18);
-	R2(C, D, A, B,  11, 14, 19);
-	R2(B, C, D, A,   0, 20, 20);
-	R2(A, B, C, D,   5,  5, 21);
-	R2(D, A, B, C,  10,  9, 22);
-	R2(C, D, A, B,  15, 14, 23);
-	R2(B, C, D, A,   4, 20, 24);
-	R2(A, B, C, D,   9,  5, 25);
-	R2(D, A, B, C,  14,  9, 26);
-	R2(C, D, A, B,   3, 14, 27);
-	R2(B, C, D, A,   8, 20, 28);
-	R2(A, B, C, D,  13,  5, 29);
-	R2(D, A, B, C,   2,  9, 30);
-	R2(C, D, A, B,   7, 14, 31);
-	R2(B, C, D, A,  12, 20, 32);
+#define R2(a, b, c, d, k, s, t) a = b + ROTATE((a + G(b,c,d) + x[k] + t), s)
+	R2(A, B, C, D,   1,  5, 0xf61e2562);
+	R2(D, A, B, C,   6,  9, 0xc040b340);
+	R2(C, D, A, B,  11, 14, 0x265e5a51);
+	R2(B, C, D, A,   0, 20, 0xe9b6c7aa);
+	R2(A, B, C, D,   5,  5, 0xd62f105d);
+	R2(D, A, B, C,  10,  9, 0x02441453);
+	R2(C, D, A, B,  15, 14, 0xd8a1e681);
+	R2(B, C, D, A,   4, 20, 0xe7d3fbc8);
+	R2(A, B, C, D,   9,  5, 0x21e1cde6);
+	R2(D, A, B, C,  14,  9, 0xc33707d6);
+	R2(C, D, A, B,   3, 14, 0xf4d50d87);
+	R2(B, C, D, A,   8, 20, 0x455a14ed);
+	R2(A, B, C, D,  13,  5, 0xa9e3e905);
+	R2(D, A, B, C,   2,  9, 0xfcefa3f8);
+	R2(C, D, A, B,   7, 14, 0x676f02d9);
+	R2(B, C, D, A,  12, 20, 0x8d2a4c8a);
 
 	/* Round 3 */
-#define R3(a, b, c, d, k, s, i) a = b + ROTATE((a + H(b,c,d) + x[k] + t[i]), s)
-	R3(A, B, C, D,   5,  4, 33);
-	R3(D, A, B, C,   8, 11, 34);
-	R3(C, D, A, B,  11, 16, 35);
-	R3(B, C, D, A,  14, 23, 36);
-	R3(A, B, C, D,   1,  4, 37);
-	R3(D, A, B, C,   4, 11, 38);
-	R3(C, D, A, B,   7, 16, 39);
-	R3(B, C, D, A,  10, 23, 40);
-	R3(A, B, C, D,  13,  4, 41);
-	R3(D, A, B, C,   0, 11, 42);
-	R3(C, D, A, B,   3, 16, 43);
-	R3(B, C, D, A,   6, 23, 44);
-	R3(A, B, C, D,   9,  4, 45);
-	R3(D, A, B, C,  12, 11, 46);
-	R3(C, D, A, B,  15, 16, 47);
-	R3(B, C, D, A,   2, 23, 48);
+#define R3(a, b, c, d, k, s, t) a = b + ROTATE((a + H(b,c,d) + x[k] + t), s)
+	R3(A, B, C, D,   5,  4, 0xfffa3942);
+	R3(D, A, B, C,   8, 11, 0x8771f681);
+	R3(C, D, A, B,  11, 16, 0x6d9d6122);
+	R3(B, C, D, A,  14, 23, 0xfde5380c);
+	R3(A, B, C, D,   1,  4, 0xa4beea44);
+	R3(D, A, B, C,   4, 11, 0x4bdecfa9);
+	R3(C, D, A, B,   7, 16, 0xf6bb4b60);
+	R3(B, C, D, A,  10, 23, 0xbebfbc70);
+	R3(A, B, C, D,  13,  4, 0x289b7ec6);
+	R3(D, A, B, C,   0, 11, 0xeaa127fa);
+	R3(C, D, A, B,   3, 16, 0xd4ef3085);
+	R3(B, C, D, A,   6, 23, 0x04881d05);
+	R3(A, B, C, D,   9,  4, 0xd9d4d039);
+	R3(D, A, B, C,  12, 11, 0xe6db99e5);
+	R3(C, D, A, B,  15, 16, 0x1fa27cf8);
+	R3(B, C, D, A,   2, 23, 0xc4ac5665);
 
 	/* Round 4 */
-#define R4(a, b, c, d, k, s, i) a = b + ROTATE((a + I(b,c,d) + x[k] + t[i]), s)
-	R4(A, B, C, D,   0,  6, 49);
-	R4(D, A, B, C,   7, 10, 50);
-	R4(C, D, A, B,  14, 15, 51);
-	R4(B, C, D, A,   5, 21, 52);
-	R4(A, B, C, D,  12,  6, 53);
-	R4(D, A, B, C,   3, 10, 54);
-	R4(C, D, A, B,  10, 15, 55);
-	R4(B, C, D, A,   1, 21, 56);
-	R4(A, B, C, D,   8,  6, 57);
-	R4(D, A, B, C,  15, 10, 58);
-	R4(C, D, A, B,   6, 15, 59);
-	R4(B, C, D, A,  13, 21, 60);
-	R4(A, B, C, D,   4,  6, 61);
-	R4(D, A, B, C,  11, 10, 62);
-	R4(C, D, A, B,   2, 15, 63);
-	R4(B, C, D, A,   9, 21, 64);
+#define R4(a, b, c, d, k, s, t) a = b + ROTATE((a + I(b,c,d) + x[k] + t), s)
+	R4(A, B, C, D,   0,  6, 0xf4292244);
+	R4(D, A, B, C,   7, 10, 0x432aff97);
+	R4(C, D, A, B,  14, 15, 0xab9423a7);
+	R4(B, C, D, A,   5, 21, 0xfc93a039);
+	R4(A, B, C, D,  12,  6, 0x655b59c3);
+	R4(D, A, B, C,   3, 10, 0x8f0ccc92);
+	R4(C, D, A, B,  10, 15, 0xffeff47d);
+	R4(B, C, D, A,   1, 21, 0x85845dd1);
+	R4(A, B, C, D,   8,  6, 0x6fa87e4f);
+	R4(D, A, B, C,  15, 10, 0xfe2ce6e0);
+	R4(C, D, A, B,   6, 15, 0xa3014314);
+	R4(B, C, D, A,  13, 21, 0x4e0811a1);
+	R4(A, B, C, D,   4,  6, 0xf7537e82);
+	R4(D, A, B, C,  11, 10, 0xbd3af235);
+	R4(C, D, A, B,   2, 15, 0x2ad7d2bb);
+	R4(B, C, D, A,   9, 21, 0xeb86d391);
 
 	/* Then perform the following additions. (That is increment each
 	 * of the four registers by the value it had before this block
