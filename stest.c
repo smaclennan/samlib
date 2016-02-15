@@ -9,7 +9,7 @@
 
 #include "samlib.h"
 
-int outit(char *line, void *data)
+static int outit(char *line, void *data)
 {
 	puts(line);
 	return 0;

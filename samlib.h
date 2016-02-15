@@ -31,6 +31,8 @@ int readcmd(int (*line_func)(char *line, void *data), void *data, const char *fm
 /* This mimics the shell's `mkdir -p' */
 int mkdir_p(const char *dir);
 
+int do_system(const char *fmt, ...);
+
 void samlib_version(int *major, int *minor);
 const char *samlib_versionstr(void);
 

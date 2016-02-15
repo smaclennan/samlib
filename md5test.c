@@ -9,7 +9,7 @@
 
 #include "samlib.h"
 
-struct test {
+static struct test {
 	char *in;
 	char *hash;
 } test_suite[] = {

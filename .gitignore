@@ -1,3 +1,4 @@
 *.o
 libsamlib.a
 stest
+md5test
