@@ -41,6 +41,7 @@ const char *samlib_versionstr(void);
 struct walkfile_struct {
 	void *ignores;
 	void *filters;
+	int flags;
 };
 
 /* Main function. Path can be a directory or a file. The file_func()
