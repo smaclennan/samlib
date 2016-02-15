@@ -177,7 +177,7 @@ int walkfiles(struct walkfile_struct *walk, const char *path,
 	if (file_func)
 		walk->file_func = file_func;
 	else if (!walk->file_func) {
-		errno = -EINVAL;
+		errno = EINVAL;
 		return -1;
 	}
 	walk->flags |= flags;
