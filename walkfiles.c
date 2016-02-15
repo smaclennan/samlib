@@ -106,8 +106,7 @@ int check_filters(struct walkfile_struct *walk, const char *fname)
 	return 0;
 }
 
-static int do_dir(struct walkfile_struct *walk, const char *dname,
-				  int (*file_func)(const char *path, struct stat *sbuf))
+static int do_dir(struct walkfile_struct *walk, const char *dname)
 {
 	/* 2015/9/8 Largest path on zonker is 239 */
 	char path[1024];
@@ -145,11 +144,11 @@ static int do_dir(struct walkfile_struct *walk, const char *dname,
 		/* Deal with links */
 
 		if (S_ISDIR(sbuf.st_mode))
-			error |= do_dir(walk, path, file_func);
+			error |= do_dir(walk, path);
 		else if (S_ISLNK(sbuf.st_mode) && (walk->flags & WALK_LINKS) == 0) {
 			if (walk_verbose) printf("Link %s\n", path);
 		} else if (check_filters(walk, ent->d_name))
-			error |= file_func(path, &sbuf);
+			error |= walk->file_func(path, &sbuf);
 		else if (walk_verbose)
 			printf("Skipping %s\n", ent->d_name);
 	}
@@ -175,10 +174,16 @@ int walkfiles(struct walkfile_struct *walk, const char *path,
 	if (walk == NULL)
 		walk = &global_walkfiles;
 
+	if (file_func)
+		walk->file_func = file_func;
+	else if (!walk->file_func) {
+		errno = -EINVAL;
+		return -1;
+	}
 	walk->flags |= flags;
 
 	if (S_ISDIR(sbuf.st_mode))
-		return do_dir(walk, path, file_func);
+		return do_dir(walk, path);
 	else
-		return file_func(path, &sbuf);
+		return walk->file_func(path, &sbuf);
 }

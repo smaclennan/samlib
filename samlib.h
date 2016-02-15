@@ -39,6 +39,7 @@ const char *samlib_versionstr(void);
  * you must supply a walkfile struct.
  */
 struct walkfile_struct {
+	int (*file_func)(const char *path, struct stat *sbuf);
 	void *ignores;
 	void *filters;
 	int flags;
