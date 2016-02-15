@@ -172,10 +172,8 @@ int walkfiles(struct walkfile_struct *walk, const char *path,
 		return -1;
 	}
 
-	if (walk == NULL) {
+	if (walk == NULL)
 		walk = &global_walkfiles;
-		memset(walk, 0, sizeof(struct walkfile_struct));
-	}
 
 	walk->flags |= flags;
 
