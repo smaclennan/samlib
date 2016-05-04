@@ -19,6 +19,8 @@ O := $(CFILES:.c=.o)
 
 all: libsamlib.a
 
+*.o: samlib.h
+
 stest: stest.c libsamlib.a
 	$(QUIET_CC)$(CC) -o $@ $+
 
