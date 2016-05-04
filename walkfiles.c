@@ -56,7 +56,10 @@ void add_ignore(struct walkfile_struct *walk, const char *str)
 	}
 
 	ignore->next = ignores;
-	ignores = ignore;
+	if (walk)
+		walk->ignores = ignore;
+	else
+		global_walkfiles.ignores = ignore;
 }
 
 int check_ignores(struct walkfile_struct *walk, const char *path)
@@ -90,7 +93,10 @@ void add_filter(struct walkfile_struct *walk, const char *pat)
 	}
 
 	f->next = filters;
-	filters = f;
+	if (walk)
+		walk->filters = f;
+	else
+		global_walkfiles.filters = f;
 }
 
 int check_filters(struct walkfile_struct *walk, const char *fname)
