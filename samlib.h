@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <sys/stat.h>
+#include <netinet/in.h>
 
 /* Read a file line at a time calling line_func() for each
  * line. Removes the NL from the line. If line_func() returns
@@ -99,5 +100,10 @@ void md5_init(md5ctx *ctx);
 void md5_update(md5ctx *ctx, void *data, int len);
 void md5_final(md5ctx *ctx, uint8_t *hash);
 char *md5str(uint8_t *hash, char *str);
+
+/* IP functions */
+
+/* Returns 0 on success. The args addr and/or mask can be NULL. */
+int ip_addr(const char *ifname, struct in_addr *addr, struct in_addr *mask);
 
 #endif
