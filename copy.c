@@ -21,12 +21,16 @@ int copy_file(const char *from, const char *to)
 		return -2;
 
 	struct stat sbuf;
-	if (fstat(in, &sbuf))
+	if (fstat(in, &sbuf)) {
+		close(in);
 		return -2;
+	}
 
 	int out = creat(to, sbuf.st_mode);
-	if (out < 0)
+	if (out < 0) {
+		close(in);
 		return -3;
+	}
 
 #ifdef USE_SENDFILE
 	ssize_t n = sendfile(out, in, NULL, sbuf.st_size);
