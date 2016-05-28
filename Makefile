@@ -32,7 +32,7 @@ libsamlib.a: $O
 install:
 	install -m644 -D samlib.h $(DESTDIR)/usr/include/samlib.h
 	install -m644 -D linux-list.h $(DESTDIR)/usr/include/linux-list.h
-	install -m644 -D libsamlib.a $(DESTDIR)/$(LIBDIR)/libsamlib.a
+	install -m644 -D libsamlib.a $(DESTDIR)$(LIBDIR)/libsamlib.a
 
 clean:
 	rm -f *.o libsamlib.a stest md5test
