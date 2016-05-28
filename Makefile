@@ -35,4 +35,4 @@ install:
 	install -m644 -D libsamlib.a $(DESTDIR)/$(LIBDIR)/libsamlib.a
 
 clean:
-	rm -f *.o libsamlib.a stest
+	rm -f *.o libsamlib.a stest md5test
