@@ -29,6 +29,14 @@ int readfile(int (*line_func)(char *line, void *data), void *data, const char *p
  */
 int readcmd(int (*line_func)(char *line, void *data), void *data, const char *fmt, ...);
 
+/* Copy a file.
+ * Returns number of bytes copied or < 0 on error:
+ *    -1 = I/O error
+ *    -2 = error on from
+ *    -3 = error on to
+ */
+int copy_file(const char *from, const char *to);
+
 /* This mimics the shell's `mkdir -p' */
 int mkdir_p(const char *dir);
 
