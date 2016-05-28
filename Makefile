@@ -3,6 +3,8 @@
 D = -O2
 CFLAGS += -Wall $(D:1=-g)
 
+LIBDIR ?= /usr/lib64
+
 V	      = @
 Q	      = $(V:1=)
 QUIET_CC      = $(Q:@=@echo    '     CC       '$@;)
@@ -28,8 +30,9 @@ libsamlib.a: $O
 	$(QUIET_AR)$(AR) cr $@ $+
 
 install:
-	cp samlib.h /usr/include
-	cp libsamlib.a /usr/lib64/libsamlib.a
+	install -m644 -D samlib.h $(DESTDIR)/usr/include/samlib.h
+	install -m644 -D linux-list.h $(DESTDIR)/usr/include/linux-list.h
+	install -m644 -D libsamlib.a $(DESTDIR)/$(LIBDIR)/libsamlib.a
 
 clean:
 	rm -f *.o libsamlib.a stest
