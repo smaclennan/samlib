@@ -73,6 +73,9 @@ int walkfiles(struct walkfile_struct *walk, const char *path,
 /* Print out what walkfiles is doing for debugging. */
 #define WALK_VERBOSE 2
 
+/* Don't walk directories on other filesystems (like find -xdev) */
+#define WALK_XDEV 4
+
 /* Adds a regular expression of paths to ignore. */
 void add_ignore(struct walkfile_struct *walk, const char *str);
 

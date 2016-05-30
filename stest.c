@@ -9,9 +9,26 @@
 
 #include "samlib.h"
 
-static int outit(char *line, void *data)
+int outit(char *line, void *data)
 {
 	puts(line);
+	return 0;
+}
+
+int outdir(const char *path, struct stat *sbuf)
+{
+	static char lastdir[1024];
+	char *p;
+
+	if (!(p = strrchr(path, '/')))
+		return 0;
+
+	*p = 0;
+	if (strcmp(path, lastdir)) {
+		puts(path);
+		strcpy(lastdir, path);
+	}
+
 	return 0;
 }
 
@@ -36,7 +53,9 @@ int main(int argc, char *argv[])
 	return readfile(outit, NULL, argv[1]) != 0;
 #elif 0
 	return readcmd(outit, NULL, "ls %s", argv[1]);
-#else
+#elif 0
 	return do_system("ls %s", argv[1]);
+#else
+	return walkfiles(NULL, argv[1], outdir, WALK_XDEV);
 #endif
 }
