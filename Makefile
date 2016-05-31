@@ -19,7 +19,7 @@ CFILES += mkdir-p.c md5.c ip.c copy.c
 
 O := $(CFILES:.c=.o)
 
-all: libsamlib.a
+all: libsamlib.a stest
 
 *.o: samlib.h
 
