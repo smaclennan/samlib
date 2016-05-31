@@ -4,6 +4,13 @@
 
 #include "samlib.h"
 
+/* Default line function, mainly for debugging. */
+static int out_line(char *line, void *data)
+{
+	puts(line);
+	return 0;
+}
+
 /* Read a file line at a time calling line_func() for each
  * line. Removes the NL from the line. If line_func() returns
  * non-zero, it will stop reading the file and return 1.
@@ -24,7 +31,7 @@ int readfile(int (*line_func)(char *line, void *data), void *data, const char *p
 	int rc = 0;
 
 	if (!line_func)
-		goto closeit;
+		line_func = out_line;
 
 	while (getline(&line, &len, fp) != EOF) {
 		if ((p = strrchr(line, '\n')))
