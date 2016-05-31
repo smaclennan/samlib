@@ -59,22 +59,25 @@ struct walkfile_struct {
 /* Main function. Path can be a directory or a file. The file_func()
  * will be called on every file except . (dot) files. Honors both
  * ignores and filter if set.
+ *
+ * Note: By default walkfiles only walks regular files. The flags arg
+ * can contain any of the stat(2) file types to walk them too.
+ *
+ * Note 2: Because S_IFCHR is a subset of S_IFBLK, S_IFBLK will also
+ * match S_IFCHR. Check the real mode in your file function.
  */
 int walkfiles(struct walkfile_struct *walk, const char *path,
 			  int (*file_func)(const char *path, struct stat *sbuf),
 			  int flags);
 
-/* By default links are ignored. Set this flag to process links as
- * files.  NOTE: This flag is ignored for dirs/files specified as the
- * path argument to walkfiles().
- */
-#define WALK_LINKS 1
+/* For backwards compatibility */
+#define WALK_LINKS S_IFLNK
 
 /* Print out what walkfiles is doing for debugging. */
-#define WALK_VERBOSE 2
+#define WALK_VERBOSE 1
 
 /* Don't walk directories on other filesystems (like find -xdev) */
-#define WALK_XDEV 4
+#define WALK_XDEV 2
 
 /* Adds a regular expression of paths to ignore. */
 void add_ignore(struct walkfile_struct *walk, const char *str);

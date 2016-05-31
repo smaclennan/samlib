@@ -15,23 +15,6 @@ int outit(char *line, void *data)
 	return 0;
 }
 
-int outdir(const char *path, struct stat *sbuf)
-{
-	static char lastdir[1024];
-	char *p;
-
-	if (!(p = strrchr(path, '/')))
-		return 0;
-
-	*p = 0;
-	if (strcmp(path, lastdir)) {
-		puts(path);
-		strcpy(lastdir, path);
-	}
-
-	return 0;
-}
-
 int main(int argc, char *argv[])
 {
 	int c, major, minor;
@@ -56,6 +39,6 @@ int main(int argc, char *argv[])
 #elif 0
 	return do_system("ls %s", argv[1]);
 #else
-	return walkfiles(NULL, argv[1], outdir, WALK_XDEV);
+	return walkfiles(NULL, argv[1], NULL, 0);
 #endif
 }

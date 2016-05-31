@@ -116,7 +116,8 @@ static int do_dir(struct walkfile_struct *walk, const char *dname, struct stat *
 {
 	/* 2016/5/30 Largest path on zonker is 260 */
 	char path[1024];
-	int error = 0;
+	int n, error = 0;
+	mode_t match;
 
 	DIR *dir = opendir(dname);
 	if (!dir) {
@@ -128,7 +129,10 @@ static int do_dir(struct walkfile_struct *walk, const char *dname, struct stat *
 	while ((ent = readdir(dir))) {
 		if (*ent->d_name == '.') continue;
 
-		int n = snprintf(path, sizeof(path), "%s/%s", dname, ent->d_name);
+		if (strcmp(dname, "/"))
+			n = snprintf(path, sizeof(path), "%s/%s", dname, ent->d_name);
+		else
+			n = snprintf(path, sizeof(path), "/%s", ent->d_name);
 		if (n >= sizeof(path)) {
 			printf("PATH TRUNCATED: %s/%s\n", dname, ent->d_name);
 			error = 1;
@@ -147,27 +151,41 @@ static int do_dir(struct walkfile_struct *walk, const char *dname, struct stat *
 			continue;
 		}
 
-		/* Deal with links */
-
-		if (S_ISDIR(sbuf.st_mode)) {
+		match = sbuf.st_mode & S_IFMT;
+		switch (match) {
+		case S_IFDIR:
 			if (walk->flags & WALK_XDEV)
 				if (dbuf->st_dev != sbuf.st_dev) {
 					if (walk_verbose)
 						printf("Skipping dir %s\n", path);
-					continue;
+					break;
 				}
 			error |= do_dir(walk, path, &sbuf);
-		} else if (S_ISLNK(sbuf.st_mode) && (walk->flags & WALK_LINKS) == 0) {
-			if (walk_verbose) printf("Link %s\n", path);
-		} else if (check_filters(walk, ent->d_name))
-			error |= walk->file_func(path, &sbuf);
-		else if (walk_verbose)
-			printf("Skipping %s\n", ent->d_name);
+			break;
+		default:
+			if ((match & walk->flags & S_IFMT) != match) {
+				if (walk_verbose) printf("Special %s (0%o)\n", path, match);
+				break;
+			}
+			/* fall thru */
+		case S_IFREG:
+			if (check_filters(walk, ent->d_name))
+				error |= walk->file_func(path, &sbuf);
+			else if (walk_verbose)
+				printf("Skipping %s\n", ent->d_name);
+		}
 	}
 
 	closedir(dir);
 
 	return error;
+}
+
+/* The default file_func. Mainly for debugging. */
+static int out_files(const char *path, struct stat *sbuf)
+{
+	puts(path);
+	return 0;
 }
 
 /* Path can be a directory or a file.
@@ -188,11 +206,12 @@ int walkfiles(struct walkfile_struct *walk, const char *path,
 
 	if (file_func)
 		walk->file_func = file_func;
-	else if (!walk->file_func) {
-		errno = EINVAL;
-		return -1;
-	}
-	walk->flags |= flags;
+	else if (!walk->file_func)
+		walk->file_func = out_files;
+
+	walk->flags |= flags; /* add in user flags */
+	if (walk_verbose)
+		printf("walk flags 0%o\n", walk->flags);
 
 	if (S_ISDIR(sbuf.st_mode))
 		return do_dir(walk, path, &sbuf);
