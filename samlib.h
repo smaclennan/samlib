@@ -45,6 +45,9 @@ int do_system(const char *fmt, ...);
 void samlib_version(int *major, int *minor);
 const char *samlib_versionstr(void);
 
+/* The traditional binary dump with hex on left and chars on right. */
+void binary_dump(const uint8_t *buf, int len);
+
 /* The opaque walkfile structure. If you pass NULL to the walkfile
  * functions they will use a builtin global. For multi-threaded apps
  * you must supply a walkfile struct.
