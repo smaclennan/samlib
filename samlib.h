@@ -125,18 +125,19 @@ int ip_addr(const char *ifname, struct in_addr *addr, struct in_addr *mask);
 
 /* DB functions - requires -ldb
  *
- * These functions implement a simple interface to one btree Berkley
- * DB database at a time. It uses a global for the db handle. It is
- * very useful for quick dbs that have key/val pairs that are strings.
+ * These functions implement a simple interface to Berkley DB btree
+ * implementation. The dbh is defined as void so that users of other
+ * samlib functions don't have to include db.h (which may not be
+ * installed). If dbh is NULL, a global DB handle is used.
  */
 
 /* The flags are for the DB->open() function. */
-int db_open(char *dbname, uint32_t flags);
-void db_close(void);
-int db_add(char *keystr, void *val, int len);
-int db_add_str(char *keystr, char *valstr);
-int db_get(char *keystr, void *val, int len);
-int db_get_str(char *keystr, char *valstr, int len);
-int db_walk(int (*walk_func)(char *key, void *data, int len));
+int db_open(char *dbname, uint32_t flags, void **dbh);
+int db_close(void *dbh);
+int db_put(void *dbh, char *keystr, void *val, int len, unsigned flags);
+int db_put_str(void *dbh, char *keystr, char *valstr);
+int db_get(void *dbh, char *keystr, void *val, int len);
+int db_get_str(void *dbh, char *keystr, char *valstr, int len);
+int db_walk(void *dbh, int (*walk_func)(char *key, void *data, int len));
 
 #endif
