@@ -22,11 +22,8 @@ int db_open(char *dbname, uint32_t flags, void **dbh)
 
 	if (dbh)
 		db = *dbh;
-	else {
-		if (global_db)
-			return -EBUSY;
-		db = global_db;
-	}
+	else if (global_db)
+		return -EBUSY;
 
 	int rc = db_create(&db, NULL, 0);
 	if (rc)
@@ -36,8 +33,10 @@ int db_open(char *dbname, uint32_t flags, void **dbh)
 	if (rc)
 		return rc;
 
-	if (db == global_db)
+	if (!dbh) {
+		global_db = db;
 		atexit(db_close_global);
+	}
 	return 0;
 }
 
@@ -90,7 +89,7 @@ int db_get(void *dbh, char *keystr, void *val, int len)
 
 	int rc = db->get(db, NULL, &key, &data, 0);
 	if (rc)
-		return -rc;
+		return rc < 0 ? rc : -rc;
 
 	if (len > data.size)
 		len = data.size;
