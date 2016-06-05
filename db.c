@@ -117,6 +117,32 @@ int db_get_str(void *dbh, char *keystr, char *valstr, int len)
 	return rc;
 }
 
+int db_peek(void *dbh, char *keystr)
+{
+	DBT key;
+	GET_DB(dbh);
+
+	memset(&key, 0, sizeof(key));
+
+	key.data = keystr;
+	key.size = strlen(keystr) + 1;
+
+	return db->get(db, NULL, &key, NULL, 0);
+}
+
+int db_del(void *dbh, char *keystr)
+{
+	DBT key;
+	GET_DB(dbh);
+
+	memset(&key, 0, sizeof(key));
+
+	key.data = keystr;
+	key.size = strlen(key.data) + 1;
+
+	return db->del(db, NULL, &key, 0);
+}
+
 int db_walk(void *dbh, int (*walk_func)(char *key, void *data, int len))
 {
 	DBT key, data;
