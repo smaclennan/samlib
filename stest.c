@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
+#include <db.h>
 
 #include "samlib.h"
 
@@ -28,10 +29,10 @@ int main(int argc, char *argv[])
 			exit(0);
 		}
 
-	if (argc == 1) {
+	if (argc == optind) {
 		fputs("I need a directory!\n", stderr);
 		exit(1);
 	}
 
-	return walkfiles(NULL, argv[1], NULL, 0);
+	return walkfiles(NULL, argv[optind], NULL, 0);
 }

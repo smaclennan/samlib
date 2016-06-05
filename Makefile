@@ -15,7 +15,7 @@ QUIET_AR      = $(Q:@=@echo    '     AR       '$@;)
 	$(QUIET_CC)$(CC) -o $@ -c $(CFLAGS) $<
 
 CFILES := version.c readfile.c readcmd.c do-system.c walkfiles.c
-CFILES += mkdir-p.c md5.c ip.c copy.c binary.c
+CFILES += mkdir-p.c md5.c ip.c copy.c binary.c db.c
 
 O := $(CFILES:.c=.o)
 

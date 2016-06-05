@@ -123,4 +123,20 @@ char *md5str(uint8_t *hash, char *str);
 /* Returns 0 on success. The args addr and/or mask can be NULL. */
 int ip_addr(const char *ifname, struct in_addr *addr, struct in_addr *mask);
 
+/* DB functions - requires -ldb
+ *
+ * These functions implement a simple interface to one btree Berkley
+ * DB database at a time. It uses a global for the db handle. It is
+ * very useful for quick dbs that have key/val pairs that are strings.
+ */
+
+/* The flags are for the DB->open() function. */
+int db_open(char *dbname, uint32_t flags);
+void db_close(void);
+int db_add(char *keystr, void *val, int len);
+int db_add_str(char *keystr, char *valstr);
+int db_get(char *keystr, void *val, int len);
+int db_get_str(char *keystr, char *valstr, int len);
+int db_walk(int (*walk_func)(char *key, void *data, int len));
+
 #endif
