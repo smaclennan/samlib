@@ -20,9 +20,7 @@ int db_open(char *dbname, uint32_t flags, void **dbh)
 {
 	DB *db;
 
-	if (dbh)
-		db = *dbh;
-	else if (global_db)
+	if (!dbh && global_db)
 		return -EBUSY;
 
 	int rc = db_create(&db, NULL, 0);
@@ -33,7 +31,9 @@ int db_open(char *dbname, uint32_t flags, void **dbh)
 	if (rc)
 		return rc;
 
-	if (!dbh) {
+	if (dbh)
+		*dbh = db;
+	else {
 		global_db = db;
 		atexit(db_close_global);
 	}
