@@ -3,7 +3,11 @@
 D = -O2
 CFLAGS += -Wall $(D:1=-g)
 
+ifeq ($(shell uname -m), x86_64)
 LIBDIR ?= /usr/lib64
+else
+LIBDIR ?= /usr/lib
+endif
 
 V	      = @
 Q	      = $(V:1=)
