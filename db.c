@@ -73,7 +73,10 @@ int db_put(void *dbh, char *keystr, void *val, int len, unsigned flags)
 
 int db_put_str(void *dbh, char *keystr, char *valstr)
 {
-	return db_put(dbh, keystr, valstr, strlen(valstr) + 1, 0);
+	if (valstr)
+		return db_put(dbh, keystr, valstr, strlen(valstr) + 1, 0);
+	else
+		return db_put(dbh, keystr, NULL, 0, 0);
 }
 
 int db_get(void *dbh, char *keystr, void *val, int len)
