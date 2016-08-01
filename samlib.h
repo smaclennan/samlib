@@ -140,6 +140,9 @@ int db_open(char *dbname, uint32_t flags, void **dbh);
 int db_close(void *dbh);
 int db_put(void *dbh, char *keystr, void *val, int len, unsigned flags);
 int db_put_str(void *dbh, char *keystr, char *valstr);
+int db_update_long(void *dbh, char *keystr, long update);
+#define db_inc_long(d, k) db_update_long((d), (k), 1)
+#define db_dec_long(d, k) db_update_long((d), (k), -1)
 int db_get(void *dbh, char *keystr, void *val, int len);
 int db_get_str(void *dbh, char *keystr, char *valstr, int len);
 int db_peek(void *dbh, char *keystr);

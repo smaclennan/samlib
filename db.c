@@ -55,6 +55,7 @@ int db_close(void *dbh)
 	return 0;
 }
 
+/* Returns 0 on success */
 int db_put(void *dbh, char *keystr, void *val, int len, unsigned flags)
 {
 	DBT key, data;
@@ -79,6 +80,20 @@ int db_put_str(void *dbh, char *keystr, char *valstr)
 		return db_put(dbh, keystr, NULL, 0, 0);
 }
 
+/* Handy function for keeping track of counts or sizes. Reads the old
+ * value and adds in the new value.
+ */
+int db_update_long(void *dbh, char *keystr, long update)
+{
+	long cur;
+
+	if (db_get(dbh, keystr, &cur, sizeof(cur)) > 0)
+		update += cur;
+
+	return db_put(dbh, keystr, &update, sizeof(update), 0);
+}
+
+/* Returns val len on success */
 int db_get(void *dbh, char *keystr, void *val, int len)
 {
 	DBT key, data;
