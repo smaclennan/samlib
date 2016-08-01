@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "samlib.h"
 
@@ -20,7 +21,8 @@ static int out_line(char *line, void *data)
  * Returns 0 on success, -1 on file or memory error, or 1 if
  * line_func() returns non-zero.
  */
-int readfile(int (*line_func)(char *line, void *data), void *data, const char *path)
+int readfile(int (*line_func)(char *line, void *data), void *data,
+			 const char *path, unsigned flags)
 {
 	FILE *fp = path ? fopen(path, "r") : stdin;
 	if (!fp)
@@ -36,6 +38,15 @@ int readfile(int (*line_func)(char *line, void *data), void *data, const char *p
 	while (getline(&line, &len, fp) != EOF) {
 		if ((p = strrchr(line, '\n')))
 			*p = 0;
+		if (flags & RF_IGNORE_EMPTY) {
+			for (p = line; isspace(*p); ++p) ;
+			if (*p == 0)
+				continue;
+		}
+		if (flags & RF_IGNORE_COMMENTS) {
+			if (*line == '#')
+				continue;
+		}
 		if (line_func(line, data)) {
 			rc = 1;
 			goto closeit;
