@@ -66,8 +66,10 @@ int db_put(void *dbh, char *keystr, void *val, int len, unsigned flags)
 
 	key.data = keystr;
 	key.size = strlen(keystr) + 1;
-	data.data = val;
-	data.size = len;
+	if (len) {
+		data.data = val;
+		data.size = len;
+	}
 
 	return db->put(db, NULL, &key, &data, flags);
 }
