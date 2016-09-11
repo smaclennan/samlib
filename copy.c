@@ -14,7 +14,7 @@
  *    -2 = error on from
  *    -3 = error on to
  */
-int copy_file(const char *from, const char *to)
+long copy_file(const char *from, const char *to)
 {
 	int in = open(from, O_RDONLY);
 	if (in < 0)

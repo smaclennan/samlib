@@ -39,7 +39,7 @@ int readcmd(int (*line_func)(char *line, void *data), void *data, const char *fm
  *    -2 = error on from
  *    -3 = error on to
  */
-int copy_file(const char *from, const char *to);
+long copy_file(const char *from, const char *to);
 
 /* This mimics the shell's `mkdir -p' */
 int mkdir_p(const char *dir);
