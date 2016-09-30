@@ -52,6 +52,21 @@ const char *samlib_versionstr(void);
 /* The traditional binary dump with hex on left and chars on right. */
 void binary_dump(const uint8_t *buf, int len);
 
+int timeval_delta_valid(struct timeval *start,
+						struct timeval *end);
+
+/* Returns 0 if a valid delta was calculated, an errno if not.
+ * Note that delta can point to start or end.
+ */
+int timeval_delta(struct timeval *start,
+				  struct timeval *end,
+				  struct timeval *delta);
+
+/* Same as timeval_delta() but doesn't care if t1 before t2. */
+int timeval_delta2(struct timeval *t1,
+				   struct timeval *t2,
+				   struct timeval *delta);
+
 /* The opaque walkfile structure. If you pass NULL to the walkfile
  * functions they will use a builtin global. For multi-threaded apps
  * you must supply a walkfile struct.
