@@ -52,6 +52,17 @@ const char *samlib_versionstr(void);
 /* The traditional binary dump with hex on left and chars on right. */
 void binary_dump(const uint8_t *buf, int len);
 
+/* If set, then get_month() assumes months are 1 based. Default is 0
+ * based.
+ */
+extern int months_one_based;
+const char *get_month(unsigned month, int long_months);
+
+/* Can handle a difference of about 66 hours on 32 bit systems and
+ * about 150 years on 64 bit systems. Optimized for delta < 1 second.
+ */
+ulong delta_timeval(struct timeval *start, struct timeval *end);
+
 int timeval_delta_valid(struct timeval *start,
 						struct timeval *end);
 
