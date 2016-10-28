@@ -18,6 +18,8 @@ const char *long_month[] = {
  */
 int months_one_based;
 
+#define ONE_SECOND 1000000
+
 const char *get_month(unsigned month, int long_months)
 {
 	if (months_one_based)
@@ -34,19 +36,22 @@ const char *get_month(unsigned month, int long_months)
 ulong delta_timeval(struct timeval *start, struct timeval *end)
 {
 	if (start->tv_usec > end->tv_usec) {
-		--end->tv_sec;
-		end->tv_usec += 1000000;
+		if (start->tv_sec == end->tv_sec - 1)
+			return end->tv_usec + ONE_SECOND - start->tv_usec;
+		if (start->tv_sec > end->tv_sec - 1)
+			return ~0;
+		return ((end->tv_sec - 1 - start->tv_sec) * ONE_SECOND) +
+			(end->tv_usec + ONE_SECOND - start->tv_usec);
 	}
 	if (start->tv_sec == end->tv_sec)
 		return end->tv_usec - start->tv_usec;
 	if (start->tv_sec > end->tv_sec)
 		return ~0;
-	return ((end->tv_sec - start->tv_sec) * 1000000) +
+	return ((end->tv_sec - start->tv_sec) * ONE_SECOND) +
 		(end->tv_usec - start->tv_usec);
 }
 
-int timeval_delta_valid(struct timeval *start,
-						struct timeval *end)
+int timeval_delta_valid(struct timeval *start, struct timeval *end)
 {
 	if (end->tv_sec > start->tv_sec)
 		return 1;
@@ -68,7 +73,7 @@ int timeval_delta(struct timeval *start,
 
 	if (start->tv_usec > end->tv_usec) {
 		delta->tv_sec = end->tv_sec - 1 - start->tv_sec;
-		delta->tv_usec = end->tv_usec + 1000000 - start->tv_usec;
+		delta->tv_usec = end->tv_usec + ONE_SECOND - start->tv_usec;
 	} else {
 		delta->tv_sec = end->tv_sec - start->tv_sec;
 		delta->tv_usec = end->tv_usec - start->tv_usec;

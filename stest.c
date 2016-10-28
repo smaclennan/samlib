@@ -12,6 +12,7 @@
 
 int main(int argc, char *argv[])
 {
+#if 0
 	int c, major, minor, flags = 0;
 
 	while ((c = getopt(argc, argv, "f:vV")) != EOF)
@@ -35,4 +36,57 @@ int main(int argc, char *argv[])
 	}
 
 	return walkfiles(NULL, argv[optind], NULL, 0);
+#else
+	struct timeval start, end;
+
+	start.tv_sec = 10;
+	start.tv_usec = 100;
+	end.tv_sec = 10;
+	end.tv_usec = 101;
+
+	if (delta_timeval(&start, &end) != 1)
+		puts("PROBS 1");
+
+	start.tv_sec = 10;
+	start.tv_usec = 999999;
+	end.tv_sec = 11;
+	end.tv_usec = 0;
+
+	if (delta_timeval(&start, &end) != 1)
+		puts("PROBS 2");
+
+	start.tv_sec = 10;
+	start.tv_usec = 100;
+	end.tv_sec = 11;
+	end.tv_usec = 101;
+
+	if (delta_timeval(&start, &end) != 1000001)
+		puts("PROBS 3");
+
+	start.tv_sec = 10;
+	start.tv_usec = 999999;
+	end.tv_sec = 12;
+	end.tv_usec = 0;
+
+	if (delta_timeval(&start, &end) != 1000001)
+		puts("PROBS 4");
+
+	start.tv_sec = 10;
+	start.tv_usec = 101;
+	end.tv_sec = 10;
+	end.tv_usec = 100;
+
+	if (delta_timeval(&start, &end) != ~0UL)
+		puts("PROBS 5");
+
+	start.tv_sec = 10;
+	start.tv_usec = 999999;
+	end.tv_sec = 10;
+	end.tv_usec = 0;
+
+	if (delta_timeval(&start, &end) != ~0UL)
+		puts("PROBS 6");
+
+	return 0;
+#endif
 }
