@@ -8,6 +8,24 @@
 #include <sys/stat.h>
 #include <netinet/in.h>
 
+#define ONE_MINUTE		60
+#define ONE_HOUR		(ONE_MINUTE * 60)
+#define ONE_DAY			(ONE_HOUR * 24)
+
+/* Returns duration in seconds. Suffix: dhms. Supports fractional values.
+ * Warning: exits on error.
+ */
+unsigned long get_duration(const char *str);
+
+char *nice_duration(unsigned long duration, char *str, int len);
+
+/* Returns memory length in bytes. Suffix: gmkb.
+ * Warning: exits on error.
+ */
+unsigned long get_mem_len(const char *str);
+
+unsigned nice_mem_len(unsigned long size, char *ch);
+
 /* Read a file line at a time calling line_func() for each
  * line. Removes the NL from the line. If line_func() returns
  * non-zero, it will stop reading the file and return 1.
