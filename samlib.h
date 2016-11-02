@@ -91,6 +91,10 @@ int timeval_delta(struct timeval *start,
 				  struct timeval *end,
 				  struct timeval *delta);
 
+/* Same as timeval_delta but returns a double. Returns INFINITY on errror. */
+double timeval_delta_d(struct timeval *start,
+					   struct timeval *end);
+
 /* Same as timeval_delta() but doesn't care if t1 before t2. */
 int timeval_delta2(struct timeval *t1,
 				   struct timeval *t2,

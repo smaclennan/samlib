@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <math.h>
 
 #include "samlib.h"
 
@@ -80,6 +81,17 @@ int timeval_delta(struct timeval *start,
 	}
 
 	return 0;
+}
+
+double timeval_delta_d(struct timeval *start,
+					   struct timeval *end)
+{
+	struct timeval delta;
+
+	if (timeval_delta(start, end, &delta))
+		return INFINITY;
+
+	return (double)delta.tv_usec / 1000000 + (double)delta.tv_sec;
 }
 
 int timeval_delta2(struct timeval *t1,
