@@ -175,6 +175,15 @@ char *md5str(uint8_t *hash, char *str);
 /* Returns 0 on success. The args addr and/or mask can be NULL. */
 int ip_addr(const char *ifname, struct in_addr *addr, struct in_addr *mask);
 
+/* Returns 0 on success or an errno suitable for gai_strerror().
+ * The ipv4 arg should be at least INET_ADDRSTRLEN long or NULL.
+ * The ipv6 arg should be at least INET6_ADDRSTRLEN long or NULL.
+ */
+int get_address(const char *hostname, char *ipv4, char *ipv6);
+
+/* ipv4 only... but useful. Returns in host order. */
+uint32_t get_address4(const char *hostname);
+
 /* DB functions - requires -ldb
  *
  * These functions implement a simple interface to Berkley DB btree

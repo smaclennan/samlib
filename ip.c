@@ -10,6 +10,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <net/if.h>
+#include <netdb.h>
+
+#include "samlib.h"
 
 /* Returns 0 on success. The args addr and/or mask can be NULL. */
 int ip_addr(const char *ifname, struct in_addr *addr, struct in_addr *mask)
@@ -41,3 +44,55 @@ failed:
 	return -1;
 }
 
+/* Returns 0 on success or an errno suitable for gai_strerror().
+ * The ipv4 arg should be at least INET_ADDRSTRLEN long or NULL.
+ * The ipv6 arg should be at least INET6_ADDRSTRLEN long or NULL.
+ */
+int get_address(const char *hostname, char *ipv4, char *ipv6)
+{
+	struct addrinfo *result, *res;
+	struct addrinfo hints;
+	int err;
+
+	if (ipv4)
+		*ipv4 = 0;
+	if (ipv6)
+		*ipv6 = 0;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+
+	err = getaddrinfo(hostname, NULL, &hints, &result);
+	if (err)
+		return err;
+
+	for (res = result; res; res = res->ai_next)
+		switch (res->ai_family) {
+		case AF_INET:
+			if (ipv4) {
+				struct sockaddr_in *sin = (struct sockaddr_in *)res->ai_addr;
+				inet_ntop(res->ai_family, &sin->sin_addr, ipv4, INET_ADDRSTRLEN);
+			}
+			break;
+		case AF_INET6:
+			if (ipv6) {
+				struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)res->ai_addr;
+				inet_ntop(res->ai_family, &sin6->sin6_addr, ipv6, INET6_ADDRSTRLEN);
+			}
+			break;
+		}
+
+	freeaddrinfo(result);
+
+	return 0;
+}
+
+uint32_t get_address4(const char *hostname)
+{
+	struct hostent *host = gethostbyname(hostname);
+	if (host)
+		return ntohl(*(uint32_t *)host->h_addr);
+	else
+		return 0;
+}
