@@ -197,4 +197,16 @@ int db_peek(void *dbh, char *keystr);
 int db_del(void *dbh, char *keystr);
 int db_walk(void *dbh, int (*walk_func)(char *key, void *data, int len));
 
+/* Advantages of xorshift128plus() over random().
+ *     1. It is faster. (~7x)
+ *     2. It returns a full 64 bits.
+ */
+uint64_t xorshift128plus(void);
+uint64_t xorshift128plus_r(uint64_t *seed); /* thread safe version */
+
+/* The seed arg is where to put the seed for xorshift128plus_r(). For
+ * xorshift128plus() just pass NULL.
+ */
+void xorshift_seed(uint64_t *seed);
+
 #endif
