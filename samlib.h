@@ -218,4 +218,17 @@ uint64_t xorshift128plus_r(uint64_t *seed); /* thread safe version */
  */
 void xorshift_seed(uint64_t *seed);
 
+/* If must_helper is set, and any of the must_* functions fail, then
+ * must_helper will be called with the command that failed and the
+ * size.
+ *
+ * If must_helper is not set, then the if the must_* functions fail
+ * they will print "Out of memory" and exit(1).
+ */
+extern void (*must_helper)(const char *what, int size);
+
+char *must_strdup(const char *s);
+void *must_alloc(size_t size);
+void *must_calloc(int nmemb, int size);
+
 #endif
