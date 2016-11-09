@@ -26,7 +26,7 @@ char *must_strdup(const char *s)
 
 void *must_alloc(size_t size)
 {
-	char *mem = malloc(size);
+	void *mem = malloc(size);
 	if (!mem)
 		must_fail("malloc", size);
 	return mem;
@@ -34,8 +34,16 @@ void *must_alloc(size_t size)
 
 void *must_calloc(int nmemb, int size)
 {
-	char *mem = calloc(nmemb, size);
+	void *mem = calloc(nmemb, size);
 	if (!mem)
 		must_fail("calloc", size * nmemb);
+	return mem;
+}
+
+void *must_realloc(void *ptr, int size)
+{
+	void *mem = realloc(ptr, size);
+	if (!mem)
+		must_fail("realloc", size);
 	return mem;
 }

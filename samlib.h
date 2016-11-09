@@ -230,5 +230,6 @@ extern void (*must_helper)(const char *what, int size);
 char *must_strdup(const char *s);
 void *must_alloc(size_t size);
 void *must_calloc(int nmemb, int size);
+void *must_realloc(void *ptr, int size);
 
 #endif
