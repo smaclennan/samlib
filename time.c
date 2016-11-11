@@ -34,7 +34,7 @@ const char *get_month(unsigned month, int long_months)
 /* Can handle a difference of about 66 hours on 32 bit systems and
  * about 150 years on 64 bit systems. Optimized for delta < 1 second.
  */
-ulong delta_timeval(struct timeval *start, struct timeval *end)
+ulong delta_timeval(const struct timeval *start, const struct timeval *end)
 {
 	if (start->tv_usec > end->tv_usec) {
 		if (start->tv_sec == end->tv_sec - 1)
@@ -52,7 +52,7 @@ ulong delta_timeval(struct timeval *start, struct timeval *end)
 		(end->tv_usec - start->tv_usec);
 }
 
-int timeval_delta_valid(struct timeval *start, struct timeval *end)
+int timeval_delta_valid(const struct timeval *start, const struct timeval *end)
 {
 	if (end->tv_sec > start->tv_sec)
 		return 1;
@@ -65,8 +65,8 @@ int timeval_delta_valid(struct timeval *start, struct timeval *end)
 /* Returns 0 if a valid delta was calculated, an errno if not.
  * Note that delta can point to start or end.
  */
-int timeval_delta(struct timeval *start,
-				  struct timeval *end,
+int timeval_delta(const struct timeval *start,
+				  const struct timeval *end,
 				  struct timeval *delta)
 {
 	if (!start || !end || !delta || !timeval_delta_valid(start, end))
@@ -83,8 +83,8 @@ int timeval_delta(struct timeval *start,
 	return 0;
 }
 
-double timeval_delta_d(struct timeval *start,
-					   struct timeval *end)
+double timeval_delta_d(const struct timeval *start,
+					   const struct timeval *end)
 {
 	struct timeval delta;
 
@@ -94,8 +94,8 @@ double timeval_delta_d(struct timeval *start,
 	return (double)delta.tv_usec / 1000000 + (double)delta.tv_sec;
 }
 
-int timeval_delta2(struct timeval *t1,
-				   struct timeval *t2,
+int timeval_delta2(const struct timeval *t1,
+				   const struct timeval *t2,
 				   struct timeval *delta)
 {
 	int rc = timeval_delta(t1, t2, delta);

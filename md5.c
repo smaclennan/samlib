@@ -130,7 +130,7 @@ void md5_init(md5ctx *ctx)
 	ctx->size = 0;
 }
 
-void md5_update(md5ctx *ctx, void *data, int len)
+void md5_update(md5ctx *ctx, const void *data, int len)
 {
 	while (len > 0) {
 		int left = 64 - ctx->cur;
@@ -183,7 +183,7 @@ char *md5str(uint8_t *hash, char *str)
 	return str;
 }
 
-void md5(void *data, int len, uint8_t *hash)
+void md5(const void *data, int len, uint8_t *hash)
 {
 	md5ctx ctx;
 

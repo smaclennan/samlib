@@ -79,25 +79,25 @@ const char *get_month(unsigned month, int long_months);
 /* Can handle a difference of about 66 hours on 32 bit systems and
  * about 150 years on 64 bit systems. Optimized for delta < 1 second.
  */
-ulong delta_timeval(struct timeval *start, struct timeval *end);
+ulong delta_timeval(const struct timeval *start, const struct timeval *end);
 
-int timeval_delta_valid(struct timeval *start,
-						struct timeval *end);
+int timeval_delta_valid(const struct timeval *start,
+						const struct timeval *end);
 
 /* Returns 0 if a valid delta was calculated, an errno if not.
  * Note that delta can point to start or end.
  */
-int timeval_delta(struct timeval *start,
-				  struct timeval *end,
+int timeval_delta(const struct timeval *start,
+				  const struct timeval *end,
 				  struct timeval *delta);
 
 /* Same as timeval_delta but returns a double. Returns INFINITY on errror. */
-double timeval_delta_d(struct timeval *start,
-					   struct timeval *end);
+double timeval_delta_d(const struct timeval *start,
+					   const struct timeval *end);
 
 /* Same as timeval_delta() but doesn't care if t1 before t2. */
-int timeval_delta2(struct timeval *t1,
-				   struct timeval *t2,
+int timeval_delta2(const struct timeval *t1,
+				   const struct timeval *t2,
 				   struct timeval *delta);
 
 /* The opaque walkfile structure. If you pass NULL to the walkfile
@@ -164,9 +164,9 @@ typedef struct md5_ctx {
 
 #define MD5_DIGEST_LEN 16
 
-void md5(void *data, int len, uint8_t *hash);
+void md5(const void *data, int len, uint8_t *hash);
 void md5_init(md5ctx *ctx);
-void md5_update(md5ctx *ctx, void *data, int len);
+void md5_update(md5ctx *ctx, const void *data, int len);
 void md5_final(md5ctx *ctx, uint8_t *hash);
 char *md5str(uint8_t *hash, char *str);
 
