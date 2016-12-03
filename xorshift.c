@@ -17,9 +17,9 @@ int xorshift_seed(xorshift_seed_t *seed)
 
 	int fd = open("/dev/urandom", O_RDONLY);
 	if (fd >= 0) {
-		int n = read(fd, seed, 128 / 8);
+		int n = read(fd, seed, sizeof(xorshift_seed_t));
 		close(fd);
-		if (n == (128 / 8)) {
+		if (n == sizeof(xorshift_seed_t)) {
 			if (seed == &global_seed)
 				seeded = 1;
 			return 0;
@@ -32,8 +32,12 @@ int xorshift_seed(xorshift_seed_t *seed)
 void must_xorshift_seed(xorshift_seed_t *seed)
 {
 	if (xorshift_seed(seed)) {
-		printf("WARNING: Unable to get seed\n");
-		exit(1);
+		if (must_helper)
+			must_helper("xorshift_seed", 0);
+		else {
+			printf("WARNING: Unable to get seed\n");
+			exit(1);
+		}
 	}
 }
 
