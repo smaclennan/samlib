@@ -3,6 +3,8 @@
 D = -O2
 CFLAGS += -Wall $(D:1=-g)
 
+#CC = clang -fno-color-diagnostics
+
 ifeq ($(shell uname -m), x86_64)
 LIBDIR ?= /usr/lib64
 else
@@ -29,6 +31,9 @@ all: libsamlib.a stest
 *.o: samlib.h
 
 stest: stest.c libsamlib.a
+	$(QUIET_CC)$(CC) -o $@ $+
+
+md5test: md5test.c libsamlib.a
 	$(QUIET_CC)$(CC) -o $@ $+
 
 libsamlib.a: $O

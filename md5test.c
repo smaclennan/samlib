@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 	md5ctx ctx;
 	md5_init(&ctx);
 
-	if (readfile(md5sum, &ctx, argv[1])) {
+	if (readfile(md5sum, &ctx, argv[1], 0)) {
 		puts("Readfile failed");
 		exit(1);
 	}
@@ -88,9 +88,3 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
-
-/*
- * Local Variables:
- * compile-command: "gcc -O3 -Wall md5test.c -o md5test ./libsamlib.a"
- * End:
- */
