@@ -2,7 +2,7 @@
 #define __SAMLIB_H__
 
 #define SAMLIB_MAJOR 1
-#define SAMLIB_MINOR 0
+#define SAMLIB_MINOR 1
 
 #include <stdint.h>
 #include <sys/stat.h>
@@ -210,20 +210,28 @@ int db_walk(void *dbh, int (*walk_func)(char *key, void *data, int len));
  *     1. It is faster. (~7x)
  *     2. It returns a full 64 bits.
  */
+typedef struct { uint64_t seed[2]; } xorshift_seed_t;
 uint64_t xorshift128plus(void);
-uint64_t xorshift128plus_r(uint64_t *seed); /* thread safe version */
+uint64_t xorshift128plus_r(xorshift_seed_t *seed); /* thread safe version */
 
 /* The seed arg is where to put the seed for xorshift128plus_r(). For
  * xorshift128plus() just pass NULL.
+ *
+ * Note: xorshift128plus() will self-seed, but will exit if seeding fails.
  */
-void xorshift_seed(uint64_t *seed);
+int xorshift_seed(xorshift_seed_t *seed);
+void must_xorshift_seed(xorshift_seed_t *seed);
+
+/* Somebody didn't like the names... so nicer names. */
+static inline void sam_srand(void) { must_xorshift_seed(NULL); }
+static inline uint64_t sam_rand(void) { return xorshift128plus(); }
 
 /* If must_helper is set, and any of the must_* functions fail, then
  * must_helper will be called with the command that failed and the
  * size.
  *
- * If must_helper is not set, then the if the must_* functions fail
- * they will print "Out of memory" and exit(1).
+ * If must_helper is not set and the must_* functions fail they will
+ * print "Out of memory" and exit(1).
  */
 extern void (*must_helper)(const char *what, int size);
 

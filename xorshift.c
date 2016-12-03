@@ -7,36 +7,49 @@
 
 /* https://en.wikipedia.org/wiki/Xorshift */
 
-static uint64_t global_seed[2];
+static xorshift_seed_t global_seed;
+static int seeded;
 
-void xorshift_seed(uint64_t *seed)
+int xorshift_seed(xorshift_seed_t *seed)
 {
 	if (!seed)
-		seed = global_seed;
+		seed = &global_seed;
 
 	int fd = open("/dev/urandom", O_RDONLY);
 	if (fd >= 0) {
 		int n = read(fd, seed, 128 / 8);
 		close(fd);
-		if (n == (128 / 8))
-			return;
+		if (n == (128 / 8)) {
+			if (seed == &global_seed)
+				seeded = 1;
+			return 0;
+		}
 	}
 
-	printf("WARNING: Unable to get seed\n");
-	exit(1);
+	return -1;
 }
 
-uint64_t xorshift128plus_r(uint64_t *seed)
+void must_xorshift_seed(xorshift_seed_t *seed)
 {
-	uint64_t x = seed[0];
-	uint64_t const y = seed[1];
-	seed[0] = y;
+	if (xorshift_seed(seed)) {
+		printf("WARNING: Unable to get seed\n");
+		exit(1);
+	}
+}
+
+uint64_t xorshift128plus_r(xorshift_seed_t *seed)
+{
+	uint64_t x = seed->seed[0];
+	uint64_t const y = seed->seed[1];
+	seed->seed[0] = y;
 	x ^= x << 23; // a
-	seed[1] = x ^ y ^ (x >> 17) ^ (y >> 26); // b, c
-	return seed[1] + y;
+	seed->seed[1] = x ^ y ^ (x >> 17) ^ (y >> 26); // b, c
+	return seed->seed[1] + y;
 }
 
 uint64_t xorshift128plus(void)
 {
-	return xorshift128plus_r(global_seed);
+	if (!seeded)
+		must_xorshift_seed(&global_seed);
+	return xorshift128plus_r(&global_seed);
 }
