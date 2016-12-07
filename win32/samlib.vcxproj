@@ -71,9 +71,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\arg-helpers.c" />
     <ClCompile Include="..\binary.c" />
     <ClCompile Include="..\copy.c" />
@@ -81,10 +78,24 @@
     <ClCompile Include="..\md5.c" />
     <ClCompile Include="..\mkdir-p.c" />
     <ClCompile Include="..\must.c" />
+    <ClCompile Include="..\readcmd.c" />
     <ClCompile Include="..\readfile.c" />
+    <ClCompile Include="..\time.c" />
+    <ClCompile Include="..\version.c" />
+    <ClCompile Include="..\walkfiles.c" />
+    <ClCompile Include="..\xorshift.c" />
+    <ClCompile Include="fnmatch.c" />
+    <ClCompile Include="regex.c" />
+    <ClCompile Include="samwin32.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\samlib.h" />
+    <ClInclude Include="fnmatch.h" />
+    <ClInclude Include="regex.h" />
+    <ClInclude Include="samwin32.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.win32" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

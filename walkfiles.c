@@ -5,9 +5,11 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
+#ifndef WIN32
 #include <dirent.h>
 #include <regex.h>
 #include <fnmatch.h>
+#endif
 
 #include "samlib.h"
 

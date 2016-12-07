@@ -90,7 +90,7 @@ double timeval_delta_d(const struct timeval *start,
 	struct timeval delta;
 
 	if (timeval_delta(start, end, &delta))
-		return INFINITY;
+		return (double)INFINITY; /* windows needs the cast */
 
 	return (double)delta.tv_usec / 1000000 + (double)delta.tv_sec;
 }

@@ -4,7 +4,9 @@
 #include <stdarg.h>
 #include <string.h>
 #include <errno.h>
+#ifndef WIN32
 #include <sys/wait.h>
+#endif
 
 #include "samlib.h"
 
@@ -30,11 +32,11 @@ int readcmd(int (*line_func)(char *line, void *data), void *data, const char *fm
 	char cmd[1024], *p, *line = NULL;
 	size_t len;
 	int rc = 0;
+	va_list ap;
 
 	if (!line_func)
 		line_func = out_line;
 
-	va_list ap;
 	va_start(ap, fmt);
 	vsnprintf(cmd, sizeof(cmd), fmt, ap);
 	va_end(ap);
@@ -54,9 +56,11 @@ int readcmd(int (*line_func)(char *line, void *data), void *data, const char *fm
 
 	int status = pclose(pfp);
 	if (rc == 0) {
+#ifndef WIN32
 		if (WIFEXITED(status))
 			rc = WEXITSTATUS(status);
 		else
+#endif
 			rc = status;
 	} else {
 		rc = -1;

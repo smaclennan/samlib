@@ -13,24 +13,6 @@ static int out_line(char *line, void *data)
 	return 0;
 }
 
-#ifdef WIN32
-/* Trivial implementation */
-int getline(char **line, int *len, FILE *fp)
-{
-	if (line == NULL) {
-		*len = 1024;
-		*line = malloc(*len);
-		if (!*line)
-			return EOF;
-	}
-
-	if (fgets(*line, *len, fp))
-		return 0;
-
-	return EOF;
-}
-#endif
-
 /* Read a file line at a time calling line_func() for each
  * line. Removes the NL from the line. If line_func() returns
  * non-zero, it will stop reading the file and return 1.

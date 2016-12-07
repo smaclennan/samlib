@@ -1,10 +1,14 @@
-#ifndef __BWIN32_H__
-#define __BWIN32_H__
+#ifndef __SAMWIN32_H__
+#define __SAMWIN32_H__
 
 #include <windows.h>
 #include <io.h>
 #include <direct.h>
+#include <stdio.h>
 #include <stdlib.h>
+
+#include "fnmatch.h"
+#include "regex.h"
 
 /* WIN32 sure likes underscores */
 #define snprintf _snprintf
@@ -21,6 +25,10 @@
 #define write _write
 #define lseek _lseek
 #define close _close
+
+#define lstat stat
+
+#define S_ISDIR(m) ((m) & _S_IFDIR)
 
 #define access _access
 #define umask _umask
@@ -54,6 +62,8 @@ int getopt(int argc, char *argv[], const char *optstring);
 #define F_OK 0
 #define R_OK 4
 #define W_OK 2
+
+int getline(char **line, int *len, FILE *fp);
 
 typedef int pid_t;
 typedef int mode_t;

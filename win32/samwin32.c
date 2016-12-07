@@ -1,5 +1,5 @@
 #include <stdio.h> /* for snprintf */
-#include "bwin32.h"
+#include "samwin32.h"
 
 int optind = 1;
 char *optarg;
@@ -85,4 +85,20 @@ void closedir(DIR *dir)
 {
 	FindClose(dir->handle);
 	free(dir);
+}
+
+/* Trivial implementation */
+int getline(char **line, int *len, FILE *fp)
+{
+	if (line == NULL) {
+		*len = 1024;
+		*line = malloc(*len);
+		if (!*line)
+			return EOF;
+	}
+
+	if (fgets(*line, *len, fp))
+		return 0;
+
+	return EOF;
 }
