@@ -3,6 +3,8 @@
 #include <errno.h>
 #include <sys/stat.h>
 
+#include "samlib.h"
+
 int mkdir_p(const char *dir)
 {
 	mode_t mode = umask(0) ^ 0777;

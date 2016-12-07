@@ -3,7 +3,9 @@
 #include <stdarg.h>
 #include <string.h>
 #include <errno.h>
+#ifndef WIN32
 #include <sys/wait.h>
+#endif
 
 #include "samlib.h"
 
@@ -19,8 +21,10 @@ int do_system(const char *fmt, ...)
 	va_end(ap);
 
 	int rc = system(cmd);
+#ifndef WIN32
 	if (WIFEXITED(rc))
 		rc = WEXITSTATUS(rc);
+#endif
 
 	return rc;
 }

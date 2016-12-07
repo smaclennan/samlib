@@ -4,11 +4,12 @@
 
 #include <stdio.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <sys/stat.h>
 #ifdef USE_SENDFILE
 #include <sys/sendfile.h>
 #endif
+
+#include "samlib.h"
 
 /* Copy a file. Uses sendfile by default.
  * Returns number of bytes copied or < 0 on error:

@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
@@ -140,7 +139,7 @@ void md5_update(md5ctx *ctx, const void *data, int len)
 		ctx->cur += n;
 		ctx->size += n;
 		len -= n;
-		data += n;
+		WIN32_COERCE data += n;
 
 		if (ctx->cur == 64) {
 			md5_calc(ctx);

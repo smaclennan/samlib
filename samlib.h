@@ -7,7 +7,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#ifdef WIN32
+#include "win32/samwin32.h"
+#else
+#include <unistd.h>
 #include <netinet/in.h>
+#endif
 
 #define ONE_MINUTE		60
 #define ONE_HOUR		(ONE_MINUTE * 60)
@@ -245,5 +250,12 @@ char *must_strdup(const char *s);
 void *must_alloc(size_t size);
 void *must_calloc(int nmemb, int size);
 void *must_realloc(void *ptr, int size);
+
+#ifdef WIN32
+/* Windows still cannot handle void * correctly */
+#define WIN32_COERCE (unsigned char *)
+#else
+#define WIN32_COERCE
+#endif
 
 #endif
