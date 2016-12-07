@@ -226,6 +226,22 @@ int db_walk(void *dbh, int (*walk_func)(char *key, void *data, int len))
 
 	return rc;
 #else
-	return -ENOSYS;
+	DBT key, data;
+	int rc = 0, flag = R_FIRST;
+	GET_DB(dbh);
+
+	if (!walk_func)
+		return -EINVAL;
+
+	memset(&key, 0, sizeof(key));
+	memset(&data, 0, sizeof(data));
+
+	while (db->seq(db, &key, &data, flag) == 0) {
+		if ((rc = walk_func(key.data, data.data, data.size)))
+			break;
+		flag = R_NEXT;
+	}
+
+	return rc;
 #endif
 }

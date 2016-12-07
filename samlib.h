@@ -208,6 +208,10 @@ int db_peek(void *dbh, char *keystr);
 int db_del(void *dbh, char *keystr);
 int db_walk(void *dbh, int (*walk_func)(char *key, void *data, int len));
 
+#ifndef DB_CREATE
+#define DB_CREATE (O_CREAT | O_RDWR)
+#endif
+
 /* Advantages of xorshift128plus() over random().
  *     1. It is faster. (~7x)
  *     2. It returns a full 64 bits.

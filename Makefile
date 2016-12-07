@@ -31,7 +31,7 @@ all: libsamlib.a stest
 *.o: samlib.h
 
 stest: stest.c libsamlib.a
-	$(QUIET_CC)$(CC) -o $@ $+
+	$(QUIET_CC)$(CC) -o $@ $+ -ldb
 
 md5test: md5test.c libsamlib.a
 	$(QUIET_CC)$(CC) -o $@ $+
