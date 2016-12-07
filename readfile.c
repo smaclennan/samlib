@@ -1,3 +1,4 @@
+#define _WITH_GETLINE /* for FreeBSD */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
