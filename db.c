@@ -5,13 +5,26 @@
 
 #include "samlib.h"
 
+/* DB_VERSION_MAJOR is not defined in FreeBSD. */
+
 
 static DB *global_db;
+
+static inline void dbclose(DB *db)
+{
+	if (db) {
+#ifdef DB_VERSION_MAJOR
+		db->close(db, 0);
+#else
+		db->close(db);
+#endif
+	}
+}
 
 static void db_close_global(void)
 {
 	if (global_db) {
-		global_db->close(global_db, 0);
+		dbclose(global_db);
 		global_db = NULL;
 	}
 }
@@ -23,6 +36,7 @@ int db_open(char *dbname, uint32_t flags, void **dbh)
 	if (!dbh && global_db)
 		return -EBUSY;
 
+#ifdef DB_VERSION_MAJOR
 	int rc = db_create(&db, NULL, 0);
 	if (rc)
 		return rc;
@@ -30,6 +44,11 @@ int db_open(char *dbname, uint32_t flags, void **dbh)
 	rc = db->open(db, NULL, dbname, NULL, DB_BTREE, flags, 0664);
 	if (rc)
 		return rc;
+#else
+	db = dbopen(dbname, flags, 0664, DB_BTREE, NULL);
+	if (!db)
+		return errno;
+#endif
 
 	if (dbh)
 		*dbh = db;
@@ -51,7 +70,7 @@ int db_close(void *dbh)
 	if (db == global_db)
 		db_close_global();
 	else
-		db->close(db, 0);
+		dbclose(db);
 	return 0;
 }
 
@@ -71,7 +90,11 @@ int db_put(void *dbh, char *keystr, void *val, int len, unsigned flags)
 		data.size = len;
 	}
 
+#ifdef DB_VERSION_MAJOR
 	return db->put(db, NULL, &key, &data, flags);
+#else
+	return db->put(db, &key, &data, flags);
+#endif
 }
 
 int db_put_str(void *dbh, char *keystr, char *valstr)
@@ -98,6 +121,7 @@ int db_update_long(void *dbh, char *keystr, long update)
 /* Returns val len on success */
 int db_get(void *dbh, char *keystr, void *val, int len)
 {
+	int rc;
 	DBT key, data;
 	GET_DB(dbh);
 
@@ -107,7 +131,11 @@ int db_get(void *dbh, char *keystr, void *val, int len)
 	key.data = keystr;
 	key.size = strlen(keystr) + 1;
 
-	int rc = db->get(db, NULL, &key, &data, 0);
+#ifdef DB_VERSION_MAJOR
+	rc = db->get(db, NULL, &key, &data, 0);
+#else
+	rc = db->get(db, &key, &data, 0);
+#endif
 	if (rc)
 		return rc < 0 ? rc : -rc;
 
@@ -147,7 +175,11 @@ int db_peek(void *dbh, char *keystr)
 	key.data = keystr;
 	key.size = strlen(keystr) + 1;
 
+#ifdef DB_VERSION_MAJOR
 	return db->get(db, NULL, &key, NULL, 0);
+#else
+	return db->get(db, &key, NULL, 0);
+#endif
 }
 
 int db_del(void *dbh, char *keystr)
@@ -160,11 +192,16 @@ int db_del(void *dbh, char *keystr)
 	key.data = keystr;
 	key.size = strlen(key.data) + 1;
 
+#ifdef DB_VERSION_MAJOR
 	return db->del(db, NULL, &key, 0);
+#else
+	return db->del(db, &key, 0);
+#endif
 }
 
 int db_walk(void *dbh, int (*walk_func)(char *key, void *data, int len))
 {
+#ifdef DB_VERSION_MAJOR
 	DBT key, data;
 	DBC *dbc;
 	int rc = 0;
@@ -174,7 +211,7 @@ int db_walk(void *dbh, int (*walk_func)(char *key, void *data, int len))
 		return -EINVAL;
 
 	if ((rc = db->cursor(db, NULL, &dbc, 0))) {
-		db->close(db, 0);
+		dbclose(db);
 		return rc;
 	}
 
@@ -188,4 +225,7 @@ int db_walk(void *dbh, int (*walk_func)(char *key, void *data, int len))
 	dbc->c_close(dbc);
 
 	return rc;
+#else
+	return -ENOSYS;
+#endif
 }

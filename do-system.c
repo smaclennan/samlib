@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/wait.h>
 
 #include "samlib.h"
 

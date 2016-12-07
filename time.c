@@ -34,7 +34,8 @@ const char *get_month(unsigned month, int long_months)
 /* Can handle a difference of about 66 hours on 32 bit systems and
  * about 150 years on 64 bit systems. Optimized for delta < 1 second.
  */
-ulong delta_timeval(const struct timeval *start, const struct timeval *end)
+unsigned long delta_timeval(const struct timeval *start,
+							const struct timeval *end)
 {
 	if (start->tv_usec > end->tv_usec) {
 		if (start->tv_sec == end->tv_sec - 1)

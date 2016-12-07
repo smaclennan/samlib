@@ -1,4 +1,6 @@
+#ifdef __linux__
 #define USE_SENDFILE
+#endif
 
 #include <stdio.h>
 #include <fcntl.h>
