@@ -5,17 +5,25 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
+#ifdef WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <netdb.h>
+#endif
 
 #include "samlib.h"
 
 /* Returns 0 on success. The args addr and/or mask can be NULL. */
 int ip_addr(const char *ifname, struct in_addr *addr, struct in_addr *mask)
 {
+#ifdef WIN32
+	return ENOSYS;
+#else
 	int s = socket(AF_INET, SOCK_DGRAM, 0);
 	if (s < 0)
 		return -1;
@@ -41,6 +49,7 @@ int ip_addr(const char *ifname, struct in_addr *addr, struct in_addr *mask)
 failed:
 	close(s);
 	return -1;
+#endif
 }
 
 /* Returns 0 on success or an errno suitable for gai_strerror().

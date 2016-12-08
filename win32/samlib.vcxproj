@@ -75,6 +75,7 @@
     <ClCompile Include="..\binary.c" />
     <ClCompile Include="..\copy.c" />
     <ClCompile Include="..\do-system.c" />
+    <ClCompile Include="..\ip.c" />
     <ClCompile Include="..\md5.c" />
     <ClCompile Include="..\mkdir-p.c" />
     <ClCompile Include="..\must.c" />
