@@ -251,6 +251,18 @@ void *must_alloc(size_t size);
 void *must_calloc(int nmemb, int size);
 void *must_realloc(void *ptr, int size);
 
+/* Note: /proc/pid/cmdline is currently limited to 4k */
+int readproccmdline(pid_t pid, char *buf, int len);
+int readproccmd(pid_t pid, char *buf, int len);
+
+/* For _findpid the matched command will be in buf so that you can
+ * further refine the match.
+ * Both _findpid and findpid are thread safe.
+ */
+pid_t _findpid(const char *cmd, pid_t start_pid, char *buf, int len);
+pid_t findpid(const char *cmd, pid_t start_pid);
+
+
 #ifdef WIN32
 /* Windows still cannot handle void * correctly */
 #define WIN32_COERCE (unsigned char *)
