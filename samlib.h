@@ -177,6 +177,19 @@ void md5_update(md5ctx *ctx, const void *data, int len);
 void md5_final(md5ctx *ctx, uint8_t *hash);
 char *md5str(uint8_t *hash, char *str);
 
+/* base64 functions */
+
+/* If this is set to non-zero than the url safe alphabet is used for
+ * encoding. For decoding both are supported.
+ * Not thread safe unless all threads use the same value.
+ */
+extern int base64url_safe;
+
+int base64_encode(char *dst, int dlen, const uint8_t *src, int len);
+int base64_encoded_len(int len);
+int base64_decode(uint8_t *dst, int dlen, const char *src, int len);
+int base64_decoded_len(int len);
+
 /* IP functions */
 
 /* Returns 0 on success. The args addr and/or mask can be NULL. */
