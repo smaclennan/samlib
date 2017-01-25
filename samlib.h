@@ -32,6 +32,9 @@ unsigned long get_mem_len(const char *str);
 
 unsigned nice_mem_len(unsigned long size, char *ch);
 
+/* Adds commas. Not thread safe */
+char *nice_number(long number);
+
 /* Read a file line at a time calling line_func() for each
  * line. Removes the NL from the line. If line_func() returns
  * non-zero, it will stop reading the file and return 1.
@@ -189,6 +192,8 @@ int base64_encode(char *dst, int dlen, const uint8_t *src, int len);
 int base64_encoded_len(int len);
 int base64_decode(uint8_t *dst, int dlen, const char *src, int len);
 int base64_decoded_len(int len);
+
+uint16_t crc16(const void *buf, int count);
 
 /* IP functions */
 

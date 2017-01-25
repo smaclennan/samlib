@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "samlib.h"
 
@@ -104,4 +105,35 @@ unsigned nice_mem_len(unsigned long size, char *ch)
 
 	*ch = ' ';
 	return size;
+}
+
+/* Adds commas. Not thread safe */
+char *nice_number(long number)
+{   /* largest 64 bit decimal, with commas, is 26 + 1 */
+	static char str[32], *p;
+	int i, neg;
+
+	if (number == 0)
+		return strcpy(str, "0");
+
+	neg = number < 0;
+	if (neg)
+		number = -number;
+
+	p = str + 31;
+	*p = 0;
+
+	for (i = 0; number; i++) {
+		if ((i & 3) == 3) {
+			*(--p) = ',';
+			++i;
+		}
+		*(--p) = (number % 10) + '0';
+		number /= 10;
+	}
+
+	if (neg)
+		*(--p) = '-';
+
+	return p;
 }
