@@ -68,6 +68,9 @@ int readcmd(int (*line_func)(char *line, void *data), void *data, const char *fm
  */
 long copy_file(const char *from, const char *to);
 
+/* Create a file of set length and mode. If mode is 0, a reasonable default is chosen. */
+int create_file(const char *fname, off_t length, mode_t mode);
+
 /* This mimics the shell's `mkdir -p' */
 int mkdir_p(const char *dir);
 

@@ -23,7 +23,7 @@ QUIET_AR      = $(Q:@=@echo    '     AR       '$@;)
 CFILES := version.c readfile.c readcmd.c do-system.c walkfiles.c
 CFILES += mkdir-p.c md5.c ip.c copy.c binary.c db.c time.c
 CFILES += arg-helpers.c xorshift.c must.c readproc.c base64.c
-CFILES += crc16.c
+CFILES += crc16.c file.c
 
 O := $(CFILES:.c=.o)
 
