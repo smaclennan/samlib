@@ -196,7 +196,8 @@ int base64_encoded_len(int len);
 int base64_decode(uint8_t *dst, int dlen, const char *src, int len);
 int base64_decoded_len(int len);
 
-uint16_t crc16(const void *buf, int count);
+/* Mainly for IP header checksums */
+uint16_t chksum16(const void *buf, int count);
 
 /* IP functions */
 
