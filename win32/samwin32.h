@@ -24,6 +24,7 @@
 #define read _read
 #define write _write
 #define lseek _lseek
+#define ftruncate _chsize
 #define close _close
 
 #define lstat stat

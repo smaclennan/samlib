@@ -25,6 +25,9 @@ stest: stest.c libsamlib.a
 md5test: md5test.c libsamlib.a
 	$(QUIET_CC)$(CC) -o $@ md5test.c libsamlib.a
 
+crc16test: crc16.c libsamlib.a
+	$(QUIET_CC)$(CC) -DSTANDALONE -o $@ crc16.c libsamlib.a
+
 libsamlib.a: $O
 	$(QUIET_AR)$(AR) cr $@ $O
 
@@ -36,4 +39,4 @@ install:
 	install -m644 libsamlib.a $(DESTDIR)$(LIBDIR)/libsamlib.a
 
 clean:
-	rm -f *.o libsamlib.a stest md5test
+	rm -f *.o libsamlib.a stest md5test crc16test
