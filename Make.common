@@ -1,5 +1,8 @@
 .PHONY: all check install clean
 
+LIBDIR ?= /usr/lib
+INCDIR ?= /usr/include
+
 D = -O2
 CFLAGS += -Wall $(D:1=-g)
 
@@ -30,10 +33,10 @@ libsamlib.a: $O
 	$(QUIET_AR)$(AR) cr $@ $O
 
 install:
-	mkdir -p $(DESTDIR)/usr/include
+	mkdir -p $(DESTDIR)$(INCDIR)
 	mkdir -p $(DESTDIR)$(LIBDIR)
-	install -m644 samlib.h $(DESTDIR)/usr/include/samlib.h
-	install -m644 linux-list.h $(DESTDIR)/usr/include/linux-list.h
+	install -m644 samlib.h $(DESTDIR)$(INCDIR)/samlib.h
+	install -m644 linux-list.h $(DESTDIR)$(INCDIR)/linux-list.h
 	install -m644 libsamlib.a $(DESTDIR)$(LIBDIR)/libsamlib.a
 
 clean:
