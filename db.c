@@ -199,6 +199,13 @@ int db_del(void *dbh, char *keystr)
 #endif
 }
 
+/* WARNING: Assumes data is a string! */
+int db_walk_puts(char *key, void *data, int len)
+{
+	printf("%s: %.*s\n", key, len, (char *)data);
+	return 0;
+}
+
 int db_walk(void *dbh, int (*walk_func)(char *key, void *data, int len))
 {
 #ifdef DB_VERSION_MAJOR

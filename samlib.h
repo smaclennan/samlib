@@ -234,6 +234,10 @@ int db_get_str(void *dbh, char *keystr, char *valstr, int len);
 int db_peek(void *dbh, char *keystr);
 int db_del(void *dbh, char *keystr);
 int db_walk(void *dbh, int (*walk_func)(char *key, void *data, int len));
+/* Sample db_walk function.
+ * WARNING: Assumes data is a string!
+ */
+int db_walk_puts(char *key, void *data, int len);
 
 #ifndef DB_CREATE
 #define DB_CREATE (O_CREAT | O_RDWR)

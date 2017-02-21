@@ -9,12 +9,6 @@
 
 #include "samlib.h"
 
-int walk_puts(char *key, void *data, int len)
-{
-	printf("%s: %.*s\n", key, len, (char *)data);
-	return 0;
-}
-
 int main(int argc, char *argv[])
 {
 #if 1
@@ -41,7 +35,7 @@ int main(int argc, char *argv[])
 	}
 
 	return walkfiles(NULL, argv[optind], NULL, 0);
-#elif 0
+#elif 1
 	char str[8];
 
 	if (db_open("/tmp/dbtest", DB_CREATE, NULL)) {
@@ -58,7 +52,7 @@ int main(int argc, char *argv[])
 	if (strcmp(str, "2"))
 		printf("Problem: expected 2 got %s\n", str);
 
-	db_walk(NULL, walk_puts);
+	db_walk(NULL, db_walk_puts);
 #else
 	struct timeval start, end;
 
