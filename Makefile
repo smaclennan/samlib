@@ -1,11 +1,12 @@
+ifeq ($(shell uname -s), Linux)
+DBLIB ?= -ldb
 ifeq ($(shell uname -m), x86_64)
 LIBDIR ?= /usr/lib64
 else
 LIBDIR ?= /usr/lib
 endif
-
-ifeq ($(shell uname -s), Linux)
-DBLIB ?= -ldb
+else
+LIBDIR ?= /usr/lib
 endif
 
 V	      = @
