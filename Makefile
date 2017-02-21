@@ -4,6 +4,10 @@ else
 LIBDIR ?= /usr/lib
 endif
 
+ifeq ($(shell uname -s), Linux)
+DBLIB ?= -ldb
+endif
+
 V	      = @
 Q	      = $(V:1=)
 QUIET_CC      = $(Q:@=@echo    '     CC       '$@;)

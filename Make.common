@@ -3,8 +3,6 @@
 D = -O2
 CFLAGS += -Wall $(D:1=-g)
 
-DBLIB ?= -ldb
-
 .c.o:
 	$(QUIET_CC)$(CC) -o $@ -c $(CFLAGS) $<
 
