@@ -238,6 +238,7 @@ int db_walk(void *dbh, int (*walk_func)(const char *key, void *data, int len));
  * WARNING: Assumes data is a string!
  */
 int db_walk_puts(const char *key, void *data, int len);
+int db_walk_long(const char *key, void *data, int len);
 
 #ifndef DB_CREATE
 #define DB_CREATE (O_CREAT | O_RDWR)

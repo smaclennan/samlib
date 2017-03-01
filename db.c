@@ -206,6 +206,12 @@ int db_walk_puts(const char *key, void *data, int len)
 	return 0;
 }
 
+int db_walk_long(const char *key, void *data, int len)
+{
+	printf("%s: %ld\n", key, *(long *)data);
+	return 0;
+}
+
 int db_walk(void *dbh, int (*walk_func)(const char *key, void *data, int len))
 {
 #ifdef DB_VERSION_MAJOR

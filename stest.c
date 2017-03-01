@@ -53,6 +53,18 @@ int main(int argc, char *argv[])
 		printf("Problem: expected 2 got %s\n", str);
 
 	db_walk(NULL, db_walk_puts);
+#elif 1
+	if (db_open("/tmp/dbtest", DB_CREATE, NULL)) {
+		puts("Unable to open DB");
+		exit(1);
+	}
+
+	if (db_update_long(NULL, "c", 3) ||
+		db_update_long(NULL, "b", 2) ||
+		db_update_long(NULL, "a", 1))
+		printf("Puts failed\n");
+
+	db_walk(NULL, db_walk_long);
 #else
 	struct timeval start, end;
 
