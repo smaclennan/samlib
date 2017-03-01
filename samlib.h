@@ -222,22 +222,22 @@ uint32_t get_address4(const char *hostname);
  */
 
 /* The flags are for the DB->open() function. */
-int db_open(char *dbname, uint32_t flags, void **dbh);
+int db_open(const char *dbname, uint32_t flags, void **dbh);
 int db_close(void *dbh);
-int db_put(void *dbh, char *keystr, void *val, int len, unsigned flags);
-int db_put_str(void *dbh, char *keystr, char *valstr);
-int db_update_long(void *dbh, char *keystr, long update);
+int db_put(void *dbh, const char *keystr, void *val, int len, unsigned flags);
+int db_put_str(void *dbh, const char *keystr, const char *valstr);
+int db_update_long(void *dbh, const char *keystr, long update);
 #define db_inc_long(d, k) db_update_long((d), (k), 1)
 #define db_dec_long(d, k) db_update_long((d), (k), -1)
-int db_get(void *dbh, char *keystr, void *val, int len);
-int db_get_str(void *dbh, char *keystr, char *valstr, int len);
-int db_peek(void *dbh, char *keystr);
-int db_del(void *dbh, char *keystr);
-int db_walk(void *dbh, int (*walk_func)(char *key, void *data, int len));
+int db_get(void *dbh, const char *keystr, void *val, int len);
+int db_get_str(void *dbh, const char *keystr, char *valstr, int len);
+int db_peek(void *dbh, const char *keystr);
+int db_del(void *dbh, const char *keystr);
+int db_walk(void *dbh, int (*walk_func)(const char *key, void *data, int len));
 /* Sample db_walk function.
  * WARNING: Assumes data is a string!
  */
-int db_walk_puts(char *key, void *data, int len);
+int db_walk_puts(const char *key, void *data, int len);
 
 #ifndef DB_CREATE
 #define DB_CREATE (O_CREAT | O_RDWR)

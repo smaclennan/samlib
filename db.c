@@ -29,7 +29,7 @@ static void db_close_global(void)
 	}
 }
 
-int db_open(char *dbname, uint32_t flags, void **dbh)
+int db_open(const char *dbname, uint32_t flags, void **dbh)
 {
 	DB *db;
 
@@ -75,7 +75,7 @@ int db_close(void *dbh)
 }
 
 /* Returns 0 on success */
-int db_put(void *dbh, char *keystr, void *val, int len, unsigned flags)
+int db_put(void *dbh, const char *keystr, void *val, int len, unsigned flags)
 {
 	DBT key, data;
 	GET_DB(dbh);
@@ -83,7 +83,7 @@ int db_put(void *dbh, char *keystr, void *val, int len, unsigned flags)
 	memset(&key, 0, sizeof(key));
 	memset(&data, 0, sizeof(data));
 
-	key.data = keystr;
+	key.data = (char *)keystr;
 	key.size = strlen(keystr) + 1;
 	if (len) {
 		data.data = val;
@@ -97,10 +97,10 @@ int db_put(void *dbh, char *keystr, void *val, int len, unsigned flags)
 #endif
 }
 
-int db_put_str(void *dbh, char *keystr, char *valstr)
+int db_put_str(void *dbh, const char *keystr, const char *valstr)
 {
 	if (valstr)
-		return db_put(dbh, keystr, valstr, strlen(valstr) + 1, 0);
+		return db_put(dbh, (char *)keystr, (char *)valstr, strlen(valstr) + 1, 0);
 	else
 		return db_put(dbh, keystr, NULL, 0, 0);
 }
@@ -108,7 +108,7 @@ int db_put_str(void *dbh, char *keystr, char *valstr)
 /* Handy function for keeping track of counts or sizes. Reads the old
  * value and adds in the new value.
  */
-int db_update_long(void *dbh, char *keystr, long update)
+int db_update_long(void *dbh, const char *keystr, long update)
 {
 	long cur;
 
@@ -119,7 +119,7 @@ int db_update_long(void *dbh, char *keystr, long update)
 }
 
 /* Returns val len on success */
-int db_get(void *dbh, char *keystr, void *val, int len)
+int db_get(void *dbh, const char *keystr, void *val, int len)
 {
 	int rc;
 	DBT key, data;
@@ -128,7 +128,7 @@ int db_get(void *dbh, char *keystr, void *val, int len)
 	memset(&key, 0, sizeof(key));
 	memset(&data, 0, sizeof(data));
 
-	key.data = keystr;
+	key.data = (char *)keystr;
 	key.size = strlen(keystr) + 1;
 
 #ifdef DB_VERSION_MAJOR
@@ -149,7 +149,7 @@ int db_get(void *dbh, char *keystr, void *val, int len)
 /* The difference between db_get() and db_get_str() is that
  * db_get_str() guarantees a null terminated string if the return > 0.
  */
-int db_get_str(void *dbh, char *keystr, char *valstr, int len)
+int db_get_str(void *dbh, const char *keystr, char *valstr, int len)
 {
 	int rc = db_get(dbh, keystr, valstr, len);
 	if (rc <= 0)
@@ -165,14 +165,14 @@ int db_get_str(void *dbh, char *keystr, char *valstr, int len)
 	return rc;
 }
 
-int db_peek(void *dbh, char *keystr)
+int db_peek(void *dbh, const char *keystr)
 {
 	DBT key;
 	GET_DB(dbh);
 
 	memset(&key, 0, sizeof(key));
 
-	key.data = keystr;
+	key.data = (char *)keystr;
 	key.size = strlen(keystr) + 1;
 
 #ifdef DB_VERSION_MAJOR
@@ -182,14 +182,14 @@ int db_peek(void *dbh, char *keystr)
 #endif
 }
 
-int db_del(void *dbh, char *keystr)
+int db_del(void *dbh, const char *keystr)
 {
 	DBT key;
 	GET_DB(dbh);
 
 	memset(&key, 0, sizeof(key));
 
-	key.data = keystr;
+	key.data = (char *)keystr;
 	key.size = strlen(key.data) + 1;
 
 #ifdef DB_VERSION_MAJOR
@@ -200,13 +200,13 @@ int db_del(void *dbh, char *keystr)
 }
 
 /* WARNING: Assumes data is a string! */
-int db_walk_puts(char *key, void *data, int len)
+int db_walk_puts(const char *key, void *data, int len)
 {
 	printf("%s: %.*s\n", key, len, (char *)data);
 	return 0;
 }
 
-int db_walk(void *dbh, int (*walk_func)(char *key, void *data, int len))
+int db_walk(void *dbh, int (*walk_func)(const char *key, void *data, int len))
 {
 #ifdef DB_VERSION_MAJOR
 	DBT key, data;
