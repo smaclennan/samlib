@@ -289,6 +289,8 @@ int readproccmd(pid_t pid, char *buf, int len);
 pid_t _findpid(const char *cmd, pid_t start_pid, char *buf, int len);
 pid_t findpid(const char *cmd, pid_t start_pid);
 
+/* Requires -rdynamic to be useful */
+void dump_stack(void);
 
 #ifdef WIN32
 /* Windows still cannot handle void * correctly */
