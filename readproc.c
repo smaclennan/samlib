@@ -5,14 +5,14 @@
 
 #include "samlib.h"
 
-static int readproc(pid_t pid, char *buf, int len)
+static int readproc(pid_t pid, const char *file, char *buf, int len)
 {
 	char fname[32];
 	int fd, n;
 
 	*buf = 0;
 
-	snprintf(fname, sizeof(fname), "/proc/%u/cmdline", pid);
+	snprintf(fname, sizeof(fname), "/proc/%u/%s", pid, file);
 	fd = open(fname, O_RDONLY);
 	if (fd < 0)
 		return -1;
@@ -28,7 +28,7 @@ static int readproc(pid_t pid, char *buf, int len)
 /* Note: /proc/pid/cmdline is limited to 4k */
 int readproccmdline(pid_t pid, char *buf, int len)
 {
-	int i, n = readproc(pid, buf, len);
+	int i, n = readproc(pid, "cmdline", buf, len);
 
 	if (n > 0)
 		for (i = 0; i < n; ++i)
@@ -40,10 +40,26 @@ int readproccmdline(pid_t pid, char *buf, int len)
 
 int readproccmd(pid_t pid, char *buf, int len)
 {
-	int n = readproc(pid, buf, len);
+	int n = readproc(pid, "cmdline", buf, len);
 	if (n > 0)
 		n = strlen(buf);
 	return n;
+}
+
+int readprocstat(pid_t pid, struct procstat_min *stat)
+{
+	char buf[128];
+
+	int n = readproc(pid, "stat", buf, sizeof(buf));
+	if (n <= 0)
+		return n;
+
+	if (sscanf(buf, "%d %s %c %d %d %d",
+			   &stat->pid, stat->comm, &stat->state,
+			   &stat->ppid, &stat->pgrp, &stat->session) != 6)
+		return 1; /* can't happen */
+
+	return 0;
 }
 
 pid_t _findpid(const char *cmd, pid_t start_pid, char *buf, int len)

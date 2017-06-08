@@ -282,6 +282,27 @@ void *must_realloc(void *ptr, int size);
 int readproccmdline(pid_t pid, char *buf, int len);
 int readproccmd(pid_t pid, char *buf, int len);
 
+/* First few fields of /proc/<pid>/stat.
+ * state can be "RSDZTW" where:
+ * R is running,
+ * S is sleeping in an interruptible wait,
+ * D is waiting in uninterruptible disk sleep
+ * Z is zombie
+ * T is traced or stopped (on a signal)
+ * W is paging.
+ */
+struct procstat_min {
+	pid_t pid;
+	char comm[18]; /* executable name with brackets */
+	char state;
+	pid_t ppid;
+	pid_t pgrp;
+	pid_t session;
+};
+
+int readprocstat(pid_t pid, struct procstat_min *stat);
+
+
 /* For _findpid the matched command will be in buf so that you can
  * further refine the match.
  * Both _findpid and findpid are thread safe.
