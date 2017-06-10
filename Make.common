@@ -39,5 +39,8 @@ install:
 	install -m644 linux-list.h $(DESTDIR)$(INCDIR)/linux-list.h
 	install -m644 libsamlib.a $(DESTDIR)$(LIBDIR)/libsamlib.a
 
+check:
+	sparse $(CFILES)
+
 clean:
 	rm -f *.o libsamlib.a stest md5test crc16test

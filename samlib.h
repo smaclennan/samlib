@@ -82,6 +82,10 @@ const char *samlib_versionstr(void);
 /* The traditional binary dump with hex on left and chars on right. */
 void binary_dump(const uint8_t *buf, int len);
 
+/* Zero based */
+extern const char *short_month[];
+extern const char *long_month[];
+
 /* If set, then get_month() assumes months are 1 based. Default is 0
  * based.
  */
