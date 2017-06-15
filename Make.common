@@ -16,7 +16,7 @@ CFILES += crc16.c file.c dumpstack.c
 
 O := $(CFILES:.c=.o)
 
-all: libsamlib.a stest
+all: libsamlib.a libsamthread.a stest
 
 *.o: samlib.h
 
@@ -32,6 +32,10 @@ crc16test: crc16.c libsamlib.a
 libsamlib.a: $O
 	$(QUIET_AR)$(AR) cr $@ $O
 
+# Threading - Linux x86 only
+libsamthread.a: samthread.o
+	$(QUIET_AR)$(AR) cr $@ samthread.o
+
 install:
 	mkdir -p $(DESTDIR)$(INCDIR)
 	mkdir -p $(DESTDIR)$(LIBDIR)
@@ -44,3 +48,4 @@ check:
 
 clean:
 	rm -f *.o libsamlib.a stest md5test crc16test
+	rm -f libsamthread.a threadtest

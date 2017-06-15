@@ -1,4 +1,6 @@
 *.o
 libsamlib.a
+libsamthread.a
 stest
 md5test
+threadtest
