@@ -9,72 +9,57 @@
 
 #include "samthread.h"
 
+#define CHILDREN  10
 
 static DEFINE_MUTEX(biglock);
+static int lock_count;
 
 int fn(void *arg)
 {
 	long id = (long)arg;
-	printf("child %ld\n", id);
+	int r;
+
 	mutex_lock(&biglock);
-	printf("child %ld sleeping...\n", id);
-	usleep(500000);
-	printf("child %ld unlock\n", id);
+	r = __sync_add_and_fetch(&lock_count, 1);
+	if (r != 1)
+		printf("Child %ld lock prob %d\n", id, r);
+	// usleep(500000);
+	r = __sync_sub_and_fetch(&lock_count, 1);
+	if (r)
+		printf("Child %ld unlock prob %d\n", id, r);
 	mutex_unlock(&biglock);
-	return 6 + id;
+	return id;
 }
 
 int main()
 {
-#if 0
-	/* simple case - no contention */
-	mutex_lock(&biglock);
-	mutex_unlock(&biglock);
-#endif
-
-	signal(SIGCHLD, SIG_IGN);
+	long i;
+	int rc;
+	samthread_t tid[CHILDREN];
 
 	mutex_lock(&biglock);
 
-	samthread_t tid = samthread_create(fn, (void *)1);
-	if (tid == -1) {
-		perror("create");
-		exit(1);
+	for (i = 0; i < CHILDREN; ++i) {
+		tid[i] = samthread_create(fn, (void *)i);
+		if (tid[i] == -1) {
+			perror("create");
+			exit(1);
+		}
 	}
-	printf("create returned %lx\n", tid);
 
-	samthread_t tid2 = samthread_create(fn, (void *)2);
-	if (tid2 == -1) {
-		perror("create");
-		exit(1);
-	}
-	printf("create returned %lx\n", tid2);
-
-	samthread_t tid3 = samthread_create(fn, (void *)3);
-	if (tid3 == -1) {
-		perror("create");
-		exit(1);
-	}
-	printf("create returned %lx\n", tid3);
-
-	usleep(500000);
-
-	printf("Parent unlocks tid %d\n", *(int *)tid);
+	printf("Go!\n");
 	mutex_unlock(&biglock);
 
-	printf("Parent waiting\n");
-	int rc = samthread_join(tid);
-	printf("joined 1 rc %d\n", rc);
-	rc = samthread_join(tid2);
-	printf("joined 2 rc %d\n", rc);
-	rc = samthread_join(tid3);
-	printf("joined 3 rc %d\n", rc);
+	for (i = 0; i < CHILDREN; ++i) {
+		rc = samthread_join(tid[i]);
+		printf("joined %ld rc %d\n", i, rc);
+	}
 
 	return 0;
 }
 
 /*
  * Local Variables:
- * compile-command: "gcc -g -Wall threadtest.c -o threadtest ./libsamthread.a"
+ * compile-command: "gcc -g -Wall threadtest.c samthread.c -o threadtest"
  * End:
  */
