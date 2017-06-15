@@ -13,7 +13,10 @@ typedef unsigned long samthread_t;
 samthread_t samthread_create(int (*fn)(void *arg), void *arg);
 int samthread_join(samthread_t tid);
 
-typedef int mutex_t;
+typedef struct mutex {
+	int state;
+	int count;
+} mutex_t;
 
 #define DEFINE_MUTEX(name) mutex_t name = { 0 };
 

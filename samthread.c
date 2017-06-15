@@ -114,24 +114,26 @@ int samthread_join(samthread_t tid)
 
 void mutex_lock(mutex_t *lock)
 {
+	__sync_add_and_fetch(&lock->count, 1);
 	while (1) {
-		int r = __sync_val_compare_and_swap(lock, 0, 1);
-		if (r == 0)
+		int r = __sync_val_compare_and_swap(&lock->state, 0, 1);
+		if (r == 0) {
+			__sync_sub_and_fetch(&lock->count, 1);
 			return;
+		}
 
-		if (r == 2 || __sync_val_compare_and_swap(lock, 1, 2))
-			futex(lock, FUTEX_WAIT_PRIVATE, 2);
+		futex(&lock->state, FUTEX_WAIT_PRIVATE, 1);
 	}
 }
 
 void mutex_unlock(mutex_t *lock)
 {
-	int r = __sync_val_compare_and_swap(lock, 1, 0);
+	int r = __sync_val_compare_and_swap(&lock->state, 1, 0);
 	if (r == 1)
-		return;
+		if (lock->count == 0)
+			return;
 
-	*lock = 0;
+	lock->state = 0;
 
-	/* We need to wake two threads to potentially get contention set. */
-	futex(lock, FUTEX_WAKE_PRIVATE, 2);
+	futex(&lock->state, FUTEX_WAKE_PRIVATE, 1);
 }
