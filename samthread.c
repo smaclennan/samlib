@@ -106,12 +106,6 @@ int samthread_join(samthread_t tid)
 	return rc;
 }
 
-/* Mutex has three states:
- * 0 = unlocked
- * 1 = locked
- * 2 = contended
- */
-
 void mutex_lock(mutex_t *lock)
 {
 	__sync_add_and_fetch(&lock->count, 1);
