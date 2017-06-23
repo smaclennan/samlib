@@ -18,7 +18,7 @@ typedef struct mutex {
 	int count;
 } mutex_t;
 
-#define DEFINE_MUTEX(name) mutex_t name = { 0 };
+#define DEFINE_MUTEX(name) mutex_t name = { 0 }
 
 void mutex_lock(mutex_t *lock);
 void mutex_unlock(mutex_t *lock);
