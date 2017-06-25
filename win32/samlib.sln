@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "samlib", "samlib.vcxproj", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "threadtest", "..\threadtest\threadtest.vcxproj", "{ECA5AFA9-AB6C-4972-BEC2-49761827634A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "stest", "..\stest\stest.vcxproj", "{7E3BAE0C-1B9D-4BFC-8B99-58D9E4ED0F47}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -21,6 +23,10 @@ Global
 		{ECA5AFA9-AB6C-4972-BEC2-49761827634A}.Debug|Win32.Build.0 = Debug|Win32
 		{ECA5AFA9-AB6C-4972-BEC2-49761827634A}.Release|Win32.ActiveCfg = Release|Win32
 		{ECA5AFA9-AB6C-4972-BEC2-49761827634A}.Release|Win32.Build.0 = Release|Win32
+		{7E3BAE0C-1B9D-4BFC-8B99-58D9E4ED0F47}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7E3BAE0C-1B9D-4BFC-8B99-58D9E4ED0F47}.Debug|Win32.Build.0 = Debug|Win32
+		{7E3BAE0C-1B9D-4BFC-8B99-58D9E4ED0F47}.Release|Win32.ActiveCfg = Release|Win32
+		{7E3BAE0C-1B9D-4BFC-8B99-58D9E4ED0F47}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

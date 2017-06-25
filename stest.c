@@ -5,13 +5,26 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
+#ifndef WIN32
 #include <db.h>
+#endif
 
 #include "samlib.h"
 
 int main(int argc, char *argv[])
 {
-#if 0
+#if 1
+	if (xorshift_seed(NULL)) {
+		printf("Unable to seed\n");
+		exit(1);
+	}
+
+	printf("%llx\n", xorshift128plus());
+#ifdef WIN32
+	getchar();
+#endif
+	return 0;
+#elif 0
 	pid_t pid, ppid;
 	int rc = 0;
 

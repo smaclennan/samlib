@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#ifdef WIN32
+#include <Windows.h>
+#include <wincrypt.h>
+#endif
 
 #include "samlib.h"
 
@@ -11,19 +15,29 @@ static int seeded;
 
 int xorshift_seed(xorshift_seed_t *seed)
 {
+#ifdef WIN32
+	HCRYPTPROV hProv;
+#endif
+
 	if (!seed)
 		seed = &global_seed;
 
-	int fd = open("/dev/urandom", O_RDONLY);
-	if (fd >= 0) {
-		int n = read(fd, seed, sizeof(xorshift_seed_t));
-		close(fd);
-		if (n == sizeof(xorshift_seed_t)) {
-			if (seed == &global_seed)
-				seeded = 1;
+#ifdef WIN32
+	if (CryptAcquireContext(&hProv, NULL, NULL, PROV_RSA_AES, 0))
+		if (CryptGenRandom(hProv, sizeof(*seed), (BYTE *)seed))
 			return 0;
-		}
+#else
+	int n, fd = open("/dev/urandom", O_RDONLY);
+	if (fd >= 0) {
+		do
+			n = read(fd, seed, sizeof(xorshift_seed_t));
+		while (n != sizeof(xorshift_seed_t));
+		close(fd);
+		if (seed == &global_seed)
+			seeded = 1;
+		return 0;
 	}
+#endif
 
 	return -1;
 }
