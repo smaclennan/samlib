@@ -1,19 +1,14 @@
-#define _GNU_SOURCE /* for clone */
-#include <stdio.h>
+#include "samthread.h"
+
+#if defined(__linux__) && !defined(WANT_PTHREADS)
 #include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
-#include <ctype.h>
 #include <errno.h>
 #include <sched.h>
 #include <sys/resource.h>
 #include <sys/mman.h>
-#include <syscall.h>
+#include <sys/syscall.h>
 #include <linux/futex.h>
-
-#include "samthread.h"
 
 /* The clone flags. */
 #define CLONE_FLAGS (CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND | \
@@ -106,28 +101,194 @@ int samthread_join(samthread_t tid)
 	return rc;
 }
 
-void mutex_lock(mutex_t *lock)
+mutex_t *mutex_create(void)
 {
-	__sync_add_and_fetch(&lock->count, 1);
+	return calloc(1, sizeof(struct mutex));
+}
+
+void mutex_destroy(mutex_t *mutex)
+{
+	if (mutex)
+		free(mutex);
+}
+
+void mutex_lock(mutex_t *mutex)
+{
+	__sync_add_and_fetch(&mutex->count, 1);
 	while (1) {
-		int r = __sync_val_compare_and_swap(&lock->state, 0, 1);
+		int r = __sync_val_compare_and_swap(&mutex->state, 0, 1);
 		if (r == 0) {
-			__sync_sub_and_fetch(&lock->count, 1);
+			__sync_sub_and_fetch(&mutex->count, 1);
 			return;
 		}
 
-		futex(&lock->state, FUTEX_WAIT_PRIVATE, 1);
+		futex(&mutex->state, FUTEX_WAIT_PRIVATE, 1);
 	}
 }
 
-void mutex_unlock(mutex_t *lock)
+void mutex_unlock(mutex_t *mutex)
 {
-	int r = __sync_val_compare_and_swap(&lock->state, 1, 0);
+	int r = __sync_val_compare_and_swap(&mutex->state, 1, 0);
 	if (r == 1)
-		if (lock->count == 0)
+		if (mutex->count == 0)
 			return;
 
-	lock->state = 0;
+	mutex->state = 0;
 
-	futex(&lock->state, FUTEX_WAKE_PRIVATE, 1);
+	futex(&mutex->state, FUTEX_WAKE_PRIVATE, 1);
 }
+
+#elif defined(WIN32)
+
+struct thread_wrapper_arg {
+	int(*fn)(void *arg);
+	void *arg;
+	int rc;
+};
+
+static DWORD __stdcall thread_wrapper(LPVOID lpThreadParameter)
+{
+	struct thread_wrapper_arg *wa = lpThreadParameter;
+	int(*fn)(void *) = wa->fn;
+	void *arg = wa->arg;
+
+	free(wa);
+
+	return fn(arg);
+}
+
+samthread_t samthread_create(int (*fn)(void *arg), void *arg)
+{
+	HANDLE thread;
+	struct thread_wrapper_arg *wa = calloc(1, sizeof(struct thread_wrapper_arg));
+	if (!wa)
+		return (samthread_t)-1;
+
+	wa->fn = fn;
+	wa->arg = arg;
+
+	thread = CreateThread(NULL,
+#ifdef CHILD_STACK_SIZE
+						CHILD_STACK_SIZE,
+#else
+						0, /* default */
+#endif
+						thread_wrapper, wa, 0, NULL);
+
+	if (!thread)
+		free(wa);
+
+	return thread;
+}
+
+int samthread_join(samthread_t tid)
+{
+	DWORD rc = (DWORD)-1;
+
+	WaitForSingleObject(tid, INFINITE);
+	GetExitCodeThread(tid, &rc);
+
+	return rc;
+}
+
+mutex_t *mutex_create(void)
+
+{
+	return (mutex_t *)CreateMutex(NULL, FALSE, NULL);
+}
+
+void mutex_destroy(mutex_t *mutex)
+{
+	CloseHandle((HANDLE)mutex);
+}
+
+void mutex_lock(mutex_t *mutex)
+{
+	WaitForSingleObject((HANDLE)mutex, INFINITE);
+}
+
+void mutex_unlock(mutex_t *mutex)
+{
+	ReleaseMutex((HANDLE)mutex);
+}
+
+#else
+#include <stdlib.h>
+
+/* Default to pthreads */
+
+struct pthread_wrapper_arg {
+	int (*fn)(void *arg);
+	void *arg;
+};
+
+static void *pthread_wrapper(void *arg)
+{
+	struct pthread_wrapper_arg *wa = arg;
+	int (*fn)(void *) = wa->fn;
+	void *fn_arg = wa->arg;
+	long rc;
+
+	free(wa);
+
+	rc = fn(fn_arg);
+
+	return (void *)rc;
+}
+
+samthread_t samthread_create(int (*fn)(void *arg), void *arg)
+{
+	samthread_t tid;
+	struct pthread_wrapper_arg *wa = calloc(1, sizeof(struct pthread_wrapper_arg));
+	if (!wa)
+		return -1;
+
+	wa->fn = fn;
+	wa->arg = arg;
+
+	if (pthread_create(&tid, NULL, pthread_wrapper, wa)) {
+		free(wa);
+		return -1;
+	}
+
+	return tid;
+}
+
+int samthread_join(samthread_t tid)
+{
+	void *rc;
+
+	if (pthread_join(tid, &rc))
+		return -1;
+
+	return (long)rc;
+}
+
+mutex_t *mutex_create(void)
+
+{
+	pthread_mutex_t *mutex = calloc(1, sizeof(pthread_mutex_t));
+
+	pthread_mutex_init(mutex, NULL);
+	return mutex;
+}
+
+void mutex_destroy(mutex_t *mutex)
+{
+	if (mutex) {
+		pthread_mutex_destroy(mutex);
+		free(mutex);
+	}
+}
+
+void mutex_lock(mutex_t *mutex)
+{
+	pthread_mutex_lock(mutex);
+}
+
+void mutex_unlock(mutex_t *mutex)
+{
+	pthread_mutex_unlock(mutex);
+}
+
+#endif
