@@ -66,6 +66,10 @@ unsigned long get_mem_len(const char *str)
 	unsigned long len = strtoul(str, &e, 0);
 
 	switch (*e) {
+	case 't':
+	case 'T':
+		len *= 1024;
+		/* fall thru */
 	case 'g':
 	case 'G':
 		len *= 1024;
@@ -91,7 +95,10 @@ unsigned long get_mem_len(const char *str)
 unsigned nice_mem_len(unsigned long size, char *ch)
 {
 	if (size) {
-		if ((size & ((1UL << 30) - 1)) == 0) {
+		if ((size & ((1UL << 40) - 1)) == 0) {
+			*ch = 'T';
+			return size >> 40;
+		} else if ((size & ((1UL << 30) - 1)) == 0) {
 			*ch = 'G';
 			return size >> 30;
 		} else if ((size & ((1UL << 20) - 1)) == 0) {
