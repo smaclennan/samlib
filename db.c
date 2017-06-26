@@ -75,27 +75,32 @@ int db_close(void *dbh)
 	return 0;
 }
 
-/* Returns 0 on success */
-int db_put(void *dbh, const char *keystr, void *val, int len, unsigned flags)
+int db_put_raw(void *dbh, const void *key, int klen, void *val, int len, unsigned flags)
 {
-	DBT key, data;
+	DBT key_dbt, data_dbt;
 	GET_DB(dbh);
 
-	memset(&key, 0, sizeof(key));
-	memset(&data, 0, sizeof(data));
+	memset(&key_dbt, 0, sizeof(key_dbt));
+	memset(&data_dbt, 0, sizeof(data_dbt));
 
-	key.data = (char *)keystr;
-	key.size = strlen(keystr) + 1;
+	key_dbt.data = (void *)key;
+	key_dbt.size = klen;
 	if (len) {
-		data.data = val;
-		data.size = len;
+		data_dbt.data = val;
+		data_dbt.size = len;
 	}
 
 #ifdef DB_VERSION_MAJOR
-	return db->put(db, NULL, &key, &data, flags);
+	return db->put(db, NULL, &key_dbt, &data_dbt, flags);
 #else
-	return db->put(db, &key, &data, flags);
+	return db->put(db, &key_dbt, &data_dbt, flags);
 #endif
+}
+
+/* Returns 0 on success */
+int db_put(void *dbh, const char *keystr, void *val, int len, unsigned flags)
+{
+	return db_put_raw(dbh, keystr, strlen(keystr) + 1, val, len, flags);
 }
 
 int db_put_str(void *dbh, const char *keystr, const char *valstr)
@@ -120,31 +125,36 @@ int db_update_long(void *dbh, const char *keystr, long update)
 }
 
 /* Returns val len on success */
-int db_get(void *dbh, const char *keystr, void *val, int len)
+int db_get_raw(void *dbh, const void *key, int klen, void *val, int len)
 {
 	int rc;
-	DBT key, data;
+	DBT key_dbt, data_dbt;
 	GET_DB(dbh);
 
-	memset(&key, 0, sizeof(key));
-	memset(&data, 0, sizeof(data));
+	memset(&key_dbt, 0, sizeof(key_dbt));
+	memset(&data_dbt, 0, sizeof(data_dbt));
 
-	key.data = (char *)keystr;
-	key.size = strlen(keystr) + 1;
+	key_dbt.data = (void *)key;
+	key_dbt.size = klen;
 
 #ifdef DB_VERSION_MAJOR
-	rc = db->get(db, NULL, &key, &data, 0);
+	rc = db->get(db, NULL, &key_dbt, &data_dbt, 0);
 #else
-	rc = db->get(db, &key, &data, 0);
+	rc = db->get(db, &key_dbt, &data_dbt, 0);
 #endif
 	if (rc)
 		return rc < 0 ? rc : -rc;
 
-	if (len > data.size)
-		len = data.size;
-	memcpy(val, data.data, len);
+	if (len > data_dbt.size)
+		len = data_dbt.size;
+	memcpy(val, data_dbt.data, len);
 
 	return len;
+}
+
+int db_get(void *dbh, const char *keystr, void *val, int len)
+{
+	return db_get_raw(dbh, keystr, strlen(keystr) + 1, val, len);
 }
 
 /* The difference between db_get() and db_get_str() is that
