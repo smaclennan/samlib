@@ -1,3 +1,6 @@
+ifneq ($(wildcard /usr/include/db.h),)
+CFLAGS += -DHAVE_DB_H
+endif
 ifeq ($(shell uname -s), Linux)
 DBLIB ?= -ldb
 ifeq ($(shell uname -m), x86_64)

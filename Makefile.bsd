@@ -1,1 +1,3 @@
+CFLAGS += -DHAVE_DB_H
+
 include Make.common

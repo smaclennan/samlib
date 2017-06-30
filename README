@@ -3,3 +3,9 @@ time. Things like reading a file with full error checking. Or a mkdir
 -p equivalent.
 
 See samlib.h for more documentation.
+
+For db:
+
+Slackware: just works
+Ubuntu: apt-get install libdb-dev
+RedHat/Centos/Oracle: yum install libdb-devel

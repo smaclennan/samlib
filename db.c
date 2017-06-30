@@ -1,3 +1,6 @@
+#ifndef HAVE_DB_H
+#warning "No db.h, db disabled"
+#else
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -269,3 +272,4 @@ int db_walk(void *dbh, int (*walk_func)(const char *key, void *data, int len))
 	return rc;
 #endif
 }
+#endif

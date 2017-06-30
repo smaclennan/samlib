@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	printf("%llx\n", xorshift128plus());
+	printf("%lx\n", xorshift128plus());
 #ifdef WIN32
 	getchar();
 #endif
