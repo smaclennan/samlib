@@ -71,5 +71,19 @@ int main(int argc, char *argv[])
 		rc = 1;
 	}
 
+	/* test url safe */
+	n = base64_encode(buf, sizeof(buf), (uint8_t *)"~~~~", 4);
+	if (strncmp(buf, "fn5+fg==", 8)) {
+		printf("Problems encoding ~~~~\n");
+		rc = 1;
+	}
+	base64url_safe = 1;
+	n = base64_encode(buf, sizeof(buf), (uint8_t *)"~~~~", 4);
+	if (strncmp(buf, "fn5-fg==", 8)) {
+		printf("Problems encoding ~~~~ url safe\n");
+		rc = 1;
+	}
+	base64url_safe = 0;
+
 	return rc;
 }
