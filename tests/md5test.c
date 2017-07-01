@@ -5,8 +5,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
-
-#include "samlib.h"
+#include <samlib.h>
 
 static struct test {
 	char *in;

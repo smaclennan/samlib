@@ -47,11 +47,12 @@ static void encode_block(char *dst, const uint8_t *src)
 	*dst++ = alphabet[src[2] & 0x3f];
 }
 
+/* dst is returned null terminated but the return does not include the null. */
 int base64_encode(char *dst, int dlen, const uint8_t *src, int len)
 {
 	int cnt = 0;
 
-	if (base64_encoded_len(len) > dlen)
+	if (base64_encoded_len(len) >= dlen)
 		return -1;
 
 	if (base64url_safe) {
@@ -84,6 +85,7 @@ int base64_encode(char *dst, int dlen, const uint8_t *src, int len)
 	return cnt;
 }
 
+/* Note: the len includes the NULL */
 int base64_encoded_len(int len)
 {
 	return (len + 2) / 3 * 4;
