@@ -1,17 +1,14 @@
 #include <stdio.h>
 #include "samlib.h"
 
-void samlib_version(int *major, int *minor)
-{
-	if (major)
-		*major = SAMLIB_MAJOR;
-	if (minor)
-		*minor = SAMLIB_MINOR;
-}
+/* Indirect stringification.  Doing two levels allows the parameter to be a
+ * macro itself.  For example, compile with -DFOO=bar, __stringify(FOO)
+ * converts to "bar".
+ */
+#define __stringify_1(x...)	#x
+#define __stringify(x...)	__stringify_1(x)
 
-const char *samlib_versionstr(void)
-{
-	static char version[8];
-	snprintf(version, sizeof(version), "%d.%d", SAMLIB_MAJOR, SAMLIB_MINOR);
-	return version;
-}
+/* The marker is for `strings libsamlib.a | fgrep Version' */
+const char *marker = "Version-" __stringify(SAMLIB_MAJOR) "." __stringify(SAMLIB_MINOR);
+
+const char *samlib_version = __stringify(SAMLIB_MAJOR) "." __stringify(SAMLIB_MINOR);

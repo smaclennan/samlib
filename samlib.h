@@ -1,9 +1,6 @@
 #ifndef __SAMLIB_H__
 #define __SAMLIB_H__
 
-#define SAMLIB_MAJOR 1
-#define SAMLIB_MINOR 1
-
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -13,6 +10,11 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #endif
+
+#define SAMLIB_MAJOR 1
+#define SAMLIB_MINOR 2
+
+extern const char *samlib_version;
 
 #define ONE_MINUTE		60
 #define ONE_HOUR		(ONE_MINUTE * 60)
@@ -75,9 +77,6 @@ int create_file(const char *fname, off_t length, mode_t mode);
 int mkdir_p(const char *dir);
 
 int do_system(const char *fmt, ...);
-
-void samlib_version(int *major, int *minor);
-const char *samlib_versionstr(void);
 
 /* The traditional binary dump with hex on left and chars on right. */
 void binary_dump(const uint8_t *buf, int len);
