@@ -4,3 +4,4 @@ libsamthread.a
 stest
 md5test
 threadtest
+sha256

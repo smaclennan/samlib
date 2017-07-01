@@ -171,20 +171,38 @@ int check_filters(struct walkfile_struct *walk, const char *fname);
 
 /* md5 functions */
 
+#define MD5_DIGEST_LEN 16
+
 typedef struct md5_ctx {
-	uint32_t abcd[4];
+	uint32_t abcd[MD5_DIGEST_LEN / sizeof(uint32_t)];
 	uint8_t buf[64];
 	int cur;
 	uint32_t size;
 } md5ctx;
-
-#define MD5_DIGEST_LEN 16
 
 void md5(const void *data, int len, uint8_t *hash);
 void md5_init(md5ctx *ctx);
 void md5_update(md5ctx *ctx, const void *data, int len);
 void md5_final(md5ctx *ctx, uint8_t *hash);
 char *md5str(uint8_t *hash, char *str);
+
+/* sha256 functions */
+
+#define SHA256_DIGEST_SIZE (256 / 8)
+
+typedef struct sha256ctx {
+	uint8_t block[SHA256_DIGEST_SIZE * 2];
+	uint32_t h[SHA256_DIGEST_SIZE / sizeof(uint32_t)]; /* Message Digest */
+	uint64_t len;						/* Message length in bytes */
+	int_least16_t index;				/* Message_Block array index */
+										/* 512-bit message blocks */
+} sha256ctx;
+
+int sha256(const void *data, int len, uint8_t *digest);
+int sha256_init(sha256ctx *ctx);
+int sha256_update(sha256ctx *ctx, const uint8_t *bytes, unsigned bytecount);
+int sha256_final(sha256ctx *ctx, uint8_t *digest);
+char *sha256str(uint8_t *digest, char *str);
 
 /* base64 functions */
 
