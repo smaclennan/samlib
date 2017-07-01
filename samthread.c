@@ -241,14 +241,14 @@ samthread_t samthread_create(int (*fn)(void *arg), void *arg)
 	samthread_t tid;
 	struct pthread_wrapper_arg *wa = calloc(1, sizeof(struct pthread_wrapper_arg));
 	if (!wa)
-		return -1;
+		return (samthread_t)-1;
 
 	wa->fn = fn;
 	wa->arg = arg;
 
 	if (pthread_create(&tid, NULL, pthread_wrapper, wa)) {
 		free(wa);
-		return -1;
+		return (samthread_t)-1;
 	}
 
 	return tid;
