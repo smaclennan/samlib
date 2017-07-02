@@ -1,9 +1,10 @@
 CFLAGS += -Wall -O2
 
-all: base64 crc16test md5test random readfile sha256test
+all: base64 cptest crc16test md5test random readfile sha256test
 
 test: all
 	./base64
+	./cptest
 	./crc16test
 	./md5test
 	./random
@@ -17,5 +18,5 @@ random: random.c
 	$(CC) $(CFLAGS) -o $@ $< ../libsamlib.a
 
 clean:
-	rm -f base64 crc16test md5test random readfile sha256test
-	rm -f readfile.txt
+	rm -f base64 cptest crc16test md5test random readfile sha256test
+	rm -f readfile.txt cptest.txt
