@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <errno.h>
 
-#include "samthread.h"
+#include "../samthread.h"
 
 #define CHILDREN  10
 
@@ -65,9 +65,3 @@ int main()
 
 	return 0;
 }
-
-/*
- * Local Variables:
- * compile-command: "gcc -g -Wall threadtest.c samthread.c -o threadtest -lpthread"
- * End:
- */
