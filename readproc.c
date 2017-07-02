@@ -75,7 +75,7 @@ pid_t _findpid(const char *cmd, pid_t start_pid, char *buf, int len)
 		pid = strtol(ent->d_name, &e, 10);
 		if (*e || pid <= start_pid)
 			continue;
-		readproccmd(pid, buf, len);
+		readproccmdline(pid, buf, len);
 		if (strstr(buf, cmd)) {
 			closedir(dir);
 			return pid;
