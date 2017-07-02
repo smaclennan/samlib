@@ -1,9 +1,11 @@
 CFLAGS += -Wall -O2
 
-TESTS := base64 cptest crc16test md5test proc+system random readfile
+TESTS := base64 cptest crc16test md5test random readfile
 TESTS += sha256test threadtest
 
-all: $(TESTS)
+OTHERS := bitgen
+
+all: $(TESTS) $(OTHERS)
 
 test: all
 	for t in $(TESTS); do echo $$t; ./$$t; done
@@ -12,5 +14,5 @@ test: all
 	$(CC) $(CFLAGS) -o $@ $< ../libsamlib.a ../libsamthread.a
 
 clean:
-	rm -f $(TESTS)
+	rm -f $(TESTS) $(OTHERS)
 	rm -f readfile.txt cptest.txt
