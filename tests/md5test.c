@@ -58,6 +58,12 @@ static int do_testsuite(void)
 	return rc;
 }
 
+#ifdef TESTALL
+static int md5_main(void)
+{
+	return do_testsuite();
+}
+#else
 static int md5sum(char *line, void *data)
 {
 	md5ctx *ctx = data;
@@ -86,3 +92,4 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
+#endif

@@ -16,7 +16,7 @@ static mutex_t biglock;
 static DEFINE_MUTEX(biglock);
 #endif
 
-int fn(void *arg)
+static int fn(void *arg)
 {
 	long id = (long)arg;
 
@@ -26,7 +26,11 @@ int fn(void *arg)
 	return id;
 }
 
-int main()
+#ifdef TESTALL
+static int thread_main(void)
+#else
+	int main(int argc, char *argv[])
+#endif
 {
 	long i;
 	int rc;
@@ -47,7 +51,7 @@ int main()
 		tid[i] = samthread_create(fn, (void *)i);
 		if (tid[i] == (samthread_t)-1) {
 			perror("create");
-			exit(1);
+			return 1;
 		}
 	}
 

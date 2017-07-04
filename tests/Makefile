@@ -1,7 +1,7 @@
 CFLAGS += -Wall -O2
 
 TESTS := base64 cptest crc16test md5test random readfile
-TESTS += sha256test threadtest
+TESTS += sha256test testall threadtest
 
 OTHERS := bitgen
 
@@ -15,4 +15,4 @@ test: all
 
 clean:
 	rm -f $(TESTS) $(OTHERS)
-	rm -f readfile.txt cptest.txt
+	rm -f TAGS readfile.txt cptest.txt

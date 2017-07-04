@@ -24,7 +24,11 @@ struct test_vector {
 };
 #define N_TESTS (sizeof(test_vectors) / sizeof(struct test_vector))
 
+#ifdef TESTALL
+static int base64_main(void)
+#else
 int main(int argc, char *argv[])
+#endif
 {
 	char buf[16]; /* tons of space */
 	int i, n, len, rc = 0;

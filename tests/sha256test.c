@@ -42,14 +42,14 @@
 
 #define length(x) (sizeof(x)-1)
 
-static struct test {
+static struct test256 {
 	uint8_t *in;
 	int len;
 	int repeatcount;
 	uint8_t extrabits;
 	int n_extrabits;
 	const char *digest_str;
-} test_suite[] = {
+} test256[] = {
 	/* 1 */ { (uint8_t *)TEST1, length(TEST1), 1, 0, 0, "ba7816bf8f01cfea4141"
 			  "40de5dae2223b00361a396177a9cb410ff61f20015ad" },
 	/* 2 */ { (uint8_t *)TEST2_1, length(TEST2_1), 1, 0, 0, "248d6a61d20638b8"
@@ -71,8 +71,60 @@ static struct test {
 	/* 10 */ { (uint8_t *)TEST10_256, length(TEST10_256), 1, 0, 0, "97dbca7d"
 			   "f46d62c8a422c941dd7e835b8ad3361763f7e9b2d95f4f0da6e1ccbc" },
 };
-#define N_TEST ((sizeof(test_suite) / sizeof(struct test)))
+#define N_TEST256 ((sizeof(test256) / sizeof(struct test256)))
 
+static int do_test256_suite(void)
+{
+	int i, j, len;
+	uint8_t *in;
+	uint8_t digest[SHA256_DIGEST_SIZE];
+	char digeststr[65];
+
+	for (i = 0; i < N_TEST256; ++i) {
+		if (test256[i].n_extrabits)
+			continue; /* we don't support final bits */
+
+		if (test256[i].repeatcount > 1) {
+			uint8_t *p;
+
+			len = test256[i].repeatcount * test256[i].len;
+			p = in = malloc(len + 1);
+			if (!in) {
+				puts("Out of memory!");
+				return 1;
+			}
+			for (j = 0; j < test256[i].repeatcount; ++j) {
+				memcpy(p, test256[i].in, test256[i].len);
+				p += test256[i].len;
+			}
+			*p = 0;
+		} else {
+			in = test256[i].in;
+			len = test256[i].len;
+		}
+
+		sha256(in, len, digest);
+		sha256str(digest, digeststr);
+
+		if (strcmp(digeststr, test256[i].digest_str)) {
+			printf("%d: failed\n", i + 1);
+			printf("  %s\n", digeststr);
+			printf("  %s\n", test256[i].digest_str);
+		}
+
+		if (test256[i].repeatcount > 1)
+			free(in);
+	}
+
+	return 0;
+}
+
+#ifdef TESTALL
+static int sha256_main(void)
+{
+	return do_test256_suite();
+}
+#else
 int sha256sum_file(const char *fname)
 {
 	sha256ctx ctx;
@@ -105,49 +157,9 @@ int sha256sum_file(const char *fname)
 
 int main(int argc, char *argv[])
 {
-	int i, j, len;
-	uint8_t *in;
-	uint8_t digest[SHA256_DIGEST_SIZE];
-	char digeststr[65];
-
 	if (argc > 1)
 		return sha256sum_file(argv[1]);
 
-	for (i = 0; i < N_TEST; ++i) {
-		if (test_suite[i].n_extrabits)
-			continue; /* we don't support final bits */
-
-		if (test_suite[i].repeatcount > 1) {
-			uint8_t *p;
-
-			len = test_suite[i].repeatcount * test_suite[i].len;
-			p = in = malloc(len + 1);
-			if (!in) {
-				puts("Out of memory!");
-				exit(1);
-			}
-			for (j = 0; j < test_suite[i].repeatcount; ++j) {
-				memcpy(p, test_suite[i].in, test_suite[i].len);
-				p += test_suite[i].len;
-			}
-			*p = 0;
-		} else {
-			in = test_suite[i].in;
-			len = test_suite[i].len;
-		}
-
-		sha256(in, len, digest);
-		sha256str(digest, digeststr);
-
-		if (strcmp(digeststr, test_suite[i].digest_str)) {
-			printf("%d: failed\n", i + 1);
-			printf("  %s\n", digeststr);
-			printf("  %s\n", test_suite[i].digest_str);
-		}
-
-		if (test_suite[i].repeatcount > 1)
-			free(in);
-	}
-
-	return 0;
+	return do_test256_suite();
 }
+#endif

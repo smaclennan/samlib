@@ -28,7 +28,11 @@ static struct ref {
 };
 #define N_REFS (sizeof(refs) / sizeof(struct ref))
 
+#ifdef TESTALL
+static int crc16_main(void)
+#else
 int main(int argc, char *argv[])
+#endif
 {
 	int i, rc = 0;
 	uint16_t chksum;

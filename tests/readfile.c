@@ -12,7 +12,7 @@
 #define MAX_LINES		1000
 #define MAX_CHARS		128
 
-static char buf[MAX_LINES * (MAX_CHARS + 1) + 1];
+static char readbuf[MAX_LINES * (MAX_CHARS + 1) + 1];
 static int buflen;
 
 char next_ch(void)
@@ -36,16 +36,16 @@ char next_ch(void)
 	}
 }
 
-void create_random_file(const char *fname)
+static int create_random_file(const char *fname)
 {
 	int lines = (xorshift128plus() % (MAX_LINES - 1)) + 1;
 	int i, j, ch, n;
-	char *p = buf;
+	char *p = readbuf;
 
 	int fd = open(fname, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (fd < 0) {
 		perror(fname);
-		exit(1);
+		return 1;
 	}
 
 	for (i = 0; i < lines; ++i) {
@@ -59,19 +59,21 @@ void create_random_file(const char *fname)
 	}
 	*p = 0;
 
-	n = write(fd, buf, buflen);
+	n = write(fd, readbuf, buflen);
 
 	close(fd);
 
 	if (n != buflen) {
 		puts("write error");
-		exit(1);
+		return 1;
 	}
+
+	return 0;
 }
 
 int check_line(char *line, void *arg)
 {
-	static char *p = buf;
+	static char *p = readbuf;
 	static int lineno = 0;
 	int len = strlen(line);
 
@@ -92,18 +94,23 @@ int check_line(char *line, void *arg)
 	return 0;
 }
 
+#ifdef TESTALL
+static int readfile_main(void)
+#else
 int main(int argc, char *argv[])
+#endif
 {
-	create_random_file(FILENAME);
+	if (create_random_file(FILENAME))
+		return 1;
 
 	if (readfile(check_line, NULL, FILENAME, 0)) {
 		perror(FILENAME);
-		exit(1);
+		return 1;
 	}
 
 	if (buflen) {
 		printf("buflen %d\n", buflen);
-		exit(1);
+		return 1;
 	}
 
 	unlink(FILENAME);
