@@ -1,6 +1,6 @@
 CFLAGS += -Wall -O2
 
-TESTS := base64 cptest crc16test md5test random readfile
+TESTS := args base64 cptest crc16test md5test random readfile
 TESTS += sha256test testall threadtest
 
 OTHERS := bitgen

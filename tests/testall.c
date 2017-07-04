@@ -1,6 +1,7 @@
 #define TESTALL
 #define exit(a) bogus(a)
 
+#include "args.c"
 #include "base64.c"
 #include "cptest.c"
 #include "crc16test.c"
@@ -15,6 +16,7 @@ int main(int argc, char *argv[])
 {
 	int rc = 0;
 
+	rc |= args_main();
 	rc |= base64_main();
 	rc |= cptest_main();
 	rc |= crc16_main();

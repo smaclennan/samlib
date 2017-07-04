@@ -92,7 +92,7 @@ unsigned long get_mem_len(const char *str)
 	}
 }
 
-unsigned nice_mem_len(unsigned long size, char *ch)
+unsigned nice_mem_len(uint64_t size, char *ch)
 {
 	if (size) {
 		if ((size & ((1UL << 40) - 1)) == 0) {
