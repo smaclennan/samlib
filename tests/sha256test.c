@@ -2,8 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <unistd.h>
-#include <samlib.h>
+#include "../samlib.h"
 
 /*
  *  Define patterns for testing

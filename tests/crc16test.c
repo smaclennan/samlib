@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <samlib.h>
+#include "../samlib.h"
 
 static struct ref {
 	uint16_t msg[20];

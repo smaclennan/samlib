@@ -1,12 +1,5 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <ctype.h>
-#include <errno.h>
-#include <samlib.h>
+#include "../samlib.h"
 
 /* For diehard: bitgen -b10000000 > test.bits
  * For dieharder: bitgen | dieharder -g 200 -a
