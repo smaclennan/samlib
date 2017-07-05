@@ -10,7 +10,7 @@
 static char readbuf[MAX_LINES * (MAX_CHARS + 1) + 1];
 static int buflen;
 
-char next_ch(void)
+static char next_ch(void)
 {
 	static uint64_t r;
 	static int n = 8;
@@ -37,7 +37,7 @@ static int create_random_file(const char *fname)
 	int i, j, ch, n;
 	char *p = readbuf;
 
-	int fd = open(fname, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	int fd = open(fname, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0644);
 	if (fd < 0) {
 		perror(fname);
 		return 1;

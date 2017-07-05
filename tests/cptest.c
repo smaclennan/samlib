@@ -22,7 +22,7 @@ static int create_random_bin_file(const char *fname)
 	for (i = 0; i < count; ++i)
 		buf[i] = xorshift128plus();
 
-	fd = open(fname, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	fd = open(fname, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0644);
 	if (fd < 0) {
 		perror(fname);
 		return 1;
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	fd = open(TONAME, O_RDONLY);
+	fd = open(TONAME, O_RDONLY | O_BINARY);
 	if (fd < 0) {
 		perror(TONAME);
 		return 1;
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 	close(fd);
 
 	if (n != len) {
-		printf("read error");
+		printf("read error\n");
 		return 1;
 	}
 

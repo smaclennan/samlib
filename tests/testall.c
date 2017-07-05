@@ -16,6 +16,8 @@ int main(int argc, char *argv[])
 {
 	int rc = 0;
 
+	printf("Version %s\n", samlib_version);
+
 	rc |= args_main();
 	rc |= base64_main();
 	rc |= cptest_main();
@@ -24,6 +26,12 @@ int main(int argc, char *argv[])
 	rc |= readfile_main();
 	rc |= sha256_main();
 	rc |= thread_main();
+
+#ifdef WIN32
+	if (rc == 0)
+		puts("Success");
+	printf("Hit return to exit...");  getchar();
+#endif
 
 	return rc;
 }

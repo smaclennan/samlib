@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 	char ch;
 	int rc = 0;
 
-	size = 2UL << 40;
+	size = 2ULL << 40;
 	result = nice_mem_len(size, &ch);
 	if (result != 2 || ch != 'T') {
 		printf("Problems with nice_mem_len()\n");

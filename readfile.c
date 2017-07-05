@@ -25,7 +25,7 @@ static int out_line(char *line, void *data)
 int readfile(int (*line_func)(char *line, void *data), void *data,
 			 const char *path, unsigned flags)
 {
-	FILE *fp = path ? fopen(path, "r") : stdin;
+	FILE *fp = path ? fopen(path, "rb") : stdin;
 	if (!fp)
 		return -1;
 

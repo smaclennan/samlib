@@ -343,4 +343,8 @@ void dump_stack(void);
 #define WIN32_COERCE
 #endif
 
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+
 #endif

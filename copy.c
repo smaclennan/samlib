@@ -19,7 +19,7 @@
  */
 long copy_file(const char *from, const char *to)
 {
-	int in = open(from, O_RDONLY);
+	int in = open(from, O_RDONLY | O_BINARY);
 	if (in < 0)
 		return -2;
 
@@ -29,7 +29,7 @@ long copy_file(const char *from, const char *to)
 		return -2;
 	}
 
-	int out = creat(to, sbuf.st_mode);
+	int out = open(to, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, sbuf.st_mode);
 	if (out < 0) {
 		close(in);
 		return -3;
@@ -48,7 +48,8 @@ long copy_file(const char *from, const char *to)
 		}
 		total += n;
 	}
-	n = total;
+	if (n == 0)
+		n = total;
 #endif
 
 	close(in);

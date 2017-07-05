@@ -75,6 +75,12 @@
     <ClCompile Include="..\file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\sha256.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\samthread.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\samlib.h">

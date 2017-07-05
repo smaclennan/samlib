@@ -90,7 +90,7 @@ void closedir(DIR *dir)
 /* Trivial implementation */
 int getline(char **line, int *len, FILE *fp)
 {
-	if (line == NULL) {
+	if (*line == NULL) {
 		*len = 1024;
 		*line = malloc(*len);
 		if (!*line)

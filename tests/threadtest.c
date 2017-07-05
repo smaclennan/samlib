@@ -56,9 +56,5 @@ static int thread_main(void)
 		printf("joined %ld rc %d\n", i, rc);
 	}
 
-#ifdef WIN32
-	getchar();
-#endif
-
 	return 0;
 }
