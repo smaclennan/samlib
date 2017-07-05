@@ -14,17 +14,6 @@
 int main(int argc, char *argv[])
 {
 #if 1
-	if (xorshift_seed(NULL)) {
-		printf("Unable to seed\n");
-		exit(1);
-	}
-
-	printf("%lx\n", xorshift128plus());
-#ifdef WIN32
-	getchar();
-#endif
-	return 0;
-#elif 0
 	pid_t pid, ppid;
 	int rc = 0;
 
@@ -111,57 +100,5 @@ int main(int argc, char *argv[])
 		printf("Puts failed\n");
 
 	db_walk(NULL, db_walk_long);
-#else
-	struct timeval start, end;
-
-	start.tv_sec = 10;
-	start.tv_usec = 100;
-	end.tv_sec = 10;
-	end.tv_usec = 101;
-
-	if (delta_timeval(&start, &end) != 1)
-		puts("PROBS 1");
-
-	start.tv_sec = 10;
-	start.tv_usec = 999999;
-	end.tv_sec = 11;
-	end.tv_usec = 0;
-
-	if (delta_timeval(&start, &end) != 1)
-		puts("PROBS 2");
-
-	start.tv_sec = 10;
-	start.tv_usec = 100;
-	end.tv_sec = 11;
-	end.tv_usec = 101;
-
-	if (delta_timeval(&start, &end) != 1000001)
-		puts("PROBS 3");
-
-	start.tv_sec = 10;
-	start.tv_usec = 999999;
-	end.tv_sec = 12;
-	end.tv_usec = 0;
-
-	if (delta_timeval(&start, &end) != 1000001)
-		puts("PROBS 4");
-
-	start.tv_sec = 10;
-	start.tv_usec = 101;
-	end.tv_sec = 10;
-	end.tv_usec = 100;
-
-	if (delta_timeval(&start, &end) != ~0UL)
-		puts("PROBS 5");
-
-	start.tv_sec = 10;
-	start.tv_usec = 999999;
-	end.tv_sec = 10;
-	end.tv_usec = 0;
-
-	if (delta_timeval(&start, &end) != ~0UL)
-		puts("PROBS 6");
-
-	return 0;
 #endif
 }
