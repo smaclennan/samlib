@@ -87,18 +87,34 @@ void closedir(DIR *dir)
 	free(dir);
 }
 
-/* Trivial implementation */
+#define CHUNKSIZE 128
+
 int getline(char **line, int *len, FILE *fp)
 {
-	if (*line == NULL) {
-		*len = 1024;
-		*line = malloc(*len);
-		if (!*line)
-			return EOF;
+	int ch = 0, i = 0;
+
+	while (1) {
+		if (i >= *len) {
+			char *p = realloc(*line, *len + CHUNKSIZE);
+			if (!p)
+				return EOF;
+			*line = p;
+			*len += CHUNKSIZE;
+		}
+
+		if (ch == '\n') {
+			*(*line + i) = 0;
+			return 1;
+		}
+
+		ch = fgetc(fp);
+		if (ch == EOF) {
+			if (i == 0)
+				return EOF;
+			*(*line + i) = 0;
+			return i;
+		}
+
+		*(*line + i++) = ch;
 	}
-
-	if (fgets(*line, *len, fp))
-		return 0;
-
-	return EOF;
 }

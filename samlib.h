@@ -333,7 +333,9 @@ int readprocstat(pid_t pid, struct procstat_min *stat);
 pid_t _findpid(const char *cmd, pid_t start_pid, char *buf, int len);
 pid_t findpid(const char *cmd, pid_t start_pid);
 
-/* Requires -rdynamic to be useful */
+/* Requires -rdynamic to be useful on Linux.
+ * Requires DbgHelp.lib for Windows.
+ */
 void dump_stack(void);
 
 #ifdef WIN32

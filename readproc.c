@@ -5,6 +5,7 @@
 
 #include "samlib.h"
 
+#ifndef WIN32
 static int readproc(pid_t pid, const char *file, char *buf, int len)
 {
 	char fname[32];
@@ -91,3 +92,48 @@ pid_t findpid(const char *cmd, pid_t start_pid)
 	char buf[4097];
 	return _findpid(cmd, start_pid, buf, sizeof(buf));
 }
+#else
+#include <psapi.h>
+
+int readproccmd(pid_t pid, char *buf, int len)
+{
+	HMODULE hMod;
+	DWORD cbNeeded;
+	int rc = -1;
+	HANDLE nProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
+							   FALSE, pid);
+
+	if (nProc)
+		if (EnumProcessModules(nProc, &hMod, sizeof(hMod), &cbNeeded))
+			rc = GetModuleBaseNameA(nProc, hMod, buf, len);
+
+	CloseHandle(nProc);
+
+	return rc;
+}
+
+pid_t _findpid(const char *cmd, pid_t start_pid, char *buf, int len)
+{
+	DWORD procs[1024], cbNeeded, cProcesses;
+	HMODULE hMod;
+	unsigned int i;
+
+	if (!EnumProcesses(procs, sizeof(procs), &cbNeeded))
+		return 0;
+
+	cProcesses = cbNeeded / sizeof(DWORD);
+	for (i = 0; i < cProcesses; i++)
+		if (procs[i] != 0 && procs[i] > start_pid)
+			if (readproccmd(procs[i], buf, len) > 0)
+				if (strstr(buf, cmd))
+					return procs[i];
+
+	return 0;
+}
+
+pid_t findpid(const char *cmd, pid_t start_pid)
+{
+	char buf[MAX_PATH];
+	return _findpid(cmd, start_pid, buf, sizeof(buf));
+}
+#endif
