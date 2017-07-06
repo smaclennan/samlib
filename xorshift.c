@@ -18,6 +18,7 @@ int xorshift_seed(xorshift_seed_t *seed)
 #ifdef WIN32
 	HCRYPTPROV hProv;
 #endif
+	int rc = -1;
 
 	if (!seed)
 		seed = &global_seed;
@@ -25,7 +26,7 @@ int xorshift_seed(xorshift_seed_t *seed)
 #ifdef WIN32
 	if (CryptAcquireContext(&hProv, NULL, NULL, PROV_RSA_AES, 0))
 		if (CryptGenRandom(hProv, sizeof(*seed), (BYTE *)seed))
-			return 0;
+			rc = 0;
 #else
 	int n, fd = open("/dev/urandom", O_RDONLY);
 	if (fd >= 0) {
@@ -33,13 +34,14 @@ int xorshift_seed(xorshift_seed_t *seed)
 			n = read(fd, seed, sizeof(xorshift_seed_t));
 		while (n != sizeof(xorshift_seed_t));
 		close(fd);
-		if (seed == &global_seed)
-			seeded = 1;
-		return 0;
+		rc = 0;
 	}
 #endif
 
-	return -1;
+	if (rc == 0 && seed == &global_seed)
+		seeded = 1;
+
+	return rc;
 }
 
 void must_xorshift_seed(xorshift_seed_t *seed)
