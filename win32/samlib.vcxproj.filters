@@ -77,6 +77,12 @@
     <ClCompile Include="..\samthread.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\dumpstack.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\readproc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\samlib.h">

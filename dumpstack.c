@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include "samlib.h"
 
 #define MAX_DEPTH 128 /* 128 = 1k */
 
@@ -28,7 +29,7 @@ void dump_stack(void)
 /* Requires DbgHelp.lib */
 void dump_stack(void)
 {
-	void *BackTrace[MAX_TRACE];
+	void *BackTrace[MAX_DEPTH];
 	USHORT n, i;
 	uint8_t buf[sizeof(SYMBOL_INFO) + 256  * sizeof(TCHAR)];
 	SYMBOL_INFO  *symbol = (SYMBOL_INFO *)buf;
@@ -42,7 +43,7 @@ void dump_stack(void)
 		return;
 	}
 
-	n = CaptureStackBackTrace(0, MAX_TRACE, BackTrace, NULL);
+	n = CaptureStackBackTrace(0, MAX_DEPTH, BackTrace, NULL);
 
 	symbol->MaxNameLen = 256;
 	symbol->SizeOfStruct = sizeof(SYMBOL_INFO);

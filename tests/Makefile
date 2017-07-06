@@ -16,5 +16,5 @@ test: all
 	$(CC) $(CFLAGS) -o $@ $< ../libsamlib.a ../libsamthread.a
 
 clean:
-	rm -f $(TESTS) $(OTHERS)
+	rm -f $(TESTS) $(OTHERS) testall
 	rm -f TAGS readfile.txt cptest.txt

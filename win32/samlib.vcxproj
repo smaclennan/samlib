@@ -77,6 +77,7 @@
     <ClCompile Include="..\copy.c" />
     <ClCompile Include="..\crc16.c" />
     <ClCompile Include="..\do-system.c" />
+    <ClCompile Include="..\dumpstack.c" />
     <ClCompile Include="..\file.c" />
     <ClCompile Include="..\ip.c" />
     <ClCompile Include="..\md5.c" />
@@ -84,6 +85,7 @@
     <ClCompile Include="..\must.c" />
     <ClCompile Include="..\readcmd.c" />
     <ClCompile Include="..\readfile.c" />
+    <ClCompile Include="..\readproc.c" />
     <ClCompile Include="..\samthread.c" />
     <ClCompile Include="..\sha256.c" />
     <ClCompile Include="..\time.c" />

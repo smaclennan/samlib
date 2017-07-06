@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
-#include <dirent.h>
 
 #include "samlib.h"
 
 #ifndef WIN32
+#include <dirent.h>
+
 static int readproc(pid_t pid, const char *file, char *buf, int len)
 {
 	char fname[32];
@@ -115,7 +116,6 @@ int readproccmd(pid_t pid, char *buf, int len)
 pid_t _findpid(const char *cmd, pid_t start_pid, char *buf, int len)
 {
 	DWORD procs[1024], cbNeeded, cProcesses;
-	HMODULE hMod;
 	unsigned int i;
 
 	if (!EnumProcesses(procs, sizeof(procs), &cbNeeded))
