@@ -8,7 +8,7 @@
 #define MAX_CHARS		128
 
 static char readbuf[MAX_LINES * (MAX_CHARS + 1) + 1];
-static int buflen;
+static int buflen, readlen;
 
 static char next_ch(void)
 {
@@ -63,13 +63,33 @@ static int create_random_file(const char *fname)
 		return 1;
 	}
 
+	readlen = buflen;
+
 	return 0;
 }
 
+static int truncate_file(const char *fname)
+{
+	int rc, fd = open(fname, O_WRONLY | O_BINARY, 0644);
+	if (fd < 0) {
+		perror(fname);
+		return 1;
+	}
+
+	--readlen;
+	rc = ftruncate(fd, readlen);
+	close(fd);
+
+	readbuf[readlen] = 0;
+
+	return rc;
+}
+
+static char *p = readbuf;
+static int lineno = 0;
+
 int check_line(char *line, void *arg)
 {
-	static char *p = readbuf;
-	static int lineno = 0;
 	int len = strlen(line);
 
 	if (buflen < len) {
@@ -104,6 +124,26 @@ int main(int argc, char *argv[])
 	}
 
 	if (buflen) {
+		printf("buflen %d\n", buflen);
+		return 1;
+	}
+
+	/* Test no NL at EOF */
+	if (truncate_file(FILENAME)) {
+		perror("truncate");
+		return 1;
+	}
+
+	p = readbuf;
+	lineno = 0;
+	buflen = readlen;
+	if (readfile(check_line, NULL, FILENAME, 0)) {
+		perror(FILENAME);
+		return 1;
+	}
+
+	/* It will be -1 since check_line assumes a final NL */
+	if (buflen != -1) {
 		printf("buflen %d\n", buflen);
 		return 1;
 	}
