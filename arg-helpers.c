@@ -60,10 +60,10 @@ char *nice_duration(unsigned long duration, char *str, int len)
 }
 
 /* Returns memory length in bytes. */
-unsigned long get_mem_len(const char *str)
+uint64_t get_mem_len(const char *str)
 {
 	char *e;
-	unsigned long len = strtoul(str, &e, 0);
+	uint64_t len = strtoul(str, &e, 0);
 
 	switch (*e) {
 	case 't':

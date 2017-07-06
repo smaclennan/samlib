@@ -13,7 +13,7 @@
 
 int main(int argc, char *argv[])
 {
-#if 1
+#if 0
 	pid_t pid, ppid;
 	int rc = 0;
 
@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 
 	return rc;
 #elif 1
-	int c, major, minor, flags = 0;
+	int c, flags = 0;
 
 	while ((c = getopt(argc, argv, "f:vV")) != EOF)
 		switch (c) {
@@ -58,9 +58,7 @@ int main(int argc, char *argv[])
 			flags |= strtol(optarg, NULL, 0);
 			break;
 		case 'V':
-			samlib_version(&major, &minor);
-			printf("Version  '%d.%d'  '%s'\n",
-				   major, minor, samlib_versionstr());
+			printf("Version  '%s'\n", samlib_version);
 			exit(0);
 		}
 

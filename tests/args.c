@@ -19,6 +19,8 @@ int main(int argc, char *argv[])
 	result = nice_mem_len(size, &ch);
 	if (size != (2ULL << 40) || result != 2 || ch != 'T') {
 		printf("Problems with nice_mem_len()\n");
+		printf("size 0x%lx != 0x%lx, %d != 2, %c != 'T'\n",
+			size, 2ULL << 40, result, ch);
 		rc = 1;
 	}
 

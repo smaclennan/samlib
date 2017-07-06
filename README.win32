@@ -1,4 +1,16 @@
 Not supported in windows:
 
 db.c - don't have the Berkley DB libs
-ip.c - ip_addr not supported
+dumpstack - Unix specific
+ip.c - ip_addr not supported but get_address*() functions are
+readproc.c - no proc filesystem
+
+
+Portability for Windows
+
+fnmatch.c
+regex.c
+samwin32.c
+	- getopt
+	- getline
+	- opendir/readdir/closedir

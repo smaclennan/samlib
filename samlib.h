@@ -30,7 +30,7 @@ char *nice_duration(unsigned long duration, char *str, int len);
 /* Returns memory length in bytes. Suffix: gmkb.
  * Warning: exits on error.
  */
-unsigned long get_mem_len(const char *str);
+uint64_t get_mem_len(const char *str);
 
 unsigned nice_mem_len(uint64_t size, char *ch);
 
@@ -341,10 +341,9 @@ void dump_stack(void);
 #define WIN32_COERCE (unsigned char *)
 #else
 #define WIN32_COERCE
-#endif
-
 #ifndef O_BINARY
 #define O_BINARY 0
+#endif
 #endif
 
 #endif
