@@ -94,12 +94,12 @@ static int get_gateway(const char *ifname, struct in_addr *gateway)
 static void usage(int rc)
 {
 	fputs("usage: ipaddr [-abgms] [interface]\n"
-		  "where: -a displays IP address\n"
+		  "where: -a displays IP address (default)\n"
 		  "       -g displays gateway\n"
 		  "       -m displays network mask\n"
 		  "       -s displays subnet\n"
 		  "       -b add bits as /bits to -a and/or -s\n"
-		  "Interface defaults to eth0, options defaults to -a.\n"
+		  "Interface defaults to eth0.\n"
 		  "Designed to be easily used in scripts. All error output to stderr.\n",
 		  stderr);
 
@@ -136,8 +136,8 @@ int main(int argc, char *argv[])
 			exit(2);
 		}
 
-	if (what == 0)
-		what = W_ADDRESS;
+	if (what == 0 || what == W_BITS)
+		what |= W_ADDRESS;
 
 	if (optind < argc)
 		ifname = argv[optind];
