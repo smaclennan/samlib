@@ -1,7 +1,5 @@
 *.o
 libsamlib.a
 libsamthread.a
+ipaddr
 stest
-md5test
-threadtest
-sha256
