@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 	struct in_addr addr, mask, gw;
 	unsigned what = 0;
 
-	while ((c = getopt(argc, argv, "abgmshV")) != EOF)
+	while ((c = getopt(argc, argv, "abgmsh")) != EOF)
 		switch (c) {
 		case 'a':
 			what |= W_ADDRESS;
