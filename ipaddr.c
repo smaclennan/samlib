@@ -106,10 +106,13 @@ static void usage(int rc)
 	exit(rc);
 }
 
+static char *if_list[] = { "eth0", "wlan0", "br0", "eth1" };
+#define MAX_IF_LIST (sizeof(if_list) / sizeof(char *))
+
 int main(int argc, char *argv[])
 {
-	int c, n = 0;
-	char *ifname = "eth0";
+	int c, n = 0, guessed = 0;
+	char *ifname = NULL;
 	struct in_addr addr, mask, gw;
 	unsigned what = 0;
 
@@ -139,12 +142,25 @@ int main(int argc, char *argv[])
 	if (what == 0 || what == W_BITS)
 		what |= W_ADDRESS;
 
-	if (optind < argc)
+	if (optind < argc) {
 		ifname = argv[optind];
+		if (ip_addr(ifname, &addr, &mask)) {
+			perror(ifname);
+			exit(1);
+		}
+	} else {
+		int i;
 
-	if (ip_addr(ifname, &addr, &mask)) {
-		perror(ifname);
-		exit(1);
+		for (i = 0; i < MAX_IF_LIST; ++i) {
+			ifname = if_list[i];
+			if (ip_addr(ifname, &addr, &mask) == 0)
+				break;
+		}
+		if (i == MAX_IF_LIST) {
+			fputs("Count not find an interface\n", stderr);
+			exit(1);
+		}
+		guessed = 1;
 	}
 
 	if (what & W_ADDRESS) {
@@ -175,8 +191,11 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (n)
+	if (n) {
+		if (guessed)
+			printf(" (%s)", ifname);
 		putchar('\n');
+	}
 
 	return 0;
 }
