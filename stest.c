@@ -5,7 +5,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
-#ifndef WIN32
+#ifdef HAVE_DB_H
 #include <db.h>
 #endif
 
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 	}
 
 	return walkfiles(NULL, argv[optind], NULL, 0);
-#elif 1
+#elif 1 && defined(HAVE_DB_H)
 	char str[8];
 
 	if (db_open("/tmp/dbtest", DB_CREATE, NULL)) {
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 		printf("Problem: expected 2 got %s\n", str);
 
 	db_walk(NULL, db_walk_puts);
-#elif 1
+#elif 1 && defined(HAVE_DB_H)
 	if (db_open("/tmp/dbtest", DB_CREATE, NULL)) {
 		puts("Unable to open DB");
 		exit(1);
