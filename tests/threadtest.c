@@ -60,12 +60,23 @@ static int test_priority(void)
 
 	parent_now = getpriority(PRIO_PROCESS, 0);
 
+#ifdef __linux__
 	/* We expect 0 for everybody except child_is */
 	if (parent_was || parent_is || parent_now || child_was || child_is != 10) {
 		printf("Parent was %d is %d now %d Child was %d is %d\n",
 			   parent_was, parent_is, parent_now, child_was, child_is);
 		return 1; /* test failed */
 	}
+#else
+	/* For BSD at least, setting the thread priority affects the
+	 * parent. This is not what we want but we have to live with it.
+	 */
+	if (parent_was || parent_is != 10 || parent_now != 10 || child_was || child_is != 10) {
+		printf("Parent was %d is %d now %d Child was %d is %d\n",
+			   parent_was, parent_is, parent_now, child_was, child_is);
+		return 1; /* test failed */
+	}
+#endif
 
 	return 0;
 }
