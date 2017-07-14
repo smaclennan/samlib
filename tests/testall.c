@@ -11,6 +11,7 @@
 #include "sha256test.c"
 #include "threadtest.c"
 #include "timetest.c"
+#include "spinlock.c"
 
 
 int main(int argc, char *argv[])
@@ -28,6 +29,7 @@ int main(int argc, char *argv[])
 	rc |= sha256_main();
 	rc |= thread_main();
 	rc |= time_main();
+	rc |= spinlock_main();
 
 #ifdef WIN32
 	if (rc == 0)

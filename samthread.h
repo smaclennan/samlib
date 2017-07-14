@@ -12,9 +12,12 @@
 #define WANT_PTHREADS
  */
 
-#ifndef WIN32
+#ifdef WIN32
+#define sched_yield() Sleep(0)
+#else
 #define _GNU_SOURCE
 #include <unistd.h>
+#include <sched.h>
 #endif
 
 #if defined(__linux__) && !defined(WANT_PTHREADS)
@@ -46,7 +49,7 @@ typedef pthread_mutex_t mutex_t;
 
 #define DEFINE_MUTEX(name) mutex_t name = PTHREAD_MUTEX_INITIALIZER
 
-#endif
+#endif /* pthreads */
 
 samthread_t samthread_create(int (*fn)(void *arg), void *arg);
 int samthread_join(samthread_t tid);
@@ -55,5 +58,19 @@ mutex_t *mutex_create(void);
 void mutex_destroy(mutex_t *mutex);
 void mutex_lock(mutex_t *mutex);
 void mutex_unlock(mutex_t *mutex);
+
+typedef unsigned spinlock_t;
+
+#define DEFINE_SPINLOCK(name) spinlock_t name
+
+static inline void spinlock_init(spinlock_t *lock) { *lock = 0; }
+
+static inline void spin_lock(spinlock_t *lock)
+{
+	while (!__sync_bool_compare_and_swap(lock, 0, 1))
+		sched_yield();
+}
+
+static inline void spin_unlock(spinlock_t *lock) { *lock = 0; }
 
 #endif
