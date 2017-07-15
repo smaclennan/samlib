@@ -41,9 +41,11 @@ install:
 	mkdir -p $(DESTDIR)$(BINDIR)
 	mkdir -p $(DESTDIR)$(INCDIR)
 	mkdir -p $(DESTDIR)$(LIBDIR)
-	install -m644 samlib.h $(DESTDIR)$(INCDIR)/samlib.h
 	install -m644 linux-list.h $(DESTDIR)$(INCDIR)/linux-list.h
+	install -m644 samlib.h $(DESTDIR)$(INCDIR)/samlib.h
 	install -m644 libsamlib.a $(DESTDIR)$(LIBDIR)/libsamlib.a
+	install -m644 samthread.h $(DESTDIR)$(INCDIR)/samthread.h
+	install -m644 libsamthread.a $(DESTDIR)$(LIBDIR)/libsamthread.a
 	install ipaddr $(DESTDIR)$(BINDIR)/ipaddr
 
 check:
