@@ -11,12 +11,16 @@
 #define N_CHILDREN  4
 
 static DEFINE_SPINLOCK(lock);
-static int count;
+static int count, inuse, errors;
 
 static int spin_fn(void *arg)
 {
 	spin_lock(&lock);
 	++count;
+	usleep(1000);
+	if (++inuse > 1)
+		++errors;
+	--inuse;
 	spin_unlock(&lock);
 	return 0;
 }
@@ -56,6 +60,11 @@ int main(int argc, char *argv[])
 
 	if (count != N_CHILDREN) {
 		printf("Expected %d got %d\n", N_CHILDREN, count);
+		rc = 1;
+	}
+
+	if (errors) {
+		printf("Inuse errors\n");
 		rc = 1;
 	}
 
