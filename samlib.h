@@ -300,6 +300,9 @@ char *must_strdup(const char *s);
 void *must_alloc(size_t size);
 void *must_calloc(int nmemb, int size);
 void *must_realloc(void *ptr, int size);
+/* prot and/or flags can be set to 0 for reasonable defaults. */
+void *must_mmap(int size, int prot, int flags);
+void *must_mmap_file(int size, int prot, int flags, int fd);
 
 /* Note: /proc/pid/cmdline is currently limited to 4k */
 int readproccmdline(pid_t pid, char *buf, int len);

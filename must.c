@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
 
 #include "samlib.h"
 
@@ -45,5 +46,32 @@ void *must_realloc(void *ptr, int size)
 	void *mem = realloc(ptr, size);
 	if (!mem)
 		must_fail("realloc", size);
+	return mem;
+}
+
+void *must_mmap(int size, int prot, int flags)
+{
+	if (prot == 0)
+		prot = PROT_READ | PROT_WRITE;
+	if (flags == 0) {
+		flags = MAP_PRIVATE | MAP_ANONYMOUS;
+	}
+
+	void *mem = mmap(NULL, size, prot, flags, -1, 0);
+	if (!mem)
+		must_fail("mmap", size);
+	return mem;
+}
+
+void *must_mmap_file(int size, int prot, int flags, int fd)
+{
+	if (prot == 0)
+		prot = PROT_READ | PROT_WRITE;
+	if (flags == 0)
+		flags = MAP_SHARED;
+
+	void *mem = mmap(NULL, size, prot, flags, fd, 0);
+	if (!mem)
+		must_fail("mmap file", size);
 	return mem;
 }
