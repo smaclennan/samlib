@@ -192,7 +192,6 @@ int samthread_join(samthread_t tid)
 }
 
 mutex_t *mutex_create(void)
-
 {
 	return (mutex_t *)CreateMutex(NULL, FALSE, NULL);
 }
@@ -265,7 +264,6 @@ int samthread_join(samthread_t tid)
 }
 
 mutex_t *mutex_create(void)
-
 {
 	pthread_mutex_t *mutex = calloc(1, sizeof(pthread_mutex_t));
 
