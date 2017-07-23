@@ -9,6 +9,9 @@
 #include "../samlib.h"
 #include "../samthread.h"
 
+/* SAM TODO test readproccmd, findpid, and readproccmdline */
+
+#ifdef __linux__
 
 static int thread(void *arg)
 {
@@ -22,7 +25,11 @@ static int thread(void *arg)
 	return 0;
 }
 
+#ifdef TESTALL
+int readproc_main(void)
+#else
 int main(int argc, char *argv[])
+#endif
 {
 	pid_t pid, ppid;
 	samthread_t tid;
@@ -73,3 +80,14 @@ int main(int argc, char *argv[])
 
 	return rc;
 }
+#else
+#ifdef TESTALL
+int readproc_main(void)
+#else
+int main(int argc, char *argv[])
+#endif
+{
+	puts("readprocstat is Linux only\n");
+	return 0;
+}
+#endif

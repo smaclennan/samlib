@@ -9,6 +9,8 @@
 #include "../samlib.h"
 
 #ifdef HAVE_DB_H
+#include <db.h>
+
 static int db_walk_strings(const char *key, void *data, int len)
 {
 	static char kstr[2] = "a", vstr[2] = "1";

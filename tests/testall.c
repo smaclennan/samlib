@@ -5,14 +5,16 @@
 #include "base64.c"
 #include "cptest.c"
 #include "crc16test.c"
+#include "dbtest.c"
 #include "md5test.c"
 // #include "random.c"
 #include "readfile.c"
+#include "readproctest.c"
 #include "sha256test.c"
 #include "threadtest.c"
 #include "timetest.c"
 #include "spinlock.c"
-#include "dbtest.c"
+
 
 
 int main(int argc, char *argv[])
@@ -25,13 +27,14 @@ int main(int argc, char *argv[])
 	rc |= base64_main();
 	rc |= cptest_main();
 	rc |= crc16_main();
+	rc |= db_main();
 	rc |= md5_main();
 	rc |= readfile_main();
+	rc |= readproc_main();
 	rc |= sha256_main();
+	rc |= spinlock_main();
 	rc |= thread_main();
 	rc |= time_main();
-	rc |= spinlock_main();
-	rc |= db_main();
 
 #ifdef WIN32
 	if (rc == 0)

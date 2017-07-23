@@ -275,7 +275,8 @@ pid_t gettid(void)
 #ifdef __linux__
 	return syscall(__NR_gettid);
 #else
-#error gettid not defined
+#warning gettid not defined
+	return getpid();
 #endif
 }
 

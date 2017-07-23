@@ -4,7 +4,7 @@
 
 #include "samlib.h"
 
-#ifndef WIN32
+#ifdef __linux__
 #include <dirent.h>
 
 static int readproc(pid_t pid, const char *file, char *buf, int len)
@@ -93,7 +93,7 @@ pid_t findpid(const char *cmd, pid_t start_pid)
 	char buf[4097];
 	return _findpid(cmd, start_pid, buf, sizeof(buf));
 }
-#else
+#elif defined(WIN32)
 #include <psapi.h>
 
 int readproccmd(pid_t pid, char *buf, int len)
