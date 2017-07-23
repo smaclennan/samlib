@@ -101,6 +101,11 @@ int samthread_join(samthread_t tid)
 	return rc;
 }
 
+pid_t gettid(void)
+{
+	return syscall(__NR_gettid);
+}
+
 mutex_t *mutex_create(void)
 {
 	return calloc(1, sizeof(struct mutex));
@@ -214,6 +219,7 @@ void mutex_unlock(mutex_t *mutex)
 
 #else
 #include <stdlib.h>
+#include <syscall.h>
 
 /* Default to pthreads */
 
@@ -262,6 +268,15 @@ int samthread_join(samthread_t tid)
 		return -1;
 
 	return (long)rc;
+}
+
+pid_t gettid(void)
+{
+#ifdef __linux__
+	return syscall(__NR_gettid);
+#else
+#error gettid not defined
+#endif
 }
 
 mutex_t *mutex_create(void)

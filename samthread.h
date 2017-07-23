@@ -9,8 +9,8 @@
 
 /* Define this for pthreads rather than light weight threads under
  * Linux. Mainly for debugging.
-#define WANT_PTHREADS
  */
+#define WANT_PTHREADS
 
 #ifdef WIN32
 #define sched_yield() Sleep(0)
@@ -53,6 +53,7 @@ typedef pthread_mutex_t mutex_t;
 
 samthread_t samthread_create(int (*fn)(void *arg), void *arg);
 int samthread_join(samthread_t tid);
+pid_t gettid(void);
 
 mutex_t *mutex_create(void);
 void mutex_destroy(mutex_t *mutex);

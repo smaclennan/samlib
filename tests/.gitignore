@@ -7,6 +7,7 @@ dbtest
 md5test
 random
 readfile
+readproctest
 sha256test
 spinlock
 testall

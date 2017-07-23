@@ -4,8 +4,12 @@ CFLAGS += -Wall -O2
 CFLAGS += -DHAVE_DB_H
 LIBS += -ldb
 
+# Define for pthreads
+LIBS += -lpthread
+
 TESTS := args base64 cptest crc16test md5test random readfile
 TESTS += sha256test timetest threadtest spinlock dbtest
+TESTS += readproctest
 
 OTHERS := bitgen
 
