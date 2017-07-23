@@ -97,8 +97,8 @@ static int thread_main(void)
 	int main(int argc, char *argv[])
 #endif
 {
-	long i;
-	int rc;
+	long i, j;
+	int rc = 0;
 	samthread_t tid[CHILDREN];
 #ifdef WIN32
 	biglock = mutex_create();
@@ -120,13 +120,17 @@ static int thread_main(void)
 		}
 	}
 
-	printf("Go!\n");
 	mutex_unlock(&biglock);
 
 	for (i = 0; i < CHILDREN; ++i) {
-		rc = samthread_join(tid[i]);
-		printf("joined %ld rc %d\n", i, rc);
+		j = samthread_join(tid[i]);
+		if (j != i) {
+			printf("joined %ld rc %ld\n", i, j);
+			rc = 1;
+		}
 	}
 
-	return test_priority();
+	rc |= test_priority();
+
+	return rc;
 }
