@@ -309,6 +309,11 @@ pid_t samthread_tid(void)
 	thr_self(&tid);
 	return tid;
 }
+#elif defined(__OpenBSD__)
+pid_t samthread_tid(void)
+{
+	return getthrid();
+}
 #elif defined(WIN32)
 pid_t samthread_tid(void)
 {
