@@ -53,7 +53,8 @@ typedef pthread_mutex_t mutex_t;
 
 samthread_t samthread_create(int (*fn)(void *arg), void *arg);
 int samthread_join(samthread_t tid);
-pid_t gettid(void);
+/* This is not the samthread_t, it is a unique thread id */
+pid_t samthread_tid(void);
 
 mutex_t *mutex_create(void);
 void mutex_destroy(mutex_t *mutex);

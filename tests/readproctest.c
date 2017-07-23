@@ -17,7 +17,7 @@ static int thread(void *arg)
 {
 	struct procstat_min *stat = arg;
 
-	if (readprocstat(gettid(), stat)) {
+	if (readprocstat(samthread_tid(), stat)) {
 		printf("Child failed readprocstat\n");
 		return 1;
 	}
@@ -39,8 +39,8 @@ int main(int argc, char *argv[])
 	pid = getpid();
 	ppid = getppid();
 
-	if (pid != gettid()) {
-		printf("Hmm, pid %d tid %d\n", pid, gettid());
+	if (pid != samthread_tid()) {
+		printf("Hmm, pid %d tid %d\n", pid, samthread_tid());
 		rc = 1;
 	}
 

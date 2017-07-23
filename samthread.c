@@ -101,11 +101,6 @@ int samthread_join(samthread_t tid)
 	return rc;
 }
 
-pid_t gettid(void)
-{
-	return syscall(__NR_gettid);
-}
-
 mutex_t *mutex_create(void)
 {
 	return calloc(1, sizeof(struct mutex));
@@ -219,7 +214,6 @@ void mutex_unlock(mutex_t *mutex)
 
 #else
 #include <stdlib.h>
-#include <syscall.h>
 
 /* Default to pthreads */
 
@@ -270,16 +264,6 @@ int samthread_join(samthread_t tid)
 	return (long)rc;
 }
 
-pid_t gettid(void)
-{
-#ifdef __linux__
-	return syscall(__NR_gettid);
-#else
-#warning gettid not defined
-	return getpid();
-#endif
-}
-
 mutex_t *mutex_create(void)
 
 {
@@ -307,4 +291,34 @@ void mutex_unlock(mutex_t *mutex)
 	pthread_mutex_unlock(mutex);
 }
 
+#endif
+
+#ifdef __linux__
+#include <sys/syscall.h>
+
+pid_t samthread_tid(void)
+{
+	return syscall(__NR_gettid);
+}
+#elif defined(__FreeBSD__)
+#include <sys/thr.h>
+
+pid_t samthread_tid(void)
+{
+	long tid;
+	thr_self(&tid);
+	return tid;
+}
+#elif defined(WIN32)
+pid_t samthread_tid(void)
+{
+	return GetCurrentThreadId();
+}
+#else
+#warning No gettid
+
+pid_t samthread_tid(void)
+{
+	return getpid();
+}
 #endif
