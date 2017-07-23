@@ -6,6 +6,7 @@
 #define MAX_DEPTH 128 /* 128 = 1k */
 
 #ifndef WIN32
+#ifndef __OpenBSD__
 #include <execinfo.h>
 
 /* Requires -rdynamic to be useful */
@@ -23,6 +24,7 @@ void dump_stack(void)
 
 	free(syms);
 }
+#endif
 #else
 #include <DbgHelp.h>
 
