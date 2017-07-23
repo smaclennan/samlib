@@ -11,6 +11,13 @@
 
 /* DB_VERSION_MAJOR is not defined in FreeBSD. */
 
+#define SET_DATA do {						\
+		data_dbt.data = val;				\
+		data_dbt.size = len;				\
+		data_dbt.ulen = len;				\
+		data_dbt.flags = DB_DBT_USERMEM;	\
+	} while (0)
+
 
 static DB *global_db;
 
@@ -88,10 +95,8 @@ int db_put_raw(void *dbh, const void *key, int klen, void *val, int len, unsigne
 
 	key_dbt.data = (void *)key;
 	key_dbt.size = klen;
-	if (len) {
-		data_dbt.data = val;
-		data_dbt.size = len;
-	}
+	if (len)
+		SET_DATA;
 
 #ifdef DB_VERSION_MAJOR
 	return db->put(db, NULL, &key_dbt, &data_dbt, flags);
@@ -140,6 +145,8 @@ int db_get_raw(void *dbh, const void *key, int klen, void *val, int len)
 	key_dbt.data = (void *)key;
 	key_dbt.size = klen;
 
+	SET_DATA;
+
 #ifdef DB_VERSION_MAJOR
 	rc = db->get(db, NULL, &key_dbt, &data_dbt, 0);
 #else
@@ -150,7 +157,6 @@ int db_get_raw(void *dbh, const void *key, int klen, void *val, int len)
 
 	if (len > data_dbt.size)
 		len = data_dbt.size;
-	memcpy(val, data_dbt.data, len);
 
 	return len;
 }
