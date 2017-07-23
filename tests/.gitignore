@@ -3,6 +3,7 @@ base64
 bitgen
 cptest
 crc16test
+dbtest
 md5test
 random
 readfile

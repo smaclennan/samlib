@@ -12,6 +12,7 @@
 #include "threadtest.c"
 #include "timetest.c"
 #include "spinlock.c"
+#include "dbtest.c"
 
 
 int main(int argc, char *argv[])
@@ -30,6 +31,7 @@ int main(int argc, char *argv[])
 	rc |= thread_main();
 	rc |= time_main();
 	rc |= spinlock_main();
+	rc |= db_main();
 
 #ifdef WIN32
 	if (rc == 0)

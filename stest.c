@@ -5,9 +5,6 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
-#ifdef HAVE_DB_H
-#include <db.h>
-#endif
 
 #include "samlib.h"
 
@@ -68,35 +65,5 @@ int main(int argc, char *argv[])
 	}
 
 	return walkfiles(NULL, argv[optind], NULL, 0);
-#elif 1 && defined(HAVE_DB_H)
-	char str[8];
-
-	if (db_open("/tmp/dbtest", DB_CREATE, NULL)) {
-		puts("Unable to open DB");
-		exit(1);
-	}
-
-	if (db_put_str(NULL, "c", "3") ||
-		db_put_str(NULL, "b", "2") ||
-		db_put_str(NULL, "a", "1"))
-		printf("Puts failed\n");
-
-	db_get_str(NULL, "b", str, sizeof(str));
-	if (strcmp(str, "2"))
-		printf("Problem: expected 2 got %s\n", str);
-
-	db_walk(NULL, db_walk_puts);
-#elif 1 && defined(HAVE_DB_H)
-	if (db_open("/tmp/dbtest", DB_CREATE, NULL)) {
-		puts("Unable to open DB");
-		exit(1);
-	}
-
-	if (db_update_long(NULL, "c", 3) ||
-		db_update_long(NULL, "b", 2) ||
-		db_update_long(NULL, "a", 1))
-		printf("Puts failed\n");
-
-	db_walk(NULL, db_walk_long);
 #endif
 }
