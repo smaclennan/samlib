@@ -107,6 +107,34 @@ uint32_t get_address4(const char *hostname)
 		return 0;
 }
 
+/* Returns 0 on success, < 0 for errors, and > 0 if ifname not found.
+ * The gateway arg can be NULL.
+ */
+int get_gateway(const char *ifname, struct in_addr *gateway)
+{
+#ifdef WIN32
+	return -ENOSYS;
+#else
+	FILE *fp = fopen("/proc/net/route", "r");
+	if (!fp)
+		return -1;
+
+	char line[128], iface[8];
+	uint32_t dest, gw, flags;
+	while (fgets(line, sizeof(line), fp))
+		if (sscanf(line, "%s %x %x %x", iface, &dest, &gw, &flags) == 4 &&
+			strcmp(iface, ifname) == 0 && dest == 0 && (flags & 2)) {
+			fclose(fp);
+			if (gateway)
+				gateway->s_addr = gw;
+			return 0;
+		}
+
+	fclose(fp);
+	return 1;
+#endif
+}
+
 static int check_flags(const char *name, int flags)
 {
 	char buff[64];

@@ -40,30 +40,6 @@
 #define W_GUESSED  (1 << 5)
 
 
-/* Returns 0 on success, < 0 for errors, and > 0 if ifname not found.
- * The gateway arg can be NULL.
- */
-static int get_gateway(const char *ifname, struct in_addr *gateway)
-{
-	FILE *fp = fopen("/proc/net/route", "r");
-	if (!fp)
-		return -1;
-
-	char line[128], iface[8];
-	uint32_t dest, gw, flags;
-	while (fgets(line, sizeof(line), fp))
-		if (sscanf(line, "%s %x %x %x", iface, &dest, &gw, &flags) == 4 &&
-			strcmp(iface, ifname) == 0 && dest == 0 && (flags & 2)) {
-			fclose(fp);
-			if (gateway)
-				gateway->s_addr = gw;
-			return 0;
-		}
-
-	fclose(fp);
-	return 1;
-}
-
 static int check_one(const char *ifname, unsigned what)
 {
 	int n = 0;

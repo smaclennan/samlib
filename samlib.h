@@ -234,6 +234,11 @@ int get_address(const char *hostname, char *ipv4, char *ipv6);
 /* ipv4 only... but useful. Returns in host order. */
 uint32_t get_address4(const char *hostname);
 
+/* Returns 0 on success, < 0 for errors, and > 0 if ifname not found.
+ * The gateway arg can be NULL.
+ */
+int get_gateway(const char *ifname, struct in_addr *gateway);
+
 /* Skips the loopback interface. Returns < 0 on error else number of interfaces.
  * Interface names are malloced and must be freed.
  */
