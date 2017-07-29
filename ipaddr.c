@@ -18,8 +18,11 @@
  */
 
 #include <stdio.h>
-#include <arpa/inet.h> /* inet_ntoa */
 #include "samlib.h"
+
+#ifndef WIN32
+#include <arpa/inet.h> /* inet_ntoa */
+#endif
 
 #define W_ADDRESS  (1 << 0)
 #define W_MASK     (1 << 1)
@@ -29,6 +32,20 @@
 #define W_GUESSED  (1 << 5)
 
 #define MAX_INTERFACES 16 /* arbitrary and huge */
+
+/* This is so fast, it is not worth optimizing. */
+static int maskcnt(unsigned mask)
+{
+	unsigned count = 32;
+
+	mask = ntohl(mask);
+	while ((mask & 1) == 0) {
+		mask >>= 1;
+		--count;
+	}
+
+	return count;
+}
 
 static int check_one(const char *ifname, unsigned what)
 {
@@ -48,7 +65,7 @@ static int check_one(const char *ifname, unsigned what)
 		++n;
 		printf("%s", inet_ntoa(addr));
 		if (what & W_BITS)
-			printf("/%d", __builtin_popcount(mask.s_addr));
+			printf("/%d", maskcnt(mask.s_addr));
 	}
 	if (what & W_SUBNET) {
 		addr.s_addr &= mask.s_addr;
@@ -56,7 +73,7 @@ static int check_one(const char *ifname, unsigned what)
 			putchar(' ');
 		printf("%s", inet_ntoa(addr));
 		if (what & W_BITS)
-			printf("/%d", __builtin_popcount(mask.s_addr));
+			printf("/%d", maskcnt(mask.s_addr));
 	}
 	if (what & W_MASK) {
 		if (n++)
