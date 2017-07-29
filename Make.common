@@ -24,7 +24,7 @@ all: libsamlib.a libsamthread.a stest ipaddr
 
 *.o: samlib.h
 
-ipaddr: ipaddr.c
+ipaddr: ipaddr.c libsamlib.a
 	$(QUIET_LINK)$(CC) -o $@ $< libsamlib.a
 
 stest: stest.c libsamlib.a

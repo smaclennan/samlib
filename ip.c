@@ -114,7 +114,7 @@ int get_gateway(const char *ifname, struct in_addr *gateway)
 {
 #ifdef WIN32
 	return -ENOSYS;
-#else
+#elif defined(__linux__)
 	FILE *fp = fopen("/proc/net/route", "r");
 	if (!fp)
 		return -1;
@@ -132,9 +132,37 @@ int get_gateway(const char *ifname, struct in_addr *gateway)
 
 	fclose(fp);
 	return 1;
+#else
+	/* Fall back to netstat */
+	FILE *pfp = popen("netstat -nr", "r");
+	if (!pfp)
+		return -ENOENT;
+
+	char line[128];
+	while (fgets(line, sizeof(line), pfp))
+		if (strncmp(line, "default", 7) == 0 || strncmp(line, "0.0.0.0", 7) == 0) {
+			if (strstr(line, ifname))
+				pclose(pfp);
+				if (gateway) {
+					struct in_addr addr;
+					char *p = line + 7;
+					while (isspace(*p)) ++p;
+					if (inet_aton(p, &addr)) {
+						*gateway = addr;
+						return 0;
+					}
+					return -1;
+				}
+				return 0;
+		}
+
+	pclose(pfp);
+	return 1;
+
 #endif
 }
 
+#ifdef __linux__
 static int check_flags(const char *name, int flags)
 {
 	char buff[64];
@@ -155,13 +183,12 @@ static int check_flags(const char *name, int flags)
 	}
 	return 0; /* down */
 }
+#endif
 
 /* Skips the loopback interface */
 int get_interfaces(char **ifnames, int n, int flags)
 {
-#ifdef WIN32
-	return ENOSYS;
-#else
+#ifdef __linux__
 	int i = 0;
 	DIR *dir = opendir("/sys/class/net");
 	if (!dir)
@@ -179,6 +206,37 @@ int get_interfaces(char **ifnames, int n, int flags)
 		}
 
 	closedir(dir);
+	return i;
+
+oom:
+	free_interfaces(ifnames, i);
+	return -ENOMEM;
+#elif defined(WIN32)
+	return ENOSYS;
+#else
+	/* Fall back to ifconfig */
+	FILE *pfp = popen("ifconfig -a", "r");
+	if (!pfp)
+		return -ENOENT;
+
+	int i = 0;
+	char line[128];
+	while (fgets(line, sizeof(line), pfp))
+		if (!isspace(*line) && strncmp(line, "lo", 2) && i < n) {
+			if (flags) {
+				char *up = strstr(line, "UP");
+				if ((flags & IFACE_UP) && up == NULL)
+					continue;
+				if ((flags & IFACE_DOWN) && up)
+					continue;
+			}
+			ifnames[i] = strdup(strtok(line, ":"));
+			if (!ifnames[i])
+				goto oom;
+			++i;
+		}
+
+	pclose(pfp);
 	return i;
 
 oom:
