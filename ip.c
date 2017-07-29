@@ -20,11 +20,148 @@
 
 #include "samlib.h"
 
+/* WINDOWS interface names:
+ *
+ * Warning: I am not a windows network expert. I am assuming that for
+ * any given machine windows will always enumerate in the same order!
+ *
+ * For windows I am going to assume that ethN is the Nth ethernet
+ * interface and wlanN is the Nth wireless interface.
+ */
+
+#ifdef WIN32
+#define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
+#define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
+
+static IP_ADAPTER_INFO *win32_getadapterinfo(void)
+{
+	ULONG ulOutBufLen = 0;
+
+	/* Initial call to GetAdaptersInfo to get size */
+	GetAdaptersInfo(NULL, &ulOutBufLen);
+
+	pAdapterInfo = (IP_ADAPTER_INFO *)MALLOC(ulOutBufLen);
+	if (pAdapterInfo == NULL)
+		return NULL;
+
+	if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) {
+		FREE(pAdapterInfo);
+		return NULL;
+	}
+
+	return pAdapterInfo;
+}
+
+static int win32_getinfo(const char *ifname,
+						 struct in_addr *addr,
+						 struct in_addr *mask,
+						 struct in_addr *gw)
+{
+	PIP_ADAPTER_INFO pAdapter;
+	DWORD dwRetVal = 0;
+	UINT i, ethn = 0, wlann = 0;
+	UINT want_eth = 0, want_wlan = 0;
+
+	if (strncmp(ifname, "eth", 3) == 0)
+		want_eth = strtol(ifname + 3, NULL, 10);
+	else if (strncmp(ifname, "wlan", 4) == 0)
+		want_wlan = strtol(ifname + 4, NULL, 10);
+	else
+		return -ENOENT;
+
+	PIP_ADAPTER_INFO pAdapterInfo = win32_getadapterinfo();
+	if (!pAdapterInfo)
+		return -1;
+
+	for (pAdapter = pAdapterInfo; pAdapter; pAdapter = pAdapter->Next)
+		switch (pAdapter->Type) {
+		case MIB_IF_TYPE_ETHERNET:
+			if (ethn == want_eth)
+				goto got_it;
+			++ethn;
+			break;
+		case IF_TYPE_IEEE80211:
+			if (wlann == want_wlan)
+				goto got_it;
+			++wlann;
+			break;
+		}
+
+failed:
+	FREE(pAdapterInfo);
+	return -1; /* not found */
+
+got_it:
+	if (addr)
+		if (inet_ntoa(pAdapter->IpAddressList.IpAddress.String, addr))
+			goto failed;
+	if (mask)
+		if (inet_ntoa(pAdapter->IpAddressList.IpMask.String, mask))
+			goto failed;
+	if (gw)
+		if (inet_nota(pAdapter->GatewayList.IpAddress.String, gw))
+			goto failed;
+
+	FREE(pAdapterInfo);
+	return 0;
+}
+
+static int win32_get_interfaces(char **ifnames, int n, int flags)
+{
+	PIP_ADAPTER_INFO pAdapter;
+	DWORD dwRetVal = 0;
+	UINT i = 0, ethn = 0, wlann = 0;
+	char name[16];
+
+	PIP_ADAPTER_INFO pAdapterInfo = win32_getadapterinfo();
+	if (!pAdapterInfo)
+		return -1;
+
+	for (pAdapter = pAdapterInfo; pAdapter; pAdapter = pAdapter->Next) {
+		switch (pAdapter->Type) {
+		case MIB_IF_TYPE_ETHERNET:
+			snprintf(name, sizeof(name), "eth%d", ethn);
+			++ethn;
+			break;
+		case IF_TYPE_IEEE80211:
+			snprintf(name, sizeof(name), "wlan%d", wlann);
+			++wlann;
+			break;
+		default:
+			continue;
+		}
+
+		int up = strcmp(pAdapter->IpAddressList.IpAddress.String, "0.0.0.0");
+		if (flags) {
+			if ((flags & IFACE_UP) && !up)
+				continue;
+			if ((flags & IFACE_DOWN) && up)
+				continue;
+		}
+
+		if (i < n) {
+			ifaces[i] = strdup(name);
+			if (!ifaces[i])
+				goto failed;
+			++i;
+		}
+	}
+
+	FREE(pAdapterInfo);
+	return i;
+
+failed:
+	free_interfaces(ifaces, i);
+	FREE(pAdapterInfo);
+	return -1;
+}
+#endif
+
 /* Returns 0 on success. The args addr and/or mask can be NULL. */
 int ip_addr(const char *ifname, struct in_addr *addr, struct in_addr *mask)
 {
 #ifdef WIN32
-	return ENOSYS;
+	return win32_getinfo(ifname, addr, mask, NULL);
 #else
 	int s = socket(AF_INET, SOCK_DGRAM, 0);
 	if (s < 0)
@@ -113,7 +250,7 @@ uint32_t get_address4(const char *hostname)
 int get_gateway(const char *ifname, struct in_addr *gateway)
 {
 #ifdef WIN32
-	return -ENOSYS;
+	return win32_getinfo(ifname, NULL, NULL, gateway);
 #elif defined(__linux__)
 	FILE *fp = fopen("/proc/net/route", "r");
 	if (!fp)
@@ -212,7 +349,7 @@ oom:
 	free_interfaces(ifnames, i);
 	return -ENOMEM;
 #elif defined(WIN32)
-	return ENOSYS;
+	return win32_get_interfaces(ifnames, n, flags);
 #else
 	/* Fall back to ifconfig */
 	FILE *pfp = popen("ifconfig -a", "r");
