@@ -2,7 +2,6 @@
 
 #if defined(__linux__) && !defined(WANT_PTHREADS)
 #include <stdlib.h>
-#include <unistd.h>
 #include <errno.h>
 #include <sched.h>
 #include <sys/resource.h>

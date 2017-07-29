@@ -1,10 +1,5 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
-#include <fcntl.h>
-#include <ctype.h>
-#include <errno.h>
 #ifndef WIN32
 #include <dirent.h>
 #include <regex.h>
