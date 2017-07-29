@@ -32,6 +32,8 @@
 #ifdef WIN32
 #include <winsock2.h>
 #include <iphlpapi.h>
+
+#pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "IPHLPAPI.lib")
 
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
