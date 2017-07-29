@@ -18,18 +18,7 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <ctype.h>
-#include <errno.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <net/if.h>
+#include <arpa/inet.h> /* inet_ntoa */
 #include "samlib.h"
 
 #define W_ADDRESS  (1 << 0)
@@ -39,6 +28,7 @@
 #define W_GATEWAY  (1 << 4)
 #define W_GUESSED  (1 << 5)
 
+#define MAX_INTERFACES 16 /* arbitrary and huge */
 
 static int check_one(const char *ifname, unsigned what)
 {
@@ -139,7 +129,6 @@ int main(int argc, char *argv[])
 		while (optind < argc)
 			rc |= check_one(argv[optind++], what);
 	} else {
-#define MAX_INTERFACES 8
 		char *ifaces[MAX_INTERFACES];
 		int i, n;
 
