@@ -234,6 +234,14 @@ int get_address(const char *hostname, char *ipv4, char *ipv6);
 /* ipv4 only... but useful. Returns in host order. */
 uint32_t get_address4(const char *hostname);
 
+/* Skips the loopback interface. Returns < 0 on error else number of interfaces.
+ * Interface names are malloced and must be freed.
+ */
+int get_interfaces(char **ifname, int n, int flags);
+#define IFACE_UP 1
+#define IFACE_DOWN 2
+void free_interfaces(char **ifnames, int n);
+
 /* DB functions - requires -ldb
  *
  * These functions implement a simple interface to Berkley DB btree

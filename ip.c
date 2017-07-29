@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
+#include <dirent.h>
 #ifdef WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -104,4 +105,67 @@ uint32_t get_address4(const char *hostname)
 		return ntohl(*(uint32_t *)host->h_addr);
 	else
 		return 0;
+}
+
+static int check_flags(const char *name, int flags)
+{
+	char buff[64];
+	int fd;
+
+	if (flags == 0)
+		return 1;
+
+	snprintf(buff, sizeof(buff), "/sys/class/net/%s/operstate", name);
+	fd = open(buff, O_RDONLY);
+	if (fd >= 0) {
+		int n = read(fd, buff, sizeof(buff));
+		close(fd);
+		if (n > 0) {
+			int up = strncmp(buff, "up", 2) == 0;
+			return (up && (flags & IFACE_UP)) || (!up && (flags & IFACE_DOWN));
+		}
+	}
+	return 0; /* down */
+}
+
+/* Skips the loopback interface */
+int get_interfaces(char **ifnames, int n, int flags)
+{
+#ifdef WIN32
+	return ENOSYS;
+#else
+	int i = 0;
+	DIR *dir = opendir("/sys/class/net");
+	if (!dir)
+		return -ENOENT;
+
+	struct dirent *ent;
+	while ((ent = readdir(dir)) && i < n)
+		if (*ent->d_name != '.' && strcmp(ent->d_name, "lo")) {
+			if (check_flags(ent->d_name, flags)) {
+				ifnames[i] = strdup(ent->d_name);
+				if (!ifnames[i])
+					goto oom;
+				++i;
+			}
+		}
+
+	closedir(dir);
+	return i;
+
+oom:
+	free_interfaces(ifnames, i);
+	return -ENOMEM;
+#endif
+}
+
+void free_interfaces(char **ifnames, int n)
+{
+	int i;
+
+	for (i = 0; i < n; ++i)
+		if (ifnames[i]) {
+			free(ifnames[i]);
+			ifnames[i] = NULL;
+		}
 }
