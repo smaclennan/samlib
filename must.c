@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef WIN32
 #include <sys/mman.h>
+#endif
 
 #include "samlib.h"
 
@@ -49,6 +51,7 @@ void *must_realloc(void *ptr, int size)
 	return mem;
 }
 
+#ifndef WIN32
 void *must_mmap(int size, int prot, int flags)
 {
 	if (prot == 0)
@@ -75,3 +78,4 @@ void *must_mmap_file(int size, int prot, int flags, int fd)
 		must_fail("mmap file", size);
 	return mem;
 }
+#endif

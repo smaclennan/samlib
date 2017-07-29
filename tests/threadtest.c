@@ -1,13 +1,33 @@
 #include <stdio.h>
 #include "../samthread.h"
-#include <sys/resource.h>
 
 #define CHILDREN  10
 
 #ifdef WIN32
 static mutex_t biglock;
 #else
+#include <sys/resource.h>
+
 static DEFINE_MUTEX(biglock);
+#endif
+
+#ifdef WIN32
+#define PRIO_PROCESS 0
+
+static int priority = 10; /* SAM HACK */
+
+int getpriority(int unused, int unused2)
+{
+	return priority;
+}
+
+int setpriority(int unused, int unused2, int newpriority)
+{
+	priority = newpriority;
+	return 0;
+}
+
+#define usleep(u) Sleep((u) / 1000)
 #endif
 
 /* Shared with parent */

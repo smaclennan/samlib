@@ -34,6 +34,7 @@ typedef struct mutex {
 
 #include <Windows.h>
 
+typedef DWORD pid_t;
 typedef HANDLE samthread_t;
 
 /* No DEFINE_MUTEX for windows.. you must use mutex_create() */
@@ -61,6 +62,7 @@ void mutex_destroy(mutex_t *mutex);
 void mutex_lock(mutex_t *mutex);
 void mutex_unlock(mutex_t *mutex);
 
+#ifndef WIN32
 typedef unsigned spinlock_t;
 
 #define DEFINE_SPINLOCK(name) spinlock_t name
@@ -74,5 +76,6 @@ static inline void spin_lock(spinlock_t *lock)
 }
 
 static inline void spin_unlock(spinlock_t *lock) { *lock = 0; }
+#endif
 
 #endif

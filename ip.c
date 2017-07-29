@@ -5,11 +5,11 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
-#include <dirent.h>
 #ifdef WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
+#include <dirent.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -30,11 +30,16 @@
  */
 
 #ifdef WIN32
+#include <winsock2.h>
+#include <iphlpapi.h>
+#pragma comment(lib, "IPHLPAPI.lib")
+
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
 #define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 
 static IP_ADAPTER_INFO *win32_getadapterinfo(void)
 {
+	PIP_ADAPTER_INFO pAdapterInfo;
 	ULONG ulOutBufLen = 0;
 
 	/* Initial call to GetAdaptersInfo to get size */
@@ -59,7 +64,7 @@ static int win32_getinfo(const char *ifname,
 {
 	PIP_ADAPTER_INFO pAdapter;
 	DWORD dwRetVal = 0;
-	UINT i, ethn = 0, wlann = 0;
+	UINT ethn = 0, wlann = 0;
 	UINT want_eth = 0, want_wlan = 0;
 
 	if (strncmp(ifname, "eth", 3) == 0)
@@ -92,15 +97,21 @@ failed:
 	return -1; /* not found */
 
 got_it:
-	if (addr)
-		if (inet_ntoa(pAdapter->IpAddressList.IpAddress.String, addr))
+	if (addr) {
+		addr->s_addr = inet_addr(pAdapter->IpAddressList.IpAddress.String);
+		if (addr->s_addr == INADDR_NONE)
 			goto failed;
-	if (mask)
-		if (inet_ntoa(pAdapter->IpAddressList.IpMask.String, mask))
+	}
+	if (mask) {
+		mask->s_addr = inet_addr(pAdapter->IpAddressList.IpMask.String);
+		if (mask->s_addr == INADDR_NONE)
 			goto failed;
-	if (gw)
-		if (inet_nota(pAdapter->GatewayList.IpAddress.String, gw))
+	}
+	if (gw) {
+		gw->s_addr = inet_addr(pAdapter->GatewayList.IpAddress.String);
+		if (gw->s_addr == INADDR_NONE)
 			goto failed;
+	}
 
 	FREE(pAdapterInfo);
 	return 0;
@@ -110,7 +121,7 @@ static int win32_get_interfaces(char **ifnames, int n, int flags)
 {
 	PIP_ADAPTER_INFO pAdapter;
 	DWORD dwRetVal = 0;
-	UINT i = 0, ethn = 0, wlann = 0;
+	int i = 0, ethn = 0, wlann = 0;
 	char name[16];
 
 	PIP_ADAPTER_INFO pAdapterInfo = win32_getadapterinfo();
@@ -140,8 +151,8 @@ static int win32_get_interfaces(char **ifnames, int n, int flags)
 		}
 
 		if (i < n) {
-			ifaces[i] = strdup(name);
-			if (!ifaces[i])
+			ifnames[i] = strdup(name);
+			if (!ifnames[i])
 				goto failed;
 			++i;
 		}
@@ -151,7 +162,7 @@ static int win32_get_interfaces(char **ifnames, int n, int flags)
 	return i;
 
 failed:
-	free_interfaces(ifaces, i);
+	free_interfaces(ifnames, i);
 	FREE(pAdapterInfo);
 	return -1;
 }
