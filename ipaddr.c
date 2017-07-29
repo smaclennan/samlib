@@ -30,43 +30,15 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <net/if.h>
+#include "samlib.h"
 
 #define W_ADDRESS  (1 << 0)
 #define W_MASK     (1 << 1)
 #define W_SUBNET   (1 << 2)
 #define W_BITS     (1 << 3)
 #define W_GATEWAY  (1 << 4)
+#define W_GUESSED  (1 << 5)
 
-
-/* Returns 0 on success. The args addr and/or mask can be NULL. */
-static int ip_addr(const char *ifname, struct in_addr *addr, struct in_addr *mask)
-{
-	int s = socket(AF_INET, SOCK_DGRAM, 0);
-	if (s < 0)
-		return -1;
-
-	struct ifreq ifr;
-	snprintf(ifr.ifr_name, IFNAMSIZ, "%s", ifname);
-
-	if (addr) {
-		if (ioctl(s, SIOCGIFADDR, &ifr) < 0)
-			goto failed;
-		*addr = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
-	}
-
-	if (mask) {
-		if (ioctl(s, SIOCGIFNETMASK, &ifr) < 0)
-			goto failed;
-		*mask = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
-	}
-
-	close(s);
-	return 0;
-
-failed:
-	close(s);
-	return -1;
-}
 
 /* Returns 0 on success, < 0 for errors, and > 0 if ifname not found.
  * The gateway arg can be NULL.
@@ -92,76 +64,14 @@ static int get_gateway(const char *ifname, struct in_addr *gateway)
 	return 1;
 }
 
-static void usage(int rc)
+static int check_one(const char *ifname, unsigned what)
 {
-	fputs("usage: ipaddr [-abgms] [interface]\n"
-		  "where: -a displays IP address (default)\n"
-		  "       -g displays gateway\n"
-		  "       -m displays network mask\n"
-		  "       -s displays subnet\n"
-		  "       -b add bits as /bits to -a and/or -s\n"
-		  "Interface defaults to eth0.\n"
-		  "Designed to be easily used in scripts. All error output to stderr.\n",
-		  stderr);
-
-	exit(rc);
-}
-
-static char *if_list[] = { "eth0", "wlan0", "br0", "eth1" };
-#define MAX_IF_LIST (sizeof(if_list) / sizeof(char *))
-
-int main(int argc, char *argv[])
-{
-	int c, n = 0, guessed = 0;
-	char *ifname = NULL;
+	int n = 0;
 	struct in_addr addr, mask, gw;
-	unsigned what = 0;
 
-	while ((c = getopt(argc, argv, "abgmsh")) != EOF)
-		switch (c) {
-		case 'a':
-			what |= W_ADDRESS;
-			break;
-		case 'b':
-			what |= W_BITS;
-			break;
-		case 'g':
-			what |= W_GATEWAY;
-			break;
-		case 'm':
-			what |= W_MASK;
-			break;
-		case 's':
-			what |= W_SUBNET;
-			break;
-		case 'h':
-			usage(0);
-		default:
-			exit(2);
-		}
-
-	if (what == 0 || what == W_BITS)
-		what |= W_ADDRESS;
-
-	if (optind < argc) {
-		ifname = argv[optind];
-		if (ip_addr(ifname, &addr, &mask)) {
-			perror(ifname);
-			exit(1);
-		}
-	} else {
-		int i;
-
-		for (i = 0; i < MAX_IF_LIST; ++i) {
-			ifname = if_list[i];
-			if (ip_addr(ifname, &addr, &mask) == 0)
-				break;
-		}
-		if (i == MAX_IF_LIST) {
-			fputs("Count not find an interface\n", stderr);
-			exit(1);
-		}
-		guessed = 1;
+	if (ip_addr(ifname, &addr, &mask)) {
+		perror(ifname);
+		return 1;
 	}
 
 	if (what & W_ADDRESS) {
@@ -193,7 +103,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (n) {
-		if (guessed)
+		if (what & W_GUESSED)
 			printf(" (%s)", ifname);
 		putchar('\n');
 	}
@@ -201,8 +111,69 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-/*
- * Local Variables:
- * compile-command: "gcc -O3 -Wall ipaddr.c -o ipaddr"
- * End:
- */
+static void usage(int rc)
+{
+	fputs("usage: ipaddr [-abgms] [interface]\n"
+		  "where: -a displays IP address (default)\n"
+		  "       -g displays gateway\n"
+		  "       -m displays network mask\n"
+		  "       -s displays subnet\n"
+		  "       -b add bits as /bits to -a and/or -s\n"
+		  "Interface defaults to eth0.\n"
+		  "Designed to be easily used in scripts. All error output to stderr.\n",
+		  stderr);
+
+	exit(rc);
+}
+
+int main(int argc, char *argv[])
+{
+	int c, rc = 0;
+	unsigned what = 0;
+
+	while ((c = getopt(argc, argv, "abgmsh")) != EOF)
+		switch (c) {
+		case 'a':
+			what |= W_ADDRESS;
+			break;
+		case 'b':
+			what |= W_BITS;
+			break;
+		case 'g':
+			what |= W_GATEWAY;
+			break;
+		case 'm':
+			what |= W_MASK;
+			break;
+		case 's':
+			what |= W_SUBNET;
+			break;
+		case 'h':
+			usage(0);
+		default:
+			exit(2);
+		}
+
+	if (what == 0 || what == W_BITS)
+		what |= W_ADDRESS;
+
+	if (optind < argc) {
+		while (optind < argc)
+			rc |= check_one(argv[optind++], what);
+	} else {
+#define MAX_INTERFACES 8
+		char *ifaces[MAX_INTERFACES];
+		int i, n;
+
+		n = get_interfaces(ifaces, MAX_INTERFACES, IFACE_UP);
+		if (n == 0) {
+			fputs("No interfaces found\n", stderr);
+			return 1;
+		}
+
+		for (i = 0; i < n; ++i)
+			rc |= check_one(ifaces[i], what | W_GUESSED);
+	}
+
+	return rc;
+}
