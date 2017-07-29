@@ -12,7 +12,7 @@
 #endif
 
 #define SAMLIB_MAJOR 1
-#define SAMLIB_MINOR 2
+#define SAMLIB_MINOR 3
 
 extern const char *samlib_version;
 
@@ -222,8 +222,9 @@ uint16_t chksum16(const void *buf, int count);
 
 /* IP functions */
 
-/* Returns 0 on success. The args addr and/or mask can be NULL. */
-int ip_addr(const char *ifname, struct in_addr *addr, struct in_addr *mask);
+/* Returns 0 on success. The args addr and/or mask and/or gw can be NULL. */
+int ip_addr(const char *ifname,
+			struct in_addr *addr, struct in_addr *mask, struct in_addr *gw);
 
 /* Returns 0 on success or an errno suitable for gai_strerror().
  * The ipv4 arg should be at least INET_ADDRSTRLEN long or NULL.
@@ -233,11 +234,6 @@ int get_address(const char *hostname, char *ipv4, char *ipv6);
 
 /* ipv4 only... but useful. Returns in host order. */
 uint32_t get_address4(const char *hostname);
-
-/* Returns 0 on success, < 0 for errors, and > 0 if ifname not found.
- * The gateway arg can be NULL.
- */
-int get_gateway(const char *ifname, struct in_addr *gateway);
 
 /* Skips the loopback interface. Returns < 0 on error else number of interfaces.
  * Interface names are malloced and must be freed.

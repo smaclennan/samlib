@@ -170,11 +170,67 @@ failed:
 }
 #endif
 
-/* Returns 0 on success. The args addr and/or mask can be NULL. */
-int ip_addr(const char *ifname, struct in_addr *addr, struct in_addr *mask)
+#ifndef WIN32
+/* Returns 0 on success, < 0 for errors, and > 0 if ifname not found.
+ * The gateway arg can be NULL.
+ */
+static int get_gateway(const char *ifname, struct in_addr *gateway)
+{
+#ifdef __linux__
+	FILE *fp = fopen("/proc/net/route", "r");
+	if (!fp)
+		return -1;
+
+	char line[128], iface[8];
+	uint32_t dest, gw, flags;
+	while (fgets(line, sizeof(line), fp))
+		if (sscanf(line, "%s %x %x %x", iface, &dest, &gw, &flags) == 4 &&
+			strcmp(iface, ifname) == 0 && dest == 0 && (flags & 2)) {
+			fclose(fp);
+			if (gateway)
+				gateway->s_addr = gw;
+			return 0;
+		}
+
+	fclose(fp);
+	return 1;
+#else
+	/* Fall back to netstat */
+	FILE *pfp = popen("netstat -nr", "r");
+	if (!pfp)
+		return -ENOENT;
+
+	char line[128];
+	while (fgets(line, sizeof(line), pfp))
+		if (strncmp(line, "default", 7) == 0 || strncmp(line, "0.0.0.0", 7) == 0) {
+			if (strstr(line, ifname))
+				pclose(pfp);
+				if (gateway) {
+					struct in_addr addr;
+					char *p = line + 7;
+					while (isspace(*p)) ++p;
+					if (inet_aton(p, &addr)) {
+						*gateway = addr;
+						return 0;
+					}
+					return -1;
+				}
+				return 0;
+		}
+
+	pclose(pfp);
+	return 1;
+
+#endif
+}
+#endif
+
+/* Returns 0 on success. The args addr and/or mask and/or gw can be NULL. */
+int ip_addr(const char *ifname,
+			struct in_addr *addr, struct in_addr *mask, struct in_addr *gw)
 {
 #ifdef WIN32
-	return win32_getinfo(ifname, addr, mask, NULL);
+	return win32_getinfo(ifname, addr, mask, gw);
 #else
 	int s = socket(AF_INET, SOCK_DGRAM, 0);
 	if (s < 0)
@@ -196,6 +252,10 @@ int ip_addr(const char *ifname, struct in_addr *addr, struct in_addr *mask)
 	}
 
 	close(s);
+
+	if (gw)
+		return get_gateway(ifname, gw);
+
 	return 0;
 
 failed:
@@ -255,61 +315,6 @@ uint32_t get_address4(const char *hostname)
 		return ntohl(*(uint32_t *)host->h_addr);
 	else
 		return 0;
-}
-
-/* Returns 0 on success, < 0 for errors, and > 0 if ifname not found.
- * The gateway arg can be NULL.
- */
-int get_gateway(const char *ifname, struct in_addr *gateway)
-{
-#ifdef WIN32
-	return win32_getinfo(ifname, NULL, NULL, gateway);
-#elif defined(__linux__)
-	FILE *fp = fopen("/proc/net/route", "r");
-	if (!fp)
-		return -1;
-
-	char line[128], iface[8];
-	uint32_t dest, gw, flags;
-	while (fgets(line, sizeof(line), fp))
-		if (sscanf(line, "%s %x %x %x", iface, &dest, &gw, &flags) == 4 &&
-			strcmp(iface, ifname) == 0 && dest == 0 && (flags & 2)) {
-			fclose(fp);
-			if (gateway)
-				gateway->s_addr = gw;
-			return 0;
-		}
-
-	fclose(fp);
-	return 1;
-#else
-	/* Fall back to netstat */
-	FILE *pfp = popen("netstat -nr", "r");
-	if (!pfp)
-		return -ENOENT;
-
-	char line[128];
-	while (fgets(line, sizeof(line), pfp))
-		if (strncmp(line, "default", 7) == 0 || strncmp(line, "0.0.0.0", 7) == 0) {
-			if (strstr(line, ifname))
-				pclose(pfp);
-				if (gateway) {
-					struct in_addr addr;
-					char *p = line + 7;
-					while (isspace(*p)) ++p;
-					if (inet_aton(p, &addr)) {
-						*gateway = addr;
-						return 0;
-					}
-					return -1;
-				}
-				return 0;
-		}
-
-	pclose(pfp);
-	return 1;
-
-#endif
 }
 
 #ifdef __linux__

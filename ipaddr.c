@@ -43,9 +43,13 @@
 static int check_one(const char *ifname, unsigned what)
 {
 	int n = 0;
-	struct in_addr addr, mask, gw;
+	struct in_addr addr, mask, gw, *gw_ptr = NULL;
 
-	if (ip_addr(ifname, &addr, &mask)) {
+	if (what & W_GATEWAY)
+		/* gateway is more expensive */
+		gw_ptr = &gw;
+
+	if (ip_addr(ifname, &addr, &mask, gw_ptr)) {
 		perror(ifname);
 		return 1;
 	}
@@ -71,11 +75,9 @@ static int check_one(const char *ifname, unsigned what)
 	}
 
 	if (what & W_GATEWAY) {
-		if (get_gateway(ifname, &gw) == 0) {
-			if (n++)
-				putchar(' ');
-			printf("%s", inet_ntoa(gw));
-		}
+		if (n++)
+			putchar(' ');
+		printf("%s", inet_ntoa(gw));
 	}
 
 	if (n) {
