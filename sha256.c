@@ -72,7 +72,7 @@
 /* Define the SHA shift and rotate right macro */
 #define SHA256_SHR(bits,word)      ((word) >> (bits))
 
-#if 0
+#ifdef WIN32
 /* gcc knows to convert this pattern to a ror, clang does not */
 #define SHA256_ROTR(bits, word)						\
 	(((word) >> (bits)) | ((word) << (32-(bits))))
