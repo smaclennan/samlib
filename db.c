@@ -119,19 +119,6 @@ int db_put_str(void *dbh, const char *keystr, const char *valstr)
 		return db_put(dbh, keystr, NULL, 0, 0);
 }
 
-/* Handy function for keeping track of counts or sizes. Reads the old
- * value and adds in the new value.
- */
-int db_update_long(void *dbh, const char *keystr, long update)
-{
-	long cur;
-
-	if (db_get(dbh, keystr, &cur, sizeof(cur)) > 0)
-		update += cur;
-
-	return db_put(dbh, keystr, &update, sizeof(update), 0);
-}
-
 /* Returns val len on success */
 int db_get_raw(void *dbh, const void *key, int klen, void *val, int len)
 {
@@ -223,12 +210,6 @@ int db_del(void *dbh, const char *keystr)
 int db_walk_puts(const char *key, void *data, int len)
 {
 	printf("%s: %.*s\n", key, len, (char *)data);
-	return 0;
-}
-
-int db_walk_long(const char *key, void *data, int len)
-{
-	printf("%s: %ld\n", key, *(long *)data);
 	return 0;
 }
 

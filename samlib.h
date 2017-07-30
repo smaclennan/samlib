@@ -257,9 +257,6 @@ int db_close(void *dbh);
 int db_put(void *dbh, const char *keystr, void *val, int len, unsigned flags);
 int db_put_str(void *dbh, const char *keystr, const char *valstr);
 int db_put_raw(void *dbh, const void *key, int klen, void *val, int len, unsigned flags);
-int db_update_long(void *dbh, const char *keystr, long update);
-#define db_inc_long(d, k) db_update_long((d), (k), 1)
-#define db_dec_long(d, k) db_update_long((d), (k), -1)
 int db_get(void *dbh, const char *keystr, void *val, int len);
 int db_get_str(void *dbh, const char *keystr, char *valstr, int len);
 int db_get_raw(void *dbh, const void *key, int klen, void *val, int len);
@@ -270,7 +267,6 @@ int db_walk(void *dbh, int (*walk_func)(const char *key, void *data, int len));
  * WARNING: Assumes data is a string!
  */
 int db_walk_puts(const char *key, void *data, int len);
-int db_walk_long(const char *key, void *data, int len);
 
 /* Advantages of xorshift128plus() over random().
  *     1. It is faster. (~7x)

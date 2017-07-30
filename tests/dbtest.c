@@ -25,22 +25,6 @@ static int db_walk_strings(const char *key, void *data, int len)
 	return 0;
 }
 
-static int db_walk_longs(const char *key, void *data, int len)
-{
-	static char kstr[2] = "a";
-	static long v = 1;
-
-	if (strcmp(key, kstr) || *(long *)data != v) {
-		printf("'%s' %ld != '%s' %ld\n", key, *(long *)data, kstr, v);
-		return 1; /* failed */
-	}
-
-	++*kstr;
-	++v;
-
-	return 0;
-}
-
 #ifdef TESTALL
 int db_main(void)
 #else
@@ -81,16 +65,6 @@ int main(int argc, char *argv[])
 		puts("Unable to open DB");
 		return 1;
 	}
-
-	if (db_update_long(NULL, "c", 3) ||
-		db_update_long(NULL, "b", 2) ||
-		db_update_long(NULL, "a", 1)) {
-		printf("Puts failed\n");
-		rc = 1;
-	}
-
-	if (db_walk(NULL, db_walk_longs))
-		rc = 1;
 
 	db_close(NULL);
 
