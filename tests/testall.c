@@ -13,11 +13,7 @@
 #include "sha256test.c"
 #include "threadtest.c"
 #include "timetest.c"
-#ifdef WIN32
-int spinlock_main(void) { printf("Spinlock disabled\n"); return 0; }
-#else
 #include "spinlock.c"
-#endif
 
 
 int main(int argc, char *argv[])

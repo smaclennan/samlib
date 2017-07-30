@@ -62,8 +62,12 @@ void mutex_destroy(mutex_t *mutex);
 void mutex_lock(mutex_t *mutex);
 void mutex_unlock(mutex_t *mutex);
 
-#ifndef WIN32
+#ifdef WIN32
+typedef LONG spinlock_t;
+#define inline _inline
+#else
 typedef unsigned spinlock_t;
+#endif
 
 #define DEFINE_SPINLOCK(name) spinlock_t name
 
@@ -71,11 +75,15 @@ static inline void spinlock_init(spinlock_t *lock) { *lock = 0; }
 
 static inline void spin_lock(spinlock_t *lock)
 {
+#ifdef WIN32
+	while (InterlockedCompareExchange(lock, 1, 0))
+		sched_yield();
+#else
 	while (!__sync_bool_compare_and_swap(lock, 0, 1))
 		sched_yield();
+#endif
 }
 
 static inline void spin_unlock(spinlock_t *lock) { *lock = 0; }
-#endif
 
 #endif

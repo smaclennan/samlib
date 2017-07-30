@@ -17,7 +17,7 @@
     <Library Include=".\Debug\samlib.lib" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{7E3BAE0C-1B9D-4BFC-8B99-58D9E4ED0F47}</ProjectGuid>
+    <ProjectGuid>{81636D83-5597-48F6-BCFF-2673E30CE521}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ipaddr</RootNamespace>
   </PropertyGroup>

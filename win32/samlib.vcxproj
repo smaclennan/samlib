@@ -98,6 +98,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\samlib.h" />
+    <ClInclude Include="..\samthread.h" />
     <ClInclude Include="fnmatch.h" />
     <ClInclude Include="regex.h" />
     <ClInclude Include="samwin32.h" />
