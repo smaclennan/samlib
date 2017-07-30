@@ -18,6 +18,7 @@
  */
 
 #include <stdio.h>
+#include <errno.h>
 #include "samlib.h"
 
 #ifndef WIN32
@@ -57,7 +58,10 @@ static int check_one(const char *ifname, unsigned what)
 		gw_ptr = &gw;
 
 	if (ip_addr(ifname, &addr, &mask, gw_ptr)) {
-		perror(ifname);
+		if (errno == EADDRNOTAVAIL)
+			fprintf(stderr, "%s: No address\n", ifname);
+		else
+			perror(ifname);
 		return 1;
 	}
 
