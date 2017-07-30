@@ -1,5 +1,7 @@
 CFLAGS += -Wall -O2
 
+#CC = clang -fno-color-diagnostics
+
 # Undefine if you don't have db.h
 CFLAGS += -DHAVE_DB_H
 LIBS += -ldb

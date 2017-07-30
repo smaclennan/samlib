@@ -54,3 +54,4 @@ check:
 clean:
 	rm -f *.o libsamlib.a stest ipaddr
 	rm -f libsamthread.a
+	make -C tests clean

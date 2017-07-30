@@ -20,7 +20,19 @@
 #define H(x, y, z) ((x) ^ (y) ^ (z))
 #define I(x, y, z) ((y) ^ ((x) | ~(z)))
 
+#if 0
 #define ROTATE(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
+#else
+static inline uint32_t ROTATE(uint32_t word, uint8_t bits)
+{
+	uint32_t res;
+	asm ("mov %2, %0;\n" /* Don't clobber word */
+		 "rol %1, %0;\n"
+		 : "=r" (res)
+		 : "n" (bits), "r" (word));
+	return res;
+}
+#endif
 
 /* Calculate one block */
 static void md5_calc(md5ctx *ctx)
