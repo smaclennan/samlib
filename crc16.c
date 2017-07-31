@@ -15,8 +15,11 @@ uint16_t chksum16(const void *buf, int count)
 		sum += *p;
 
 	/*  Fold 32-bit sum to 16 bits */
-	while ((shift = sum >> 16))
+	if ((shift = sum >> 16)) {
 		sum = (sum & 0xffff) + shift;
+		if ((shift = sum >> 16))
+			sum = (sum & 0xffff) + shift;
+	}
 
 	return ~sum;
 }
