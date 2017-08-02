@@ -35,9 +35,9 @@ int main(int argc, char *argv[])
 	rc |= thread_main();
 	rc |= time_main();
 
-#ifdef WIN32
 	if (rc == 0)
 		puts("Success");
+#ifdef WIN32
 	printf("Hit return to exit...");  getchar();
 #endif
 
