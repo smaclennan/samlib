@@ -41,15 +41,12 @@ static inline uint32_t ROTATE(uint32_t word, uint8_t bits)
 /* Calculate one block */
 static void md5_calc(md5ctx *ctx)
 {
-	uint32_t aa, bb, cc, dd, *x;
+	uint32_t saved[MD5_DIGEST_LEN / sizeof(uint32_t)], *x;
 
 	x = (uint32_t *)ctx->buf;
 
-	/* Save A as AA, B as BB, C as CC, and D as DD. */
-	aa = A;
-	bb = B;
-	cc = C;
-	dd = D;
+	/* Save original A, B, C, D. */
+	memcpy(saved, ctx->abcd, sizeof(saved));
 
 	/* Round 1 */
 #define R1(a, b, c, d, k, s, t) a = b + ROTATE((a + F(b,c,d) + x[k] + t), s)
@@ -128,19 +125,17 @@ static void md5_calc(md5ctx *ctx)
 	R4(B, C, D, A,   9, 21, 0xeb86d391);
 
 	/* Then perform the following additions. */
-	A += aa;
-	B += bb;
-	C += cc;
-	D += dd;
+	A += saved[0];
+	B += saved[1];
+	C += saved[2];
+	D += saved[3];
 }
 
 void md5_init(md5ctx *ctx)
 {
-	A = 0x67452301;
-	B = 0xefcdab89;
-	C = 0x98badcfe;
-	D = 0x10325476;
+	static uint32_t I[] = { 0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476 };
 
+	memcpy(ctx->abcd, I, sizeof(ctx->abcd));
 	ctx->cur  = 0;
 	ctx->size = 0;
 }
@@ -185,7 +180,7 @@ void md5_final(md5ctx *ctx, uint8_t *hash)
 	md5_pad(ctx);
 	md5_calc(ctx);
 	memcpy(hash, ctx->abcd, sizeof(ctx->abcd));
-	memset(ctx, 0, sizeof(md5ctx));
+	memset(ctx, 0, sizeof(md5ctx)); /* zeroize */
 }
 
 char *md5str(uint8_t *hash, char *str)
