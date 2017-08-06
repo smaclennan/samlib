@@ -75,17 +75,21 @@
 #ifdef WIN32
 /* gcc knows to convert this pattern to a ror, clang does not */
 #define SHA256_ROTR(bits, word)						\
-	(((word) >> (bits)) | ((word) << (32-(bits))))
+	(((word) >> (bits)) | ((word) << (32 - (bits))))
 #else
 /* Note: bits must be a constant */
 static inline uint32_t SHA256_ROTR(uint8_t bits, uint32_t word)
-{
+{   /* We need at least -O for the asm code to work */
+#ifdef __DEBUG__
+	return ((word >> bits) | (word << (32 - bits)));
+#else
 	uint32_t res;
 	asm ("mov %2, %0;\n" /* Don't clobber word */
 		 "ror %1, %0;\n"
 		 : "=r" (res)
 		 : "n" (bits), "r" (word));
 	return res;
+#endif
 }
 #endif
 

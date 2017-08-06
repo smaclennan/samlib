@@ -24,13 +24,17 @@
 #define ROTATE(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
 #else
 static inline uint32_t ROTATE(uint32_t word, uint8_t bits)
-{
+{   /* We need at least -O for the asm code to work */
+#ifdef __DEBUG__
+	return ((word << bits) | (word >> (32 - bits)));
+#else
 	uint32_t res;
 	asm ("mov %2, %0;\n" /* Don't clobber word */
 		 "rol %1, %0;\n"
 		 : "=r" (res)
 		 : "n" (bits), "r" (word));
 	return res;
+#endif
 }
 #endif
 
