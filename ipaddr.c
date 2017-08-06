@@ -31,6 +31,7 @@
 #define W_BITS     (1 << 3)
 #define W_GATEWAY  (1 << 4)
 #define W_GUESSED  (1 << 5)
+#define W_ALL	   (1 << 6)
 
 #define MAX_INTERFACES 16 /* arbitrary and huge */
 
@@ -58,9 +59,14 @@ static int check_one(const char *ifname, unsigned what)
 		gw_ptr = &gw;
 
 	if (ip_addr(ifname, &addr, &mask, gw_ptr)) {
-		if (errno == EADDRNOTAVAIL)
-			fprintf(stderr, "%s: No address\n", ifname);
-		else
+		if (errno == EADDRNOTAVAIL) {
+			if (what & W_ALL) {
+				/* not an error, they asked for down interfaces */
+				printf("down (%s)\n", ifname);
+				return 0;
+			} else
+				fprintf(stderr, "%s: No address\n", ifname);
+		} else
 			perror(ifname);
 		return 1;
 	}
@@ -102,12 +108,13 @@ static int check_one(const char *ifname, unsigned what)
 
 static void usage(int rc)
 {
-	fputs("usage: ipaddr [-abgms] [interface]\n"
-		  "where: -a displays IP address (default)\n"
+	fputs("usage: ipaddr [-abgims] [interface]\n"
+		  "where: -i displays IP address (default)\n"
 		  "       -g displays gateway\n"
 		  "       -m displays network mask\n"
 		  "       -s displays subnet\n"
 		  "       -b add bits as /bits to -a and/or -s\n"
+		  "       -a displays all interfaces (even down)\n"
 		  "Interface defaults to eth0.\n"
 		  "Designed to be easily used in scripts. All error output to stderr.\n",
 		  stderr);
@@ -118,11 +125,11 @@ static void usage(int rc)
 int main(int argc, char *argv[])
 {
 	int c, rc = 0;
-	unsigned what = 0;
+	unsigned what = 0, flags = IFACE_UP;
 
 	while ((c = getopt(argc, argv, "abgmsh")) != EOF)
 		switch (c) {
-		case 'a':
+		case 'i':
 			what |= W_ADDRESS;
 			break;
 		case 'b':
@@ -137,13 +144,17 @@ int main(int argc, char *argv[])
 		case 's':
 			what |= W_SUBNET;
 			break;
+		case 'a':
+			what |= W_ALL;
+			flags = 0;
+			break;
 		case 'h':
 			usage(0);
 		default:
 			exit(2);
 		}
 
-	if (what == 0 || what == W_BITS)
+	if ((what & ~(W_BITS | W_ALL)) == 0)
 		what |= W_ADDRESS;
 
 	if (optind < argc) {
@@ -153,7 +164,7 @@ int main(int argc, char *argv[])
 		char *ifaces[MAX_INTERFACES];
 		int i, n;
 
-		n = get_interfaces(ifaces, MAX_INTERFACES, IFACE_UP);
+		n = get_interfaces(ifaces, MAX_INTERFACES, flags);
 		if (n == 0) {
 			fputs("No interfaces found\n", stderr);
 			return 1;
