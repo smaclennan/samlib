@@ -86,7 +86,7 @@ int readproc_main(void)
 int main(int argc, char *argv[])
 #endif
 {
-	puts("readprocstat is Linux only\n");
+	puts("readprocstat is Linux only.");
 	return 0;
 }
 #endif
