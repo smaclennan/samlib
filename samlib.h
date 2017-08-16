@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #ifdef WIN32
 #include "win32/samwin32.h"
 #else

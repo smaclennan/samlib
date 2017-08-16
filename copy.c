@@ -36,20 +36,20 @@ long copy_file(const char *from, const char *to)
 	}
 
 #ifdef USE_SENDFILE
-	ssize_t n = sendfile(out, in, NULL, sbuf.st_size);
+	long n = sendfile(out, in, NULL, sbuf.st_size);
 #else
 	char buf[4096];
-	int n, total = 0;
-	while ((n = read(in, buf, sizeof(buf))) > 0) {
-		int wrote = write(out, buf, n);
-		if (wrote != n) {
-			total = -1;
+	long n = 0;
+	int r;
+	while ((r = read(in, buf, sizeof(buf))) > 0) {
+		int wrote = write(out, buf, r);
+		if (wrote == r)
+			n += r;
+		else {
+			n = -1;
 			break;
 		}
-		total += n;
 	}
-	if (n == 0)
-		n = total;
 #endif
 
 	close(in);
