@@ -204,6 +204,33 @@ int sha256_update(sha256ctx *ctx, const uint8_t *bytes, unsigned bytecount);
 int sha256_final(sha256ctx *ctx, uint8_t *digest);
 char *sha256str(uint8_t *digest, char *str);
 
+/* AES 128 ECB functions */
+
+#define AES128_KEYLEN 16 /* 128 bits in bytes */
+
+#define ALIGN16  __attribute__ ((aligned (16)))
+
+typedef struct aes128_ctx {
+	ALIGN16 uint8_t roundkey[AES128_KEYLEN * 11];
+	int have_hw;
+} aes128_ctx;
+
+/* Lower level routines that deal with one AES128_KEYLEN block at a time. */
+int AES128_init_ctx(aes128_ctx *ctx, const uint8_t *key, int encrypt);
+void AES128_ECB_encrypt(aes128_ctx *ctx, const uint8_t* input, uint8_t *output);
+void AES128_ECB_decrypt(aes128_ctx *ctx, const uint8_t* input, uint8_t *output);
+
+/* Higher level routines for when you have just one buffer to deal with. */
+void AES128_ECB_encrypt_buffer(const uint8_t* input,
+							   const uint8_t *key,
+							   uint8_t *output,
+							   int len);
+
+void AES128_ECB_decrypt_buffer(const uint8_t* input,
+							   const uint8_t *key,
+							   uint8_t *output,
+							   int len);
+
 /* base64 functions */
 
 /* If this is set to non-zero than the url safe alphabet is used for

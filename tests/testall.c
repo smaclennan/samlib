@@ -14,6 +14,7 @@
 #include "threadtest.c"
 #include "timetest.c"
 #include "spinlock.c"
+#include "aes-test.c"
 
 
 int main(int argc, char *argv[])

@@ -9,6 +9,7 @@ INCDIR ?= $(PREFIX)/include
 
 D = -O2
 CFLAGS += -Wall $(D:1=-g -D__DEBUG__)
+CFLAGS += -maes
 
 .c.o:
 	$(QUIET_CC)$(CC) -o $@ -c $(CFLAGS) $<
@@ -16,7 +17,7 @@ CFLAGS += -Wall $(D:1=-g -D__DEBUG__)
 CFILES := version.c readfile.c readcmd.c do-system.c walkfiles.c
 CFILES += mkdir-p.c md5.c ip.c copy.c binary.c db.c time.c
 CFILES += arg-helpers.c xorshift.c must.c readproc.c base64.c
-CFILES += crc16.c file.c dumpstack.c sha256.c
+CFILES += crc16.c file.c dumpstack.c sha256.c aes128.c
 
 O := $(CFILES:.c=.o)
 
