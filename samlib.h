@@ -4,11 +4,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <sys/time.h>
+
 #ifdef WIN32
 #include "win32/samwin32.h"
 #else
 #include <unistd.h>
+#include <sys/time.h>
 #include <netinet/in.h>
 #endif
 
@@ -209,7 +210,11 @@ char *sha256str(uint8_t *digest, char *str);
 
 #define AES128_KEYLEN 16 /* 128 bits in bytes */
 
+#ifdef WIN32
+#define ALIGN16 _declspec(align(16))
+#else
 #define ALIGN16  __attribute__ ((aligned (16)))
+#endif
 
 typedef struct aes128_ctx {
 	ALIGN16 uint8_t roundkey[AES128_KEYLEN * 11];
