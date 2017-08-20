@@ -71,6 +71,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\aes128.c" />
     <ClCompile Include="..\arg-helpers.c" />
     <ClCompile Include="..\base64.c" />
     <ClCompile Include="..\binary.c" />

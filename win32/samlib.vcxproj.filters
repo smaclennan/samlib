@@ -83,6 +83,9 @@
     <ClCompile Include="..\readproc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\aes128.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\samlib.h">
