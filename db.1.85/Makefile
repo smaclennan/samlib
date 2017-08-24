@@ -13,18 +13,22 @@ OBJ4=	mpool.o
 
 #MISC=	snprintf.o
 
+V	      = @
+Q	      = $(V:1=)
+QUIET_CC      = $(Q:@=@echo    '     CC       '$@;)
+QUIET_AR      = $(Q:@=@echo    '     AR       '$@;)
+
 all:	${LIBDB}
 
 ${LIBDB}: ${OBJ1} ${OBJ2} ${OBJ3} ${OBJ4} ${OBJ5} ${MISC}
-	rm -f $@
-	ar cq $@ ${OBJ1} ${OBJ2} ${OBJ3} ${OBJ4} ${OBJ5} ${MISC}
-	ranlib $@
+	@rm -f $@
+	${QUIET_AR}ar cqs $@ ${OBJ1} ${OBJ2} ${OBJ3} ${OBJ4} ${OBJ5} ${MISC}
 
 clean:
 	rm -f ${LIBDB} ${OBJ1} ${OBJ2} ${OBJ3} ${OBJ4} ${OBJ5} ${MISC}
 
-OORG=	-O
-CL=	${CC} -c -D__DBINTERFACE_PRIVATE ${OORG} -I. -Iinclude
+OORG=	-O2
+CL=	${QUIET_CC}${CC} -c -D__DBINTERFACE_PRIVATE ${OORG} -I. -Iinclude
 
 bt_close.o: btree/bt_close.c
 	${CL} -Ibtree btree/bt_close.c
