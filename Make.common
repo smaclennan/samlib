@@ -1,13 +1,17 @@
-.PHONY: dblib all check install clean
+# -*- mode: Makefile -*-
+.PHONY: dblib nop all check install clean
 
 PREFIX ?= /usr
 BINDIR ?= $(PREFIX)/bin
 LIBDIR ?= $(PREFIX)/lib
 INCDIR ?= $(PREFIX)/include
 
-# Comment in for system db rather than builtin
+# Uncomment for system db rather than builtin
 #CFLAGS += -DHAVE_DB_H
 #DBLIB = -ldb
+#EXTRA = nop
+
+EXTRA ?= dblib
 
 #CC = clang -fno-color-diagnostics
 
@@ -25,10 +29,15 @@ CFILES += crc16.c file.c dumpstack.c sha256.c aes128.c
 
 O := $(CFILES:.c=.o)
 
-all: dblib libsamlib.a libsamthread.a stest ipaddr
+all: libsamlib.a $(EXTRA) libsamthread.a stest ipaddr
 
-dblib:
+dblib:	db.1.85/libdb.a
+	$(QUIET_AR)$(AR) rs libsamlib.a db.1.85/*.o
+
+db.1.85/libdb.a:
 	make -C db.1.85
+
+nop:
 
 *.o: samlib.h
 
@@ -40,8 +49,6 @@ stest: stest.c libsamlib.a
 
 libsamlib.a: $O
 	$(QUIET_AR)$(AR) cr $@ $O
-	$(QUIET_AR)$(AR) r $@ db.1.85/*.o
-	ranlib $@
 
 # Threading - Linux x86 only
 libsamthread.a: samthread.o

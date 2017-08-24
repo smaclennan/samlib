@@ -2,7 +2,7 @@ CFLAGS += -Wall -O2
 
 #CC = clang -fno-color-diagnostics
 
-# Undefine if you don't have db.h
+# Uncomment if you want system db rather than builtin
 #CFLAGS += -DHAVE_DB_H
 #LIBS += -ldb
 
