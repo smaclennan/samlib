@@ -34,6 +34,10 @@
  */
 
 #include <sys/queue.h>
+#ifndef CIRCLEQ_HEAD
+/* Some systems, e.g. FreeBSD, do not have the circular queue functions. */
+#include "queue.h"
+#endif
 
 /*
  * The memory pool scheme is a simple one.  Each in-memory page is referenced
