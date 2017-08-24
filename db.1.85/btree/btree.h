@@ -36,6 +36,8 @@
  *	@(#)btree.h	8.11 (Berkeley) 8/17/94
  */
 
+#include "../include/db.h"
+
 /* Macros to set/clear/test flags. */
 #define	F_SET(p, f)	(p)->flags |= (f)
 #define	F_CLR(p, f)	(p)->flags &= ~(f)
@@ -335,18 +337,18 @@ typedef struct _btree {
 	EPGNO	  bt_last;		/* last insert */
 
 					/* B: key comparison function */
-	int	(*bt_cmp) __P((const DBT *, const DBT *));
+	int	(*bt_cmp)(const DBT *, const DBT *);
 					/* B: prefix comparison function */
-	size_t	(*bt_pfx) __P((const DBT *, const DBT *));
+	size_t	(*bt_pfx)(const DBT *, const DBT *);
 					/* R: recno input function */
-	int	(*bt_irec) __P((struct _btree *, recno_t));
+	int	(*bt_irec)(struct _btree *, recno_t);
 
 	FILE	 *bt_rfp;		/* R: record FILE pointer */
 	int	  bt_rfd;		/* R: record file descriptor */
 
-	caddr_t	  bt_cmap;		/* R: current point in mapped space */
-	caddr_t	  bt_smap;		/* R: start of mapped space */
-	caddr_t   bt_emap;		/* R: end of mapped space */
+	void *	  bt_cmap;		/* R: current point in mapped space */
+	void *	  bt_smap;		/* R: start of mapped space */
+	void *   bt_emap;		/* R: end of mapped space */
 	size_t	  bt_msize;		/* R: size of mapped region. */
 
 	recno_t	  bt_nrecs;		/* R: number of records */
@@ -379,5 +381,9 @@ typedef struct _btree {
 #define	B_DB_TXN	0x10000		/* DB_TXN specified. */
 	uint32_t flags;
 } BTREE;
+
+#ifndef MIN
+#define MIN(a, b) ((a) <= (b) ? (a) : (b))
+#endif
 
 #include "extern.h"

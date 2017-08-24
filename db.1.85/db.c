@@ -42,7 +42,7 @@ static char sccsid[] = "@(#)db.c	8.4 (Berkeley) 2/21/94";
 #include <stddef.h>
 #include <stdio.h>
 
-#include <db.h>
+#include "include/db.h"
 
 #ifndef O_EXLOCK			/* 4.4BSD extension. */
 #define	O_EXLOCK	0

@@ -46,9 +46,6 @@ static char sccsid[] = "@(#)bt_open.c	8.10 (Berkeley) 8/17/94";
  * is wholly independent of the Postgres code.
  */
 
-#include <sys/param.h>
-#include <sys/stat.h>
-
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -57,8 +54,10 @@ static char sccsid[] = "@(#)bt_open.c	8.10 (Berkeley) 8/17/94";
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/param.h> /* MAXPATHLEN */
+#include <sys/stat.h>
 
-#include <db.h>
+
 #include "btree.h"
 
 #ifdef DEBUG
@@ -66,9 +65,9 @@ static char sccsid[] = "@(#)bt_open.c	8.10 (Berkeley) 8/17/94";
 #define	MINPSIZE	128
 #endif
 
-static int byteorder __P((void));
-static int nroot __P((BTREE *));
-static int tmp __P((void));
+static int byteorder(void);
+static int nroot(BTREE *);
+static int tmp(void);
 
 /*
  * __BT_OPEN -- Open a btree.

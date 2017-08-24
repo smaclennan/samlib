@@ -49,6 +49,10 @@
 #define	RET_SUCCESS	 0
 #define	RET_SPECIAL	 1
 
+typedef unsigned char u_char;
+typedef unsigned int  u_int;
+typedef unsigned long u_long;
+
 #define	MAX_PAGE_NUMBER	0xffffffff	/* >= # of pages in a file */
 typedef uint32_t	pgno_t;
 #define	MAX_PAGE_OFFSET	65535		/* >= # of bytes in a page */
@@ -103,14 +107,14 @@ typedef enum { DB_BTREE, DB_HASH, DB_RECNO } DBTYPE;
 /* Access method description structure. */
 typedef struct __db {
 	DBTYPE type;			/* Underlying db type. */
-	int (*close)	__P((struct __db *));
-	int (*del)	__P((const struct __db *, const DBT *, u_int));
-	int (*get)	__P((const struct __db *, const DBT *, DBT *, u_int));
-	int (*put)	__P((const struct __db *, DBT *, const DBT *, u_int));
-	int (*seq)	__P((const struct __db *, DBT *, DBT *, u_int));
-	int (*sync)	__P((const struct __db *, u_int));
+	int (*close)(struct __db *);
+	int (*del)(const struct __db *, const DBT *, u_int);
+	int (*get)(const struct __db *, const DBT *, DBT *, u_int);
+	int (*put)(const struct __db *, DBT *, const DBT *, u_int);
+	int (*seq)(const struct __db *, DBT *, DBT *, u_int);
+	int (*sync)(const struct __db *, u_int);
 	void *internal;			/* Access method private. */
-	int (*fd)	__P((const struct __db *));
+	int (*fd)(const struct __db *);
 } DB;
 
 #define	BTREEMAGIC	0x053162
@@ -125,9 +129,9 @@ typedef struct {
 	int	minkeypage;	/* minimum keys per page */
 	u_int	psize;		/* page size */
 	int	(*compare)	/* comparison function */
-	    __P((const DBT *, const DBT *));
+	   (const DBT *, const DBT *);
 	size_t	(*prefix)	/* prefix function */
-	    __P((const DBT *, const DBT *));
+	   (const DBT *, const DBT *);
 	int	lorder;		/* byte order */
 } BTREEINFO;
 
@@ -141,7 +145,7 @@ typedef struct {
 	u_int	nelem;		/* number of elements */
 	u_int	cachesize;	/* bytes to cache */
 	uint32_t		/* hash function */
-		(*hash) __P((const void *, size_t));
+		(*hash)(const void *, size_t);
 	int	lorder;		/* byte order */
 } HASHINFO;
 
@@ -156,7 +160,7 @@ typedef struct {
 	int	lorder;		/* byte order */
 	size_t	reclen;		/* record length (fixed-length records) */
 	u_char	bval;		/* delimiting byte (variable-length records */
-	char	*bfname;	/* btree file name */ 
+	char	*bfname;	/* btree file name */
 } RECNOINFO;
 
 #ifdef __DBINTERFACE_PRIVATE
@@ -210,13 +214,13 @@ typedef struct {
 #endif
 
 __BEGIN_DECLS
-DB *dbopen __P((const char *, int, int, DBTYPE, const void *));
+DB *dbopen(const char *, int, int, DBTYPE, const void *);
 
 #ifdef __DBINTERFACE_PRIVATE
-DB	*__bt_open __P((const char *, int, int, const BTREEINFO *, int));
-DB	*__hash_open __P((const char *, int, int, const HASHINFO *, int));
-DB	*__rec_open __P((const char *, int, int, const RECNOINFO *, int));
-void	 __dbpanic __P((DB *dbp));
+DB	*__bt_open(const char *, int, int, const BTREEINFO *, int);
+DB	*__hash_open(const char *, int, int, const HASHINFO *, int);
+DB	*__rec_open(const char *, int, int, const RECNOINFO *, int);
+void __dbpanic(DB *dbp);
 #endif
 __END_DECLS
 #endif /* !_DB_H_ */
