@@ -213,7 +213,6 @@ typedef struct {
 }
 #endif
 
-__BEGIN_DECLS
 DB *dbopen(const char *, int, int, DBTYPE, const void *);
 
 #ifdef __DBINTERFACE_PRIVATE
@@ -222,5 +221,5 @@ DB	*__hash_open(const char *, int, int, const HASHINFO *, int);
 DB	*__rec_open(const char *, int, int, const RECNOINFO *, int);
 void __dbpanic(DB *dbp);
 #endif
-__END_DECLS
+
 #endif /* !_DB_H_ */
