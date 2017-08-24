@@ -284,6 +284,10 @@ void free_interfaces(char **ifnames, int n);
  * installed). If dbh is NULL, a global DB handle is used.
  */
 
+#ifndef DB_CREATE
+#define DB_CREATE (O_CREAT | O_RDWR)
+#endif
+
 /* The flags are for the DB->open() function. */
 int db_open(const char *dbname, uint32_t flags, void **dbh);
 int db_close(void *dbh);

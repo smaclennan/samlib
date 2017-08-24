@@ -1,16 +1,19 @@
-#ifndef HAVE_DB_H
-#warning "No db.h, db disabled"
-#else
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#ifdef HAVE_DB_H
 #include <db.h>
+#else
+/* Hardcoded to make sure we get the right file */
+#include "db.1.85/include/db.h"
+#endif
 
 #include "samlib.h"
 
 /* DB_VERSION_MAJOR is not defined in FreeBSD. */
 
+#ifdef DB_DBT_USERMEM
 #define SET_DATA do {						\
 		data_dbt.data = val;				\
 		data_dbt.size = len;				\
@@ -18,6 +21,15 @@
 		data_dbt.flags = DB_DBT_USERMEM;	\
 	} while (0)
 
+#define GET_DATA
+#else
+#define SET_DATA do {						\
+		data_dbt.data = val;				\
+		data_dbt.size = len;				\
+	} while (0)
+
+#define GET_DATA memcpy(val, data_dbt.data, len)
+#endif
 
 static DB *global_db;
 
@@ -145,6 +157,8 @@ int db_get_raw(void *dbh, const void *key, int klen, void *val, int len)
 	if (len > data_dbt.size)
 		len = data_dbt.size;
 
+	GET_DATA;
+
 	return len;
 }
 
@@ -259,4 +273,3 @@ int db_walk(void *dbh, int (*walk_func)(const char *key, void *data, int len))
 	return rc;
 #endif
 }
-#endif

@@ -3,11 +3,11 @@ CFLAGS += -Wall -O2
 #CC = clang -fno-color-diagnostics
 
 # Undefine if you don't have db.h
-CFLAGS += -DHAVE_DB_H
-LIBS += -ldb
+#CFLAGS += -DHAVE_DB_H
+#LIBS += -ldb
 
 # Define for pthreads
-LIBS += -lpthread
+#LIBS += -lpthread
 
 TESTS := args base64 cptest crc16test md5test random readfile
 TESTS += sha256test timetest threadtest spinlock dbtest

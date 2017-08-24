@@ -1,9 +1,13 @@
-.PHONY: all check install clean
+.PHONY: dblib all check install clean
 
 PREFIX ?= /usr
 BINDIR ?= $(PREFIX)/bin
 LIBDIR ?= $(PREFIX)/lib
 INCDIR ?= $(PREFIX)/include
+
+# Comment in for system db rather than builtin
+#CFLAGS += -DHAVE_DB_H
+#DBLIB = -ldb
 
 #CC = clang -fno-color-diagnostics
 
@@ -15,13 +19,16 @@ CFLAGS += -maes
 	$(QUIET_CC)$(CC) -o $@ -c $(CFLAGS) $<
 
 CFILES := version.c readfile.c readcmd.c do-system.c walkfiles.c
-CFILES += mkdir-p.c md5.c ip.c copy.c binary.c db.c time.c
+CFILES += mkdir-p.c md5.c ip.c copy.c binary.c samdb.c time.c
 CFILES += arg-helpers.c xorshift.c must.c readproc.c base64.c
 CFILES += crc16.c file.c dumpstack.c sha256.c aes128.c
 
 O := $(CFILES:.c=.o)
 
-all: libsamlib.a libsamthread.a stest ipaddr
+all: dblib libsamlib.a libsamthread.a stest ipaddr
+
+dblib:
+	make -C db.1.85
 
 *.o: samlib.h
 
@@ -33,6 +40,8 @@ stest: stest.c libsamlib.a
 
 libsamlib.a: $O
 	$(QUIET_AR)$(AR) cr $@ $O
+	$(QUIET_AR)$(AR) r $@ db.1.85/*.o
+	ranlib $@
 
 # Threading - Linux x86 only
 libsamthread.a: samthread.o
@@ -56,3 +65,4 @@ clean:
 	rm -f *.o libsamlib.a stest ipaddr
 	rm -f libsamthread.a
 	make -C tests clean
+	make -C db.1.85 clean
