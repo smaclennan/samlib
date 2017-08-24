@@ -76,7 +76,7 @@ __bt_put(dbp, key, data, flags)
 	PAGE *h;
 	indx_t index, nxtindex;
 	pgno_t pg;
-	u_int32_t nbytes;
+	uint32_t nbytes;
 	int dflags, exact, status;
 	char *dest, db[NOVFLSIZE], kb[NOVFLSIZE];
 
@@ -104,8 +104,8 @@ __bt_put(dbp, key, data, flags)
 		 * have started a scan and not have already deleted it.
 		 */
 		if (F_ISSET(&t->bt_cursor, CURS_INIT) &&
-		    !F_ISSET(&t->bt_cursor,
-		        CURS_ACQUIRE | CURS_AFTER | CURS_BEFORE))
+			!F_ISSET(&t->bt_cursor,
+				CURS_ACQUIRE | CURS_AFTER | CURS_BEFORE))
 			break;
 		/* FALLTHROUGH */
 	default:
@@ -130,7 +130,7 @@ storekey:		if (__ovfl_put(t, key, &pg) == RET_ERROR)
 			tkey.size = NOVFLSIZE;
 			memmove(kb, &pg, sizeof(pgno_t));
 			memmove(kb + sizeof(pgno_t),
-			    &key->size, sizeof(u_int32_t));
+				&key->size, sizeof(uint32_t));
 			dflags |= P_BIGKEY;
 			key = &tkey;
 		}
@@ -141,7 +141,7 @@ storekey:		if (__ovfl_put(t, key, &pg) == RET_ERROR)
 			tdata.size = NOVFLSIZE;
 			memmove(db, &pg, sizeof(pgno_t));
 			memmove(db + sizeof(pgno_t),
-			    &data->size, sizeof(u_int32_t));
+				&data->size, sizeof(uint32_t));
 			dflags |= P_BIGDATA;
 			data = &tdata;
 		}
@@ -203,14 +203,14 @@ delete:		if (__bt_dleaf(t, key, h, index) == RET_ERROR) {
 	nbytes = NBLEAFDBT(key->size, data->size);
 	if (h->upper - h->lower < nbytes + sizeof(indx_t)) {
 		if ((status = __bt_split(t, h, key,
-		    data, dflags, nbytes, index)) != RET_SUCCESS)
+			data, dflags, nbytes, index)) != RET_SUCCESS)
 			return (status);
 		goto success;
 	}
 
 	if (index < (nxtindex = NEXTINDEX(h)))
 		memmove(h->linp + index + 1, h->linp + index,
-		    (nxtindex - index) * sizeof(indx_t));
+			(nxtindex - index) * sizeof(indx_t));
 	h->lower += sizeof(indx_t);
 
 	h->linp[index] = h->upper -= nbytes;
@@ -219,8 +219,8 @@ delete:		if (__bt_dleaf(t, key, h, index) == RET_ERROR) {
 
 	/* If the cursor is on this page, adjust it as necessary. */
 	if (F_ISSET(&t->bt_cursor, CURS_INIT) &&
-	    !F_ISSET(&t->bt_cursor, CURS_ACQUIRE) &&
-	    t->bt_cursor.pg.pgno == h->pgno && t->bt_cursor.pg.index >= index)
+		!F_ISSET(&t->bt_cursor, CURS_ACQUIRE) &&
+		t->bt_cursor.pg.pgno == h->pgno && t->bt_cursor.pg.index >= index)
 		++t->bt_cursor.pg.index;
 
 	if (t->bt_order == NOT) {
@@ -270,7 +270,7 @@ bt_fast(t, key, data, exactp)
 	int *exactp;
 {
 	PAGE *h;
-	u_int32_t nbytes;
+	uint32_t nbytes;
 	int cmp;
 
 	if ((h = mpool_get(t->bt_mp, t->bt_last.pgno, 0)) == NULL) {

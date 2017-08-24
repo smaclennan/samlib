@@ -36,9 +36,7 @@
 #ifndef _DB_H_
 #define	_DB_H_
 
-#include <sys/types.h>
-#include <sys/cdefs.h>
-
+#include <stdint.h>
 #include <limits.h>
 
 #ifdef __DBINTERFACE_PRIVATE
@@ -51,26 +49,12 @@
 #define	RET_SUCCESS	 0
 #define	RET_SPECIAL	 1
 
-#ifndef	__BIT_TYPES_DEFINED__
-#define	__BIT_TYPES_DEFINED__
-typedef	__signed char		   int8_t;
-typedef	unsigned char		 u_int8_t;
-typedef	short			  int16_t;
-typedef	unsigned short		u_int16_t;
-typedef	int			  int32_t;
-typedef	unsigned int		u_int32_t;
-#ifdef WE_DONT_NEED_QUADS
-typedef	long long		  int64_t;
-typedef	unsigned long long	u_int64_t;
-#endif
-#endif
-
 #define	MAX_PAGE_NUMBER	0xffffffff	/* >= # of pages in a file */
-typedef u_int32_t	pgno_t;
+typedef uint32_t	pgno_t;
 #define	MAX_PAGE_OFFSET	65535		/* >= # of bytes in a page */
-typedef u_int16_t	indx_t;
+typedef uint16_t	indx_t;
 #define	MAX_REC_NUMBER	0xffffffff	/* >= # of records in a tree */
-typedef u_int32_t	recno_t;
+typedef uint32_t	recno_t;
 
 /* Key/data structure -- a Data-Base Thang. */
 typedef struct {
@@ -156,7 +140,7 @@ typedef struct {
 	u_int	ffactor;	/* fill factor */
 	u_int	nelem;		/* number of elements */
 	u_int	cachesize;	/* bytes to cache */
-	u_int32_t		/* hash function */
+	uint32_t		/* hash function */
 		(*hash) __P((const void *, size_t));
 	int	lorder;		/* byte order */
 } HASHINFO;
@@ -183,14 +167,14 @@ typedef struct {
  *	P_32_COPY	swap from one location to another
  */
 #define	M_32_SWAP(a) {							\
-	u_int32_t _tmp = a;						\
+	uint32_t _tmp = a;						\
 	((char *)&a)[0] = ((char *)&_tmp)[3];				\
 	((char *)&a)[1] = ((char *)&_tmp)[2];				\
 	((char *)&a)[2] = ((char *)&_tmp)[1];				\
 	((char *)&a)[3] = ((char *)&_tmp)[0];				\
 }
 #define	P_32_SWAP(a) {							\
-	u_int32_t _tmp = *(u_int32_t *)a;				\
+	uint32_t _tmp = *(uint32_t *)a;				\
 	((char *)a)[0] = ((char *)&_tmp)[3];				\
 	((char *)a)[1] = ((char *)&_tmp)[2];				\
 	((char *)a)[2] = ((char *)&_tmp)[1];				\
@@ -210,12 +194,12 @@ typedef struct {
  *	P_16_COPY	swap from one location to another
  */
 #define	M_16_SWAP(a) {							\
-	u_int16_t _tmp = a;						\
+	uint16_t _tmp = a;						\
 	((char *)&a)[0] = ((char *)&_tmp)[1];				\
 	((char *)&a)[1] = ((char *)&_tmp)[0];				\
 }
 #define	P_16_SWAP(a) {							\
-	u_int16_t _tmp = *(u_int16_t *)a;				\
+	uint16_t _tmp = *(u_int16_t *)a;				\
 	((char *)a)[0] = ((char *)&_tmp)[1];				\
 	((char *)a)[1] = ((char *)&_tmp)[0];				\
 }

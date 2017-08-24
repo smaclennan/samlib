@@ -85,7 +85,7 @@ __bt_split(t, sp, key, data, flags, ilen, argskip)
 	const DBT *key, *data;
 	int flags;
 	size_t ilen;
-	u_int32_t argskip;
+	uint32_t argskip;
 {
 	BINTERNAL *bi;
 	BLEAF *bl, *tbl;
@@ -93,8 +93,8 @@ __bt_split(t, sp, key, data, flags, ilen, argskip)
 	EPGNO *parent;
 	PAGE *h, *l, *r, *lchild, *rchild;
 	indx_t nxtindex;
-	u_int16_t skip;
-	u_int32_t n, nbytes, nksize;
+	uint16_t skip;
+	uint32_t n, nbytes, nksize;
 	int parentsplit;
 	char *dest;
 
@@ -106,8 +106,8 @@ __bt_split(t, sp, key, data, flags, ilen, argskip)
 	 */
 	skip = argskip;
 	h = sp->pgno == P_ROOT ?
-	    bt_root(t, sp, &l, &r, &skip, ilen) :
-	    bt_page(t, sp, &l, &r, &skip, ilen);
+		bt_root(t, sp, &l, &r, &skip, ilen) :
+		bt_page(t, sp, &l, &r, &skip, ilen);
 	if (h == NULL)
 		return (RET_ERROR);
 
@@ -124,8 +124,8 @@ __bt_split(t, sp, key, data, flags, ilen, argskip)
 
 	/* If the root page was split, make it look right. */
 	if (sp->pgno == P_ROOT &&
-	    (F_ISSET(t, R_RECNO) ?
-	    bt_rroot(t, sp, l, r) : bt_broot(t, sp, l, r)) == RET_ERROR)
+		(F_ISSET(t, R_RECNO) ?
+		bt_rroot(t, sp, l, r) : bt_broot(t, sp, l, r)) == RET_ERROR)
 		goto err2;
 
 	/*
@@ -159,7 +159,7 @@ __bt_split(t, sp, key, data, flags, ilen, argskip)
 		if ((h = mpool_get(t->bt_mp, parent->pgno, 0)) == NULL)
 			goto err2;
 
-	 	/*
+		/*
 		 * The new key goes ONE AFTER the index, because the split
 		 * was to the right.
 		 */
@@ -188,7 +188,7 @@ __bt_split(t, sp, key, data, flags, ilen, argskip)
 			bl = GETBLEAF(rchild, 0);
 			nbytes = NBINTERNAL(bl->ksize);
 			if (t->bt_pfx && !(bl->flags & P_BIGKEY) &&
-			    (h->prevpg != P_INVALID || skip > 1)) {
+				(h->prevpg != P_INVALID || skip > 1)) {
 				tbl = GETBLEAF(lchild, NEXTINDEX(lchild) - 1);
 				a.size = tbl->ksize;
 				a.data = tbl->bytes;
@@ -218,15 +218,15 @@ __bt_split(t, sp, key, data, flags, ilen, argskip)
 		if (h->upper - h->lower < nbytes + sizeof(indx_t)) {
 			sp = h;
 			h = h->pgno == P_ROOT ?
-			    bt_root(t, h, &l, &r, &skip, nbytes) :
-			    bt_page(t, h, &l, &r, &skip, nbytes);
+				bt_root(t, h, &l, &r, &skip, nbytes) :
+				bt_page(t, h, &l, &r, &skip, nbytes);
 			if (h == NULL)
 				goto err1;
 			parentsplit = 1;
 		} else {
 			if (skip < (nxtindex = NEXTINDEX(h)))
 				memmove(h->linp + skip + 1, h->linp + skip,
-				    (nxtindex - skip) * sizeof(indx_t));
+					(nxtindex - skip) * sizeof(indx_t));
 			h->lower += sizeof(indx_t);
 			parentsplit = 0;
 		}
@@ -243,10 +243,10 @@ __bt_split(t, sp, key, data, flags, ilen, argskip)
 			h->linp[skip] = h->upper -= nbytes;
 			dest = (char *)h + h->linp[skip];
 			WR_BINTERNAL(dest, nksize ? nksize : bl->ksize,
-			    rchild->pgno, bl->flags & P_BIGKEY);
+				rchild->pgno, bl->flags & P_BIGKEY);
 			memmove(dest, bl->bytes, nksize ? nksize : bl->ksize);
 			if (bl->flags & P_BIGKEY &&
-			    bt_preserve(t, *(pgno_t *)bl->bytes) == RET_ERROR)
+				bt_preserve(t, *(pgno_t *)bl->bytes) == RET_ERROR)
 				goto err1;
 			break;
 		case P_RINTERNAL:
@@ -297,8 +297,8 @@ __bt_split(t, sp, key, data, flags, ilen, argskip)
 
 		/* If the root page was split, make it look right. */
 		if (sp->pgno == P_ROOT &&
-		    (F_ISSET(t, R_RECNO) ?
-		    bt_rroot(t, sp, l, r) : bt_broot(t, sp, l, r)) == RET_ERROR)
+			(F_ISSET(t, R_RECNO) ?
+			bt_rroot(t, sp, l, r) : bt_broot(t, sp, l, r)) == RET_ERROR)
 			goto err1;
 
 		mpool_put(t->bt_mp, lchild, MPOOL_DIRTY);
@@ -461,7 +461,7 @@ bt_root(t, h, lp, rp, skip, ilen)
 #endif
 	/* Put the new left and right pages for the split into place. */
 	if ((l = __bt_new(t, &lnpg)) == NULL ||
-	    (r = __bt_new(t, &rnpg)) == NULL)
+		(r = __bt_new(t, &rnpg)) == NULL)
 		return (NULL);
 	l->pgno = lnpg;
 	r->pgno = rnpg;
@@ -503,12 +503,12 @@ bt_rroot(t, h, l, r)
 	h->linp[0] = h->upper = t->bt_psize - NRINTERNAL;
 	dest = (char *)h + h->upper;
 	WR_RINTERNAL(dest,
-	    l->flags & P_RLEAF ? NEXTINDEX(l) : rec_total(l), l->pgno);
+		l->flags & P_RLEAF ? NEXTINDEX(l) : rec_total(l), l->pgno);
 
 	h->linp[1] = h->upper -= NRINTERNAL;
 	dest = (char *)h + h->upper;
 	WR_RINTERNAL(dest,
-	    r->flags & P_RLEAF ? NEXTINDEX(r) : rec_total(r), r->pgno);
+		r->flags & P_RLEAF ? NEXTINDEX(r) : rec_total(r), r->pgno);
 
 	h->lower = BTDATAOFF + 2 * sizeof(indx_t);
 
@@ -539,7 +539,7 @@ bt_broot(t, h, l, r)
 {
 	BINTERNAL *bi;
 	BLEAF *bl;
-	u_int32_t nbytes;
+	uint32_t nbytes;
 	char *dest;
 
 	/*
@@ -569,7 +569,7 @@ bt_broot(t, h, l, r)
 		 * so it isn't deleted when the leaf copy of the key is deleted.
 		 */
 		if (bl->flags & P_BIGKEY &&
-		    bt_preserve(t, *(pgno_t *)bl->bytes) == RET_ERROR)
+			bt_preserve(t, *(pgno_t *)bl->bytes) == RET_ERROR)
 			return (RET_ERROR);
 		break;
 	case P_BINTERNAL:
@@ -623,7 +623,7 @@ bt_psplit(t, h, l, r, pskip, ilen)
 	PAGE *rval;
 	void *src;
 	indx_t full, half, nxt, off, skip, top, used;
-	u_int32_t nbytes;
+	uint32_t nbytes;
 	int bigkeycnt, isbigkey;
 
 	/*

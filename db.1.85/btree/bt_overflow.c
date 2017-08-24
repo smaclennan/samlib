@@ -69,7 +69,7 @@ static char sccsid[] = "@(#)bt_overflow.c	8.5 (Berkeley) 7/16/94";
  *
  * Parameters:
  *	t:	tree
- *	p:	pointer to { pgno_t, u_int32_t }
+ *	p:	pointer to { pgno_t, uint32_t }
  *	buf:	storage address
  *	bufsz:	storage size
  *
@@ -87,10 +87,10 @@ __ovfl_get(t, p, ssz, buf, bufsz)
 	PAGE *h;
 	pgno_t pg;
 	size_t nb, plen;
-	u_int32_t sz;
+	uint32_t sz;
 
 	memmove(&pg, p, sizeof(pgno_t));
-	memmove(&sz, (char *)p + sizeof(pgno_t), sizeof(u_int32_t));
+	memmove(&sz, (char *)p + sizeof(pgno_t), sizeof(uint32_t));
 	*ssz = sz;
 
 #ifdef DEBUG
@@ -145,7 +145,7 @@ __ovfl_put(t, dbt, pg)
 	void *p;
 	pgno_t npg;
 	size_t nb, plen;
-	u_int32_t sz;
+	uint32_t sz;
 
 	/*
 	 * Allocate pages and copy the key/data record into them.  Store the
@@ -153,7 +153,7 @@ __ovfl_put(t, dbt, pg)
 	 */
 	plen = t->bt_psize - BTDATAOFF;
 	for (last = NULL, p = dbt->data, sz = dbt->size;;
-	    p = (char *)p + plen, last = h) {
+		p = (char *)p + plen, last = h) {
 		if ((h = __bt_new(t, &npg)) == NULL)
 			return (RET_ERROR);
 
@@ -184,7 +184,7 @@ __ovfl_put(t, dbt, pg)
  *
  * Parameters:
  *	t:	tree
- *	p:	pointer to { pgno_t, u_int32_t }
+ *	p:	pointer to { pgno_t, uint32_t }
  *
  * Returns:
  *	RET_ERROR, RET_SUCCESS
@@ -197,10 +197,10 @@ __ovfl_delete(t, p)
 	PAGE *h;
 	pgno_t pg;
 	size_t plen;
-	u_int32_t sz;
+	uint32_t sz;
 
 	memmove(&pg, p, sizeof(pgno_t));
-	memmove(&sz, (char *)p + sizeof(pgno_t), sizeof(u_int32_t));
+	memmove(&sz, (char *)p + sizeof(pgno_t), sizeof(uint32_t));
 
 #ifdef DEBUG
 	if (pg == P_INVALID || sz == 0)

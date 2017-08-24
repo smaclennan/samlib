@@ -53,7 +53,7 @@ EPG	*__bt_search __P((BTREE *, const DBT *, int *));
 int	 __bt_seq __P((const DB *, DBT *, DBT *, u_int));
 void	 __bt_setcur __P((BTREE *, pgno_t, u_int));
 int	 __bt_split __P((BTREE *, PAGE *,
-	    const DBT *, const DBT *, int, size_t, u_int32_t));
+		const DBT *, const DBT *, int, size_t, uint32_t));
 int	 __bt_sync __P((const DB *, u_int));
 
 int	 __ovfl_delete __P((BTREE *, void *));

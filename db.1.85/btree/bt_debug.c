@@ -212,26 +212,26 @@ __bt_dpage(h)
 				(void)fprintf(stderr,
 				    "big key page %lu size %u/",
 				    *(pgno_t *)bl->bytes,
-				    *(u_int32_t *)(bl->bytes + sizeof(pgno_t)));
+					*(uint32_t *)(bl->bytes + sizeof(pgno_t)));
 			else if (bl->ksize)
 				(void)fprintf(stderr, "%s/", bl->bytes);
 			if (bl->flags & P_BIGDATA)
 				(void)fprintf(stderr,
-				    "big data page %lu size %u",
-				    *(pgno_t *)(bl->bytes + bl->ksize),
-				    *(u_int32_t *)(bl->bytes + bl->ksize +
-				    sizeof(pgno_t)));
+					"big data page %lu size %u",
+					*(pgno_t *)(bl->bytes + bl->ksize),
+					*(uint32_t *)(bl->bytes + bl->ksize +
+					sizeof(pgno_t)));
 			else if (bl->dsize)
 				(void)fprintf(stderr, "%.*s",
-				    (int)bl->dsize, bl->bytes + bl->ksize);
+					(int)bl->dsize, bl->bytes + bl->ksize);
 			break;
 		case P_RLEAF:
 			rl = GETRLEAF(h, cur);
 			if (rl->flags & P_BIGDATA)
 				(void)fprintf(stderr,
-				    "big data page %lu size %u",
-				    *(pgno_t *)rl->bytes,
-				    *(u_int32_t *)(rl->bytes + sizeof(pgno_t)));
+					"big data page %lu size %u",
+					*(pgno_t *)rl->bytes,
+					*(uint32_t *)(rl->bytes + sizeof(pgno_t)));
 			else if (rl->dsize)
 				(void)fprintf(stderr,
 				    "%.*s", (int)rl->dsize, rl->bytes);

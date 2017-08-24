@@ -58,7 +58,7 @@ typedef struct _bkt {
 
 #define	MPOOL_DIRTY	0x01		/* page needs to be written */
 #define	MPOOL_PINNED	0x02		/* page is pinned into memory */
-	u_int8_t flags;			/* flags */
+	uint8_t flags;			/* flags */
 } BKT;
 
 typedef struct MPOOL {

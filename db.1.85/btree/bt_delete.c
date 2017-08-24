@@ -383,7 +383,7 @@ __bt_pdelete(t, h)
 	PAGE *pg;
 	EPGNO *parent;
 	indx_t cnt, index, *ip, offset;
-	u_int32_t nksize;
+	uint32_t nksize;
 	char *from;
 
 	/*
@@ -402,13 +402,13 @@ __bt_pdelete(t, h)
 		/* Get the parent page. */
 		if ((pg = mpool_get(t->bt_mp, parent->pgno, 0)) == NULL)
 			return (RET_ERROR);
-		
+
 		index = parent->index;
 		bi = GETBINTERNAL(pg, index);
 
 		/* Free any overflow pages. */
 		if (bi->flags & P_BIGKEY &&
-		    __ovfl_delete(t, bi->bytes) == RET_ERROR) {
+			__ovfl_delete(t, bi->bytes) == RET_ERROR) {
 			mpool_put(t->bt_mp, pg, 0);
 			return (RET_ERROR);
 		}
@@ -479,7 +479,7 @@ __bt_dleaf(t, key, h, index)
 {
 	BLEAF *bl;
 	indx_t cnt, *ip, offset;
-	u_int32_t nbytes;
+	uint32_t nbytes;
 	void *to;
 	char *from;
 
