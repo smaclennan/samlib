@@ -46,7 +46,7 @@ static char sccsid[] = "@(#)mpool.c	8.5 (Berkeley) 7/26/94";
 #include "include/db.h"
 
 #define	__MPOOLINTERFACE_PRIVATE
-#include <mpool.h>
+#include "../include/mpool.h"
 
 static BKT *mpool_bkt(MPOOL *);
 static BKT *mpool_look(MPOOL *, pgno_t);
