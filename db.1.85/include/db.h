@@ -39,6 +39,11 @@
 #include <stdint.h>
 #include <limits.h>
 
+#ifdef WIN32
+#include <Windows.h>
+#include "../../win32/samwin32.h"
+#endif
+
 #ifdef __DBINTERFACE_PRIVATE
 #ifndef EFTYPE
 #define	EFTYPE		EINVAL		/* POSIX 1003.1 format errno. */
@@ -105,6 +110,9 @@ typedef enum { DB_BTREE, DB_HASH, DB_RECNO } DBTYPE;
 #endif
 
 /* Access method description structure. */
+#ifdef WIN32
+#undef close
+#endif
 typedef struct __db {
 	DBTYPE type;			/* Underlying db type. */
 	int (*close)(struct __db *);
@@ -116,6 +124,9 @@ typedef struct __db {
 	void *internal;			/* Access method private. */
 	int (*fd)(const struct __db *);
 } DB;
+#ifdef WIN32
+#define close _close
+#endif
 
 #define	BTREEMAGIC	0x053162
 #define	BTREEVERSION	3

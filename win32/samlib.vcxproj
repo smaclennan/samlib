@@ -46,7 +46,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;__DBINTERFACE_PRIVATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -77,6 +77,21 @@
     <ClCompile Include="..\binary.c" />
     <ClCompile Include="..\copy.c" />
     <ClCompile Include="..\crc16.c" />
+    <ClCompile Include="..\db.1.85\btree\bt_close.c" />
+    <ClCompile Include="..\db.1.85\btree\bt_conv.c" />
+    <ClCompile Include="..\db.1.85\btree\bt_debug.c" />
+    <ClCompile Include="..\db.1.85\btree\bt_delete.c" />
+    <ClCompile Include="..\db.1.85\btree\bt_get.c" />
+    <ClCompile Include="..\db.1.85\btree\bt_open.c" />
+    <ClCompile Include="..\db.1.85\btree\bt_overflow.c" />
+    <ClCompile Include="..\db.1.85\btree\bt_page.c" />
+    <ClCompile Include="..\db.1.85\btree\bt_put.c" />
+    <ClCompile Include="..\db.1.85\btree\bt_search.c" />
+    <ClCompile Include="..\db.1.85\btree\bt_seq.c" />
+    <ClCompile Include="..\db.1.85\btree\bt_split.c" />
+    <ClCompile Include="..\db.1.85\btree\bt_utils.c" />
+    <ClCompile Include="..\db.1.85\db.c" />
+    <ClCompile Include="..\db.1.85\mpool.c" />
     <ClCompile Include="..\do-system.c" />
     <ClCompile Include="..\dumpstack.c" />
     <ClCompile Include="..\file.c" />
@@ -87,6 +102,7 @@
     <ClCompile Include="..\readcmd.c" />
     <ClCompile Include="..\readfile.c" />
     <ClCompile Include="..\readproc.c" />
+    <ClCompile Include="..\samdb.c" />
     <ClCompile Include="..\samthread.c" />
     <ClCompile Include="..\sha256.c" />
     <ClCompile Include="..\time.c" />
@@ -98,6 +114,11 @@
     <ClCompile Include="samwin32.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\db.1.85\btree\btree.h" />
+    <ClInclude Include="..\db.1.85\btree\extern.h" />
+    <ClInclude Include="..\db.1.85\include\db.h" />
+    <ClInclude Include="..\db.1.85\include\mpool.h" />
+    <ClInclude Include="..\db.1.85\include\queue.h" />
     <ClInclude Include="..\samlib.h" />
     <ClInclude Include="..\samthread.h" />
     <ClInclude Include="fnmatch.h" />

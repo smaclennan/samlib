@@ -26,10 +26,14 @@
 #define lseek _lseek
 #define ftruncate _chsize
 #define close _close
+#define fsync(h) FlushFileBuffers((HANDLE)h)
 
 #define lstat stat
 
 #define S_ISDIR(m) ((m) & _S_IFDIR)
+#define S_ISREG(m) ((m) & _S_IFREG)
+
+#define O_ACCMODE (O_RDONLY | O_WRONLY | O_RDWR)
 
 #define access _access
 #define umask _umask

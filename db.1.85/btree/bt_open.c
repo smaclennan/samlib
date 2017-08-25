@@ -53,9 +53,11 @@ static char sccsid[] = "@(#)bt_open.c	8.10 (Berkeley) 8/17/94";
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#ifndef WIN32
 #include <unistd.h>
 #include <sys/param.h> /* MAXPATHLEN */
-#include <sys/stat.h>
+#endif
 
 
 #include "btree.h"
@@ -97,7 +99,7 @@ __bt_open(fname, flags, mode, openinfo, dflags)
 	BTREEINFO b;
 	DB *dbp;
 	pgno_t ncache;
-	ssize_t nr;
+	int nr;
 	int machine_lorder;
 
 	t = NULL;
@@ -123,8 +125,8 @@ __bt_open(fname, flags, mode, openinfo, dflags)
 		 * transfer size.
 		 */
 		if (b.psize &&
-		    (b.psize < MINPSIZE || b.psize > MAX_PAGE_OFFSET + 1 ||
-		    b.psize & sizeof(indx_t) - 1))
+			(b.psize < MINPSIZE || b.psize > MAX_PAGE_OFFSET + 1 ||
+			b.psize & sizeof(indx_t) - 1))
 			goto einval;
 
 		/* Minimum number of keys per page; absolute minimum is 2. */
@@ -176,7 +178,13 @@ __bt_open(fname, flags, mode, openinfo, dflags)
 
 	dbp->type = DB_BTREE;
 	dbp->internal = t;
+#ifdef WIN32
+#undef close
+#endif
 	dbp->close = __bt_close;
+#ifdef WIN32
+#define close _close
+#endif
 	dbp->del = __bt_delete;
 	dbp->fd = __bt_fd;
 	dbp->get = __bt_get;
@@ -199,20 +207,27 @@ __bt_open(fname, flags, mode, openinfo, dflags)
 		default:
 			goto einval;
 		}
-		
+
 		if ((t->bt_fd = open(fname, flags, mode)) < 0)
 			goto err;
 
 	} else {
+#ifdef WIN32
+#warning SAM FIXME
+		goto einval;
+#else
 		if ((flags & O_ACCMODE) != O_RDWR)
 			goto einval;
 		if ((t->bt_fd = tmp()) == -1)
 			goto err;
 		F_SET(t, B_INMEM);
+#endif
 	}
 
+#ifndef WIN32
 	if (fcntl(t->bt_fd, F_SETFD, 1) == -1)
 		goto err;
+#endif
 
 	if (fstat(t->bt_fd, &sb))
 		goto err;
@@ -244,7 +259,7 @@ __bt_open(fname, flags, mode, openinfo, dflags)
 		if (m.magic != BTREEMAGIC || m.version != BTREEVERSION)
 			goto eftype;
 		if (m.psize < MINPSIZE || m.psize > MAX_PAGE_OFFSET + 1 ||
-		    m.psize & sizeof(indx_t) - 1)
+			m.psize & sizeof(indx_t) - 1)
 			goto eftype;
 		if (m.flags & ~SAVEMETA)
 			goto eftype;
@@ -258,7 +273,12 @@ __bt_open(fname, flags, mode, openinfo, dflags)
 		 * Don't overflow the page offset type.
 		 */
 		if (b.psize == 0) {
+#ifdef WIN32
+			/* Windows does not have st_blksize */
+			b.psize = 512;
+#else
 			b.psize = sb.st_blksize;
+#endif
 			if (b.psize < MINPSIZE)
 				b.psize = MINPSIZE;
 			if (b.psize > MAX_PAGE_OFFSET + 1)
@@ -297,14 +317,14 @@ __bt_open(fname, flags, mode, openinfo, dflags)
 	 * pages.
 	 */
 	t->bt_ovflsize = (t->bt_psize - BTDATAOFF) / b.minkeypage -
-	    (sizeof(indx_t) + NBLEAFDBT(0, 0));
+		(sizeof(indx_t) + NBLEAFDBT(0, 0));
 	if (t->bt_ovflsize < NBLEAFDBT(NOVFLSIZE, NOVFLSIZE) + sizeof(indx_t))
 		t->bt_ovflsize =
-		    NBLEAFDBT(NOVFLSIZE, NOVFLSIZE) + sizeof(indx_t);
+			NBLEAFDBT(NOVFLSIZE, NOVFLSIZE) + sizeof(indx_t);
 
 	/* Initialize the buffer pool. */
 	if ((t->bt_mp =
-	    mpool_open(NULL, t->bt_fd, t->bt_psize, ncache)) == NULL)
+		mpool_open(NULL, t->bt_fd, t->bt_psize, ncache)) == NULL)
 		goto err;
 	if (!F_ISSET(t, B_INMEM))
 		mpool_filter(t->bt_mp, __bt_pgin, __bt_pgout, t);
@@ -382,6 +402,7 @@ nroot(t)
 	return (RET_SUCCESS);
 }
 
+#ifndef WIN32
 static int
 tmp()
 {
@@ -392,7 +413,7 @@ tmp()
 
 	envtmp = getenv("TMPDIR");
 	(void)snprintf(path,
-	    sizeof(path), "%s/bt.XXXXXX", envtmp ? envtmp : "/tmp");
+		sizeof(path), "%s/bt.XXXXXX", envtmp ? envtmp : "/tmp");
 
 	(void)sigfillset(&set);
 	(void)sigprocmask(SIG_BLOCK, &set, &oset);
@@ -401,6 +422,7 @@ tmp()
 	(void)sigprocmask(SIG_SETMASK, &oset, NULL);
 	return(fd);
 }
+#endif
 
 static int
 byteorder()

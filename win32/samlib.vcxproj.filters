@@ -9,6 +9,9 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="db files">
+      <UniqueIdentifier>{3573e31d-ac51-467e-8202-3d65efb4d09b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\md5.c">
@@ -86,6 +89,54 @@
     <ClCompile Include="..\aes128.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\samdb.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\db.1.85\db.c">
+      <Filter>db files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\db.1.85\mpool.c">
+      <Filter>db files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\db.1.85\btree\bt_close.c">
+      <Filter>db files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\db.1.85\btree\bt_conv.c">
+      <Filter>db files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\db.1.85\btree\bt_debug.c">
+      <Filter>db files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\db.1.85\btree\bt_delete.c">
+      <Filter>db files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\db.1.85\btree\bt_get.c">
+      <Filter>db files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\db.1.85\btree\bt_open.c">
+      <Filter>db files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\db.1.85\btree\bt_overflow.c">
+      <Filter>db files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\db.1.85\btree\bt_page.c">
+      <Filter>db files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\db.1.85\btree\bt_put.c">
+      <Filter>db files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\db.1.85\btree\bt_search.c">
+      <Filter>db files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\db.1.85\btree\bt_seq.c">
+      <Filter>db files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\db.1.85\btree\bt_split.c">
+      <Filter>db files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\db.1.85\btree\bt_utils.c">
+      <Filter>db files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\samlib.h">
@@ -102,6 +153,21 @@
     </ClInclude>
     <ClInclude Include="..\samthread.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\db.1.85\include\db.h">
+      <Filter>db files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\db.1.85\include\mpool.h">
+      <Filter>db files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\db.1.85\include\queue.h">
+      <Filter>db files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\db.1.85\btree\btree.h">
+      <Filter>db files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\db.1.85\btree\extern.h">
+      <Filter>db files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

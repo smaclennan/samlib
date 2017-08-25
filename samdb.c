@@ -6,6 +6,7 @@
 #include <db.h>
 #else
 /* Hardcoded to make sure we get the right file */
+#undef __DBINTERFACE_PRIVATE
 #include "db.1.85/include/db.h"
 #endif
 
@@ -32,6 +33,10 @@
 #endif
 
 static DB *global_db;
+
+#ifdef WIN32
+#undef close
+#endif
 
 static inline void dbclose(DB *db)
 {

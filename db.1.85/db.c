@@ -52,6 +52,10 @@ static char sccsid[] = "@(#)db.c	8.4 (Berkeley) 2/21/94";
 #define	O_SHLOCK	0
 #endif
 
+#ifndef O_NONBLOCK
+#define O_NONBLOCK 0
+#endif
+
 DB *
 dbopen(fname, flags, mode, type, openinfo)
 	const char *fname;

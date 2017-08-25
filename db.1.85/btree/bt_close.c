@@ -42,7 +42,9 @@ static char sccsid[] = "@(#)bt_close.c	8.7 (Berkeley) 8/17/94";
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef WIN32
 #include <unistd.h>
+#endif
 
 #include "btree.h"
 

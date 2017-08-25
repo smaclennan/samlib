@@ -25,6 +25,24 @@ static int db_walk_strings(const char *key, void *data, int len)
 	return 0;
 }
 
+char *create_tmp_file(void)
+{
+#ifdef WIN32
+	static char path[100];
+	DWORD n;
+
+	n = GetTempPath(sizeof(path) - 8, path);
+	if (n >= sizeof(path) - 8 || n == 0)
+		_snprintf(path, sizeof(path), "c:/tmp/dbtest");
+	else
+		strcat(path, "dbtest");
+	printf("tmpfile %s\n", path);
+	return path;
+#else
+	return "/tmp/dbtest";
+#endif
+}
+
 #ifdef TESTALL
 int db_main(void)
 #else
@@ -34,9 +52,11 @@ int main(int argc, char *argv[])
 	char str[8];
 	int rc = 0;
 
-	unlink("/tmp/dbtest");
+	char *tmpfile = create_tmp_file();
 
-	if (db_open("/tmp/dbtest", DB_CREATE, NULL)) {
+	unlink(tmpfile);
+
+	if (db_open(tmpfile, DB_CREATE, NULL)) {
 		puts("Unable to open DB");
 		return 1;
 	}
@@ -59,16 +79,16 @@ int main(int argc, char *argv[])
 
 	db_close(NULL);
 
-	unlink("/tmp/dbtest");
+	unlink(tmpfile);
 
-	if (db_open("/tmp/dbtest", DB_CREATE, NULL)) {
+	if (db_open(tmpfile, DB_CREATE, NULL)) {
 		puts("Unable to open DB");
 		return 1;
 	}
 
 	db_close(NULL);
 
-	unlink("/tmp/dbtest");
+	unlink(tmpfile);
 
 	return rc;
 }
