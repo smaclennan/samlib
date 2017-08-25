@@ -33,6 +33,18 @@ static void phex(uint8_t* str)
     printf("\n");
 }
 
+void out_msg(const char *msg, int rc, int hw)
+{
+#ifdef TESTALL
+	if (rc)
+#endif
+	{
+		if (hw)
+			printf("HW ");
+		printf("ECB %s: %s!\n", msg, rc ? "FAILURE" : "SUCCESS");
+	}
+}
+
 static int test_encrypt_ecb_malloc(void)
 {
 	// 128bit key
@@ -78,10 +90,7 @@ static int test_encrypt_ecb_malloc(void)
 		}
 	}
 
-	if (ctx->have_hw)
-		printf("HW ");
-	printf("ECB encrypt malloc: %s\n", rc ? "FAILURE" : "SUCCESS");
-
+	out_msg("encrypt malloc", rc, ctx->have_hw);
 	free(ctx);
 
 	return rc;
@@ -95,35 +104,20 @@ static int test_encrypt_ecb(void)
   uint8_t out[] = {0x3a, 0xd7, 0x7b, 0xb4, 0x0d, 0x7a, 0x36, 0x60, 0xa8, 0x9e, 0xca, 0xf3, 0x24, 0x66, 0xef, 0x97};
   uint8_t buffer[16];
   aes128_ctx ctx;
+  int rc;
 
   AES128_init_ctx(&ctx, key, 1);
-
   AES128_ECB_encrypt(&ctx, in, buffer);
 
-  if (ctx.have_hw)
-	  printf("HW ");
-  printf("ECB encrypt: ");
-
-  if(0 == strncmp((char*) out, (char*) buffer, 16))
-  {
-	printf("SUCCESS!\n");
-  }
-  else
-  {
-	printf("FAILURE!\n");
-  }
+  rc = strncmp((char*)out, (char*) buffer, 16);
+  out_msg("encrypt", rc, ctx.have_hw);
+  if (rc) return rc;
 
   AES128_ECB_encrypt_buffer(in, key, buffer, 16);
-  if (ctx.have_hw)
-	  printf("HW ");
-  printf("ECB encrypt: ");
-  if(strncmp((char*) out, (char*) buffer, 16) == 0) {
-	  puts("SUCCESS!");
-	  return 0;
-  } else {
-	  puts("FAILURE!");
-	  return 1;
-  }
+  rc = strncmp((char*)out, (char*) buffer, 16);
+  out_msg("encrypt buffer", rc, ctx.have_hw);
+
+  return rc;
 }
 
 static int test_decrypt_ecb(void)
@@ -133,38 +127,20 @@ static int test_decrypt_ecb(void)
   uint8_t out[] = {0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a};
   uint8_t buffer[16];
   aes128_ctx ctx;
+  int rc;
 
   AES128_init_ctx(&ctx, key, 0);
 
   AES128_ECB_decrypt(&ctx, in, buffer);
 
-  if (ctx.have_hw)
-	  printf("HW ");
-  printf("ECB decrypt: ");
-
-  if(0 == strncmp((char*) out, (char*) buffer, 16))
-  {
-	printf("SUCCESS!\n");
-  }
-  else
-  {
-	printf("FAILURE!\n");
-  }
+  rc = strncmp((char*) out, (char*) buffer, 16);
+  out_msg("decrypt", rc, ctx.have_hw);
+  if (rc) return rc;
 
   AES128_ECB_decrypt_buffer(in, key, buffer, 16);
 
-  if (ctx.have_hw)
-	  printf("HW ");
-  printf("ECB decrypt: ");
+  rc = strncmp((char*) out, (char*) buffer, 16);
+  out_msg("decrypt buffer", rc, ctx.have_hw);
 
-  if(0 == strncmp((char*) out, (char*) buffer, 16))
-  {
-	printf("SUCCESS!\n");
-	return 0;
-  }
-  else
-  {
-	printf("FAILURE!\n");
-	return 1;
-  }
+  return rc;
 }
