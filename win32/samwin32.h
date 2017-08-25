@@ -73,4 +73,6 @@ int getline(char **line, int *len, FILE *fp);
 typedef DWORD pid_t;
 typedef int mode_t;
 
+#define MAXPATHLEN MAX_PATH
+
 #endif

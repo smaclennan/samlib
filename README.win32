@@ -1,7 +1,6 @@
 Not supported in windows:
 
-readproc.c - findproc and readproccmd supported
-must.c - must_mmap* functions
+readproc.c - findpid and readproccmd supported
 
 Portability for Windows:
 

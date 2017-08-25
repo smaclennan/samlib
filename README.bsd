@@ -1,6 +1,10 @@
 samlib should be fully supported under BSD. I have complied under
 FreeBSD and OpenBSD, although they are not as fully tested as Linux.
 
+Not supported in BSD:
+
+* readproc.c
+
 You have two choices to compile samlib under BSD.
 
 1) Install and use gmake.

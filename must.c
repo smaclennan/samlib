@@ -51,25 +51,29 @@ void *must_realloc(void *ptr, int size)
 	return mem;
 }
 
-#ifndef WIN32
 void *must_mmap(int size, int prot, int flags)
 {
+#ifndef WIN32
 	if (prot == 0)
 		prot = PROT_READ | PROT_WRITE;
-	if (flags == 0) {
+	if (flags == 0)
 		flags = MAP_PRIVATE | MAP_ANONYMOUS;
-	}
 
 	void *mem = mmap(NULL, size, prot, flags, -1, 0);
 	if (!mem)
 		must_fail("mmap", size);
 	return mem;
+#else
+	/* for windows it is just a malloc */
+	return must_alloc(size);
+#endif
 }
 
 void *must_mmap_file(int size, int prot, int flags, int fd)
 {
+#ifndef WIN32
 	if (prot == 0)
-		prot = PROT_READ | PROT_WRITE;
+		prot = PROT_READ;
 	if (flags == 0)
 		flags = MAP_SHARED;
 
@@ -77,5 +81,30 @@ void *must_mmap_file(int size, int prot, int flags, int fd)
 	if (!mem)
 		must_fail("mmap file", size);
 	return mem;
-}
+#else
+	int prot2;
+	void *mem;
+	HANDLE h;
+
+	if (prot == 0 || prot == PROT_READ) {
+		prot = PAGE_READONLY;
+		prot2 = FILE_MAP_READ;
+	} else {
+		prot = PAGE_READWRITE;
+		prot2 = FILE_MAP_WRITE;
+	}
+
+	h = (HANDLE)_get_osfhandle(fd);
+
+	h = CreateFileMapping(h, NULL, prot, 0, 0, NULL);
+	if (h) {
+		mem = MapViewOfFile(h, prot2, 0, 0, size);
+		if (!mem) {
+			CloseHandle(h);
+			must_fail("mmap file", size);
+		}
+	} else
+		must_fail("mmap file", size);
+	return mem;
 #endif
+}

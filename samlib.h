@@ -10,6 +10,7 @@
 #else
 #include <unistd.h>
 #include <sys/time.h>
+#include <sys/param.h>
 #include <netinet/in.h>
 #endif
 
@@ -344,6 +345,12 @@ void *must_realloc(void *ptr, int size);
 /* prot and/or flags can be set to 0 for reasonable defaults. */
 void *must_mmap(int size, int prot, int flags);
 void *must_mmap_file(int size, int prot, int flags, int fd);
+
+#ifdef WIN32
+/* Use these and must_mmap_file will do the right thing */
+#define PROT_READ 1
+#define PROT_WRITE 2
+#endif
 
 /* Note: /proc/pid/cmdline is currently limited to 4k */
 int readproccmdline(pid_t pid, char *buf, int len);

@@ -7,6 +7,7 @@ cptest
 crc16test
 dbtest
 md5test
+mmap-test
 random
 readfile
 readproctest
