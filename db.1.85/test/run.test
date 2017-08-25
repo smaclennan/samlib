@@ -22,9 +22,13 @@ main()
 	fi
 	
 	if [ $# -eq 0 ]; then
-		for t in 1 2 3 4 5 6 7 8 9 10 11 12 13 20; do
-			test$t
-		done
+#		for t in 1 2 3 4 5 6 7 8 9 10 11 12 13 20; do
+#			test$t
+#		done
+	    # Default to btree
+	    for t in 1 2 3 7 8 9 10 12 13; do
+		test$t
+	    done
 	else
 		while [ $# -gt 0 ]
 			do case "$1" in
@@ -166,6 +170,7 @@ test3()
 
 	echo "Test 3: btree: small key, big data pairs"
 	rm -f $TMP1
+	# You will get some Permission denied errors here
 	(find /bin -type f -print | xargs cat) > $TMP1
 	for psize in 512 16384 65536; do
 		echo "    page size $psize"
@@ -360,7 +365,9 @@ test6()
 }
 
 # Delete cursor record
-# SAM I am suspicous of this test. It shows btree and recno, but the actual test was hardcoded for recno
+# SAM I am suspicous of this test. It shows btree and recno, but the actual test was
+# hardcoded for recno. It looks like the order is wrong for btree so the results are
+# not right.
 test7()
 {
     return 0 # SAM
