@@ -59,7 +59,7 @@ static char sccsid[] = "@(#)bt_open.c	8.10 (Berkeley) 8/17/94";
 #include <sys/param.h> /* MAXPATHLEN */
 #endif
 
-
+#include "../../samlib.h"
 #include "btree.h"
 
 #ifdef DEBUG
@@ -212,16 +212,11 @@ __bt_open(fname, flags, mode, openinfo, dflags)
 			goto err;
 
 	} else {
-#ifdef WIN32
-#warning SAM FIXME
-		goto einval;
-#else
 		if ((flags & O_ACCMODE) != O_RDWR)
 			goto einval;
-		if ((t->bt_fd = tmp()) == -1)
+		if ((t->bt_fd = tmp()) < 0)
 			goto err;
 		F_SET(t, B_INMEM);
-#endif
 	}
 
 #ifndef WIN32
@@ -402,10 +397,31 @@ nroot(t)
 	return (RET_SUCCESS);
 }
 
-#ifndef WIN32
+#ifdef WIN32
+struct apath {
+	char *path;
+	int fd;
+	struct apath *next;
+} *paths;
+
+static void path_cleanup(void)
+{
+	while (paths) {
+		struct apath *next = paths->next;
+		_close(paths->fd);
+		_unlink(paths->path);
+		free(paths->path);
+		free(paths);
+		paths = next;
+	}
+}
+#endif
+
 static int
 tmp()
 {
+#ifndef WIN32
+	/* Do not use mktempfile() here */
 	sigset_t set, oset;
 	int fd;
 	char *envtmp;
@@ -421,8 +437,30 @@ tmp()
 		(void)unlink(path);
 	(void)sigprocmask(SIG_SETMASK, &oset, NULL);
 	return(fd);
-}
+#else
+	char path[MAX_PATH];
+
+	int fd = mktempfile(path, sizeof(path));
+	if (fd >= 0) {
+		struct apath *new = calloc(1, sizeof(struct apath));
+		if (!new) {
+			close(fd);
+			return -ENOMEM;
+		}
+		new->path = strdup(path);
+		if (!new->path) {
+			free(new);
+			close(fd);
+			return -ENOMEM;
+		}
+		new->fd = fd;
+		new->next = paths;
+		paths = new;
+		atexit(path_cleanup);
+	}
+	return fd;
 #endif
+}
 
 static int
 byteorder()

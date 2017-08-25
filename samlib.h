@@ -75,6 +75,9 @@ long copy_file(const char *from, const char *to);
 /* Create a file of set length and mode. If mode is 0, a reasonable default is chosen. */
 int create_file(const char *fname, off_t length, mode_t mode);
 
+/* Create a temporary file and return the file name */
+int mktempfile(char *fname, int len);
+
 /* This mimics the shell's `mkdir -p' */
 int mkdir_p(const char *dir);
 

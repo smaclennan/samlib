@@ -1,6 +1,5 @@
 Not supported in windows:
 
-db.c - no in-memory db support
 readproc.c - findproc and readproccmd supported
 must.c - must_mmap* functions
 

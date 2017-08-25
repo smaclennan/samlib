@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include <fcntl.h>
 #include <errno.h>
 #include "samlib.h"
@@ -22,4 +24,39 @@ int create_file(const char *fname, off_t length, mode_t mode)
 
 	close(fd);
 	return 0;
+}
+
+int mktempfile(char *fname, int len)
+{
+#ifndef WIN32
+	char *envtmp;
+
+	if (len < 16)
+		return -EINVAL;
+
+	envtmp = getenv("TMPDIR");
+	if (!envtmp || strlen(envtmp) >= len -  12)
+		envtmp = "/tmp";
+
+	snprintf(fname, len, "%s/tmp.XXXXXX", envtmp);
+
+	return mkstemp(fname);
+#else
+	char path[MAX_PATH - 14];
+	char out[MAX_PATH];
+
+	DWORD n = GetTempPath(sizeof(path), path);
+	if (n == 0 || n > sizeof(path))
+		strcpy(path, "c:/tmp/");
+
+	if (!GetTempFileName(path, "tmp.", 0, out))
+		return -EINVAL;
+
+	if (strlen(out) > len)
+		return -EINVAL;
+
+	_snprintf(fname, len, "%s", out);
+
+	return _open(fname, O_RDWR | O_CREAT | O_TRUNC, 0644);
+#endif
 }
