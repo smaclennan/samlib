@@ -26,6 +26,7 @@ ${LIBDB}: ${OBJ1} ${OBJ2} ${OBJ3} ${OBJ4} ${OBJ5} ${MISC}
 
 clean:
 	rm -f ${LIBDB} ${OBJ1} ${OBJ2} ${OBJ3} ${OBJ4} ${OBJ5} ${MISC}
+	make -C test clean
 
 OORG=	-O2
 CL=	${QUIET_CC}${CC} -c -D__DBINTERFACE_PRIVATE ${OORG} -I. -Iinclude
