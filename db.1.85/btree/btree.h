@@ -386,4 +386,9 @@ typedef struct _btree {
 #define MIN(a, b) ((a) <= (b) ? (a) : (b))
 #endif
 
+#ifndef BIG_ENDIAN
+#define BIG_ENDIAN 4321
+#define LITTLE_ENDIAN 1234
+#endif
+
 #include "extern.h"
