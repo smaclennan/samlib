@@ -35,7 +35,7 @@ dblib:	db.1.85/libdb.a
 	$(QUIET_AR)$(AR) rs libsamlib.a db.1.85/*.o
 
 db.1.85/libdb.a:
-	make -C db.1.85
+	$(MAKE) -C db.1.85
 
 nop:
 
