@@ -7,6 +7,6 @@ Not supported in BSD:
 
 You have two choices to compile samlib under BSD.
 
-1) Install and use gmake.
+1) Install and use gmake (recommended)
 
-2) make -f Makefile.bsd
+2) make -f Make.common
