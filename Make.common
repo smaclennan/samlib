@@ -9,9 +9,8 @@ INCDIR ?= $(PREFIX)/include
 # Uncomment for system db rather than builtin
 #CFLAGS += -DHAVE_DB_H
 #DBLIB = -ldb
-#EXTRA = nop
-
-EXTRA ?= dblib
+# And comment this out
+EXTRA_LIB = db.1.85/libdb.a
 
 #CC = clang -fno-color-diagnostics
 
@@ -29,15 +28,13 @@ CFILES += crc16.c file.c dumpstack.c sha256.c aes128.c
 
 O := $(CFILES:.c=.o)
 
-all: libsamlib.a $(EXTRA) libsamthread.a stest ipaddr
+all: $(EXTRA) libsamlib.a libsamthread.a stest ipaddr
 
-dblib:	db.1.85/libdb.a
-	$(QUIET_AR)$(AR) rs libsamlib.a db.1.85/*.o
+libsamlib.a: $O $(EXTRA_LIB)
+	$(QUIET_AR)$(AR) crT $@ $O $(EXTRA_LIB)
 
 db.1.85/libdb.a:
-	$(MAKE) -C db.1.85
-
-nop:
+	$(QUIET_MAKE)$(MAKE) $(MFLAGS) -C db.1.85
 
 *.o: samlib.h
 
@@ -46,9 +43,6 @@ ipaddr: ipaddr.c libsamlib.a
 
 stest: stest.c libsamlib.a
 	$(QUIET_LINK)$(CC) -o $@ stest.c libsamlib.a $(DBLIB)
-
-libsamlib.a: $O
-	$(QUIET_AR)$(AR) cr $@ $O
 
 # Threading - Linux x86 only
 libsamthread.a: samthread.o
