@@ -2,6 +2,10 @@
 
 This is version 1.85 of the Berkeley DB code.
 
+SAMLIB NOTE: This version of DB has a serious bug in the hash
+code. Since we have removed the hash code, it does not affect
+samlib.
+
 For information on compiling and installing this software, see the file
 PORT/README.
 
