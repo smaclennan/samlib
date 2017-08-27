@@ -36,8 +36,8 @@
  *	@(#)btree.h	8.11 (Berkeley) 8/17/94
  */
 
-#include "../include/db.h"
-#include "../include/mpool.h"
+#include "./include/db.h"
+#include "./include/mpool.h"
 
 
 /* Macros to set/clear/test flags. */

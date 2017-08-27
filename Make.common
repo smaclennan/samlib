@@ -1,5 +1,7 @@
 # -*- mode: Makefile -*-
-.PHONY: dblib nop all check install clean
+.PHONY: all check install clean
+
+include ./Rules.mk
 
 PREFIX ?= /usr
 BINDIR ?= $(PREFIX)/bin
@@ -13,14 +15,7 @@ INCDIR ?= $(PREFIX)/include
 EXTRA_LIB = db.1.85/libdb.a
 EXTRA_OBJ = db.1.85/db.1.85.o
 
-#CC = clang -fno-color-diagnostics
-
-D = -O2
-CFLAGS += -Wall $(D:1=-g -D__DEBUG__)
-CFLAGS += -maes
-
-.c.o:
-	$(QUIET_CC)$(CC) -o $@ -c $(CFLAGS) $<
+CFLAGS += -Wall
 
 CFILES := version.c readfile.c readcmd.c do-system.c walkfiles.c
 CFILES += mkdir-p.c md5.c ip.c copy.c binary.c samdb.c time.c
@@ -38,6 +33,9 @@ db.1.85/libdb.a:
 	$(QUIET_MAKE)$(MAKE) $(MFLAGS) -C db.1.85
 
 *.o: samlib.h
+
+aes128.o: aes128.c
+	$(QUIET_CC)$(CC) $(CFLAGS) -maes -c $< -o $@
 
 ipaddr: ipaddr.c libsamlib.a
 	$(QUIET_LINK)$(CC) -o $@ $< libsamlib.a
@@ -64,7 +62,6 @@ check:
 	sparse $(CFILES)
 
 clean:
-	rm -f *.o libsamlib.a stest ipaddr
-	rm -f libsamthread.a
-	make -C tests clean
-	make -C db.1.85 clean
+	rm -f *.o libsamlib.a libsamthread.a stest ipaddr
+	$(MAKE) $(MFLAGS) -C db.1.85 clean
+	$(MAKE) $(MFLAGS) -C tests clean

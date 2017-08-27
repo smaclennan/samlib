@@ -59,7 +59,7 @@ static char sccsid[] = "@(#)bt_open.c	8.10 (Berkeley) 8/17/94";
 #include <sys/param.h> /* MAXPATHLEN */
 #endif
 
-#include "../../samlib.h"
+#include "../samlib.h"
 #include "btree.h"
 
 #ifdef DEBUG
