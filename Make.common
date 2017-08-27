@@ -11,6 +11,7 @@ INCDIR ?= $(PREFIX)/include
 #DBLIB = -ldb
 # And comment this out
 EXTRA_LIB = db.1.85/libdb.a
+EXTRA_OBJ = db.1.85/db.1.85.o
 
 #CC = clang -fno-color-diagnostics
 
@@ -31,7 +32,7 @@ O := $(CFILES:.c=.o)
 all: $(EXTRA) libsamlib.a libsamthread.a stest ipaddr
 
 libsamlib.a: $O $(EXTRA_LIB)
-	$(QUIET_AR)$(AR) crT $@ $O $(EXTRA_LIB)
+	$(QUIET_AR)$(AR) cr $@ $O $(EXTRA_OBJ)
 
 db.1.85/libdb.a:
 	$(QUIET_MAKE)$(MAKE) $(MFLAGS) -C db.1.85

@@ -15,6 +15,7 @@ V	      = @
 Q	      = $(V:1=)
 QUIET_CC      = $(Q:@=@echo    '     CC       '$@;)
 QUIET_AR      = $(Q:@=@echo    '     AR       '$@;)
+QUIET_LD      = $(Q:@=@echo    '     LD       '$@;)
 
 .c.o:
 	$(QUIET_CC)$(CC) -o $@ -c $(CFLAGS) $<
@@ -24,7 +25,8 @@ all:	${LIBDB}
 ${LIBDB}: ${OBJS}
 	@rm -f $@
 	${QUIET_AR}ar cqs $@ ${OBJS}
+	${QUIET_LD}ld -r -o db.1.85.o ${OBJS}
 
 clean:
-	rm -f ${LIBDB} ${OBJS}
+	rm -f ${LIBDB} ${OBJS} db.1.85.o
 	make -C test clean
