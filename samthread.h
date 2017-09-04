@@ -69,7 +69,7 @@ typedef LONG spinlock_t;
 typedef unsigned spinlock_t;
 #endif
 
-#define DEFINE_SPINLOCK(name) spinlock_t name
+#define DEFINE_SPINLOCK(name) spinlock_t name = 0
 
 static inline void spinlock_init(spinlock_t *lock) { *lock = 0; }
 
