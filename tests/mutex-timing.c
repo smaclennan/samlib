@@ -6,6 +6,10 @@
  * This only tests the non-contested case.
  */
 
+/* Define this to make the times comparable between Linux slim mutex and others
+#define FAIR_UNLOCK
+ */
+
 #define LOOPS 10000000
 
 int main(int argc, char *argv[])
@@ -22,7 +26,7 @@ int main(int argc, char *argv[])
 	gettimeofday(&start, NULL);
 	for (i = 0; i < LOOPS; ++i) {
 		mutex_lock(mutex);
-#if defined(__linux__) && !defined(WANT_PTHREADS)
+#if defined(__linux__) && !defined(WANT_PTHREADS) && !defined(FAIR_UNLOCK)
 		mutex->state = 0;
 #else
 		mutex_unlock(mutex);
