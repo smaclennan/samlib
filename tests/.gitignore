@@ -8,6 +8,7 @@ crc16test
 dbtest
 md5test
 mmap-test
+mutex-timing
 random
 readfile
 readproctest

@@ -11,7 +11,7 @@ CFLAGS += -Wall -O2
 
 TESTS := args base64 cptest crc16test md5test random readfile
 TESTS += sha256test timetest threadtest spinlock dbtest
-TESTS += readproctest aes-test aes-stress mmap-test
+TESTS += readproctest aes-test aes-stress mmap-test mutex-timing
 
 OTHERS := bitgen
 
