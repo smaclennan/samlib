@@ -113,6 +113,10 @@ void mutex_destroy(mutex_t *mutex)
 
 void mutex_lock(mutex_t *mutex)
 {
+	/* Optimize for the non-contended state */
+	if (__sync_val_compare_and_swap(&mutex->state, 0, 1) == 0)
+		return;
+
 	__sync_add_and_fetch(&mutex->count, 1);
 	while (1) {
 		int r = __sync_val_compare_and_swap(&mutex->state, 0, 1);
