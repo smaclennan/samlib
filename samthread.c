@@ -88,8 +88,15 @@ samthread_t samthread_create(int (*fn)(void *arg), void *arg)
 
 int samthread_join(samthread_t tid)
 {
-	struct athread *f = (struct athread *)tid;
+	struct athread *f;
 	int rc;
+
+	if (tid == (samthread_t)-1) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	f = (struct athread *)tid;
 
 	futex((int *)tid, FUTEX_WAIT, 1);
 
