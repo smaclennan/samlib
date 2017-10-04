@@ -102,6 +102,80 @@ static int test_priority(void)
 	return 0;
 }
 
+#if defined(__linux__) && !defined(WANT_PTHREADS)
+/* Test that the futex call works as expected */
+#include <sys/syscall.h>
+#include <linux/futex.h>
+
+static int futex_lock;
+static int state;
+
+static inline int futex(int *futex, int op, int val)
+{
+	return syscall(__NR_futex, futex, op, val, NULL);
+}
+
+int futex_fn1(void *arg)
+{
+	/* Make sure wake before wait works as expected */
+	futex(&futex_lock, FUTEX_WAKE_PRIVATE, 1);
+	usleep(100);
+	if (state == 2) {
+		puts("Problems");
+		return 1;
+	}
+	state = 1;
+	while (state == 1) usleep(1);
+
+	/* Make sure wait before wake works as expected */
+	futex(&futex_lock, FUTEX_WAIT_PRIVATE, 1);
+	state = 4;
+	while (state == 4) usleep(1);
+
+	return 0;
+}
+
+int futex_fn2(void *arg)
+{
+	while (state == 0) usleep(1);
+	futex(&futex_lock, FUTEX_WAIT_PRIVATE, 1);
+
+	/* lock it before changing state for test 2 */
+	futex_lock = 1;
+	state = 2;
+
+	/* give fn1 a chance to block */
+	usleep(100000);
+	if (state == 4) {
+		puts("Problems");
+		return 1;
+	}
+	futex(&futex_lock, FUTEX_WAKE_PRIVATE, 1);
+	state = 3;
+	while (state == 3) usleep(1);
+	state = 5;
+
+	return 0;
+}
+
+int futex_test(void)
+{
+	samthread_t tid1, tid2;
+
+	tid1 = samthread_create(futex_fn1, NULL);
+	tid2 = samthread_create(futex_fn2, NULL);
+
+	if (samthread_join(tid1) || samthread_join(tid2)) {
+		puts("Thread failure.");
+		return 1;
+	}
+
+	return 0;
+}
+#else
+int futex_test(void) { return 0; }
+#endif
+
 static int fn(void *arg)
 {
 	long id = (long)arg;
@@ -152,6 +226,7 @@ static int thread_main(void)
 	}
 
 	rc |= test_priority();
+	rc |= futex_test();
 
 	return rc;
 }
