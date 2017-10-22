@@ -159,7 +159,7 @@ int futex_fn2(void *arg)
 }
 
 int futex_test(void)
-{
+{   /* Test that the futex works as expected by the mutex code. */
 	samthread_t tid1, tid2;
 
 	tid1 = samthread_create(futex_fn1, NULL);
