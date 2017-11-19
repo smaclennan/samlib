@@ -58,8 +58,9 @@ install:
 	install -m644 libsamthread.a $(DESTDIR)$(LIBDIR)/libsamthread.a
 	install ipaddr $(DESTDIR)$(BINDIR)/ipaddr
 
+# sparse cannot handle aes128.c
 check:
-	sparse $(CFILES)
+	sparse $(filter-out aes128.c,$(CFILES))
 
 clean:
 	rm -f *.o libsamlib.a libsamthread.a stest ipaddr

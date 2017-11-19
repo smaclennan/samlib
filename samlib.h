@@ -36,6 +36,7 @@
 #define SAMLIB_MINOR 3
 
 extern const char *samlib_version;
+extern const char *samlib_marker;
 
 #define ONE_MINUTE		60
 #define ONE_HOUR		(ONE_MINUTE * 60)
