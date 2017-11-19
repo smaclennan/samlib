@@ -121,6 +121,14 @@ const char *get_month(unsigned month, int long_months);
 unsigned long delta_timeval(const struct timeval *start,
 							const struct timeval *end);
 
+static inline unsigned long delta_timeval_now(const struct timeval *start)
+{
+	struct timeval end;
+
+	gettimeofday(&end, NULL);
+	return delta_timeval(start, &end);
+}
+
 int timeval_delta_valid(const struct timeval *start,
 						const struct timeval *end);
 
