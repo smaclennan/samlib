@@ -10,3 +10,4 @@ samwin32.c
 	- getopt
 	- getline
 	- opendir/readdir/closedir
+	- gettimeofday
