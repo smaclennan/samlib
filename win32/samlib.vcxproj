@@ -77,19 +77,19 @@
     <ClCompile Include="..\binary.c" />
     <ClCompile Include="..\copy.c" />
     <ClCompile Include="..\crc16.c" />
-    <ClCompile Include="..\db.1.85\btree\bt_close.c" />
-    <ClCompile Include="..\db.1.85\btree\bt_conv.c" />
-    <ClCompile Include="..\db.1.85\btree\bt_debug.c" />
-    <ClCompile Include="..\db.1.85\btree\bt_delete.c" />
-    <ClCompile Include="..\db.1.85\btree\bt_get.c" />
-    <ClCompile Include="..\db.1.85\btree\bt_open.c" />
-    <ClCompile Include="..\db.1.85\btree\bt_overflow.c" />
-    <ClCompile Include="..\db.1.85\btree\bt_page.c" />
-    <ClCompile Include="..\db.1.85\btree\bt_put.c" />
-    <ClCompile Include="..\db.1.85\btree\bt_search.c" />
-    <ClCompile Include="..\db.1.85\btree\bt_seq.c" />
-    <ClCompile Include="..\db.1.85\btree\bt_split.c" />
-    <ClCompile Include="..\db.1.85\btree\bt_utils.c" />
+    <ClCompile Include="..\db.1.85\bt_close.c" />
+    <ClCompile Include="..\db.1.85\bt_conv.c" />
+    <ClCompile Include="..\db.1.85\bt_debug.c" />
+    <ClCompile Include="..\db.1.85\bt_delete.c" />
+    <ClCompile Include="..\db.1.85\bt_get.c" />
+    <ClCompile Include="..\db.1.85\bt_open.c" />
+    <ClCompile Include="..\db.1.85\bt_overflow.c" />
+    <ClCompile Include="..\db.1.85\bt_page.c" />
+    <ClCompile Include="..\db.1.85\bt_put.c" />
+    <ClCompile Include="..\db.1.85\bt_search.c" />
+    <ClCompile Include="..\db.1.85\bt_seq.c" />
+    <ClCompile Include="..\db.1.85\bt_split.c" />
+    <ClCompile Include="..\db.1.85\bt_utils.c" />
     <ClCompile Include="..\db.1.85\db.c" />
     <ClCompile Include="..\db.1.85\mpool.c" />
     <ClCompile Include="..\do-system.c" />
@@ -114,11 +114,8 @@
     <ClCompile Include="samwin32.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\db.1.85\btree\btree.h" />
-    <ClInclude Include="..\db.1.85\btree\extern.h" />
-    <ClInclude Include="..\db.1.85\include\db.h" />
-    <ClInclude Include="..\db.1.85\include\mpool.h" />
-    <ClInclude Include="..\db.1.85\include\queue.h" />
+    <ClInclude Include="..\db.1.85\btree.h" />
+    <ClInclude Include="..\db.1.85\extern.h" />
     <ClInclude Include="..\samlib.h" />
     <ClInclude Include="..\samthread.h" />
     <ClInclude Include="fnmatch.h" />

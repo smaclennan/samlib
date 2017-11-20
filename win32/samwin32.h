@@ -70,6 +70,8 @@ int getopt(int argc, char *argv[], const char *optstring);
 
 int getline(char **line, int *len, FILE *fp);
 
+void gettimeofday(struct timeval *tv, void *ignored);
+
 typedef DWORD pid_t;
 typedef int mode_t;
 

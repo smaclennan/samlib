@@ -118,3 +118,22 @@ int getline(char **line, int *len, FILE *fp)
 		*(*line + i++) = ch;
 	}
 }
+
+/* Windows uses Jan 1 1601, Unix uses Jan 1 1970 */
+#define FILETIME2UNIXTIME 11644473600LL
+
+void gettimeofday(struct timeval *tv, void *ignored)
+{
+	SYSTEMTIME sys;
+	FILETIME file;
+	ULARGE_INTEGER now;
+
+	GetSystemTime(&sys);
+	SystemTimeToFileTime(&sys, &file);
+	now.HighPart = file.dwHighDateTime;
+	now.LowPart = file.dwLowDateTime;
+	now.QuadPart /= 10; /* convert from 100 nanoseconds to microseconds */
+
+	tv->tv_sec = (now.QuadPart / 1000000) - FILETIME2UNIXTIME;
+	tv->tv_usec = now.QuadPart % 1000000;
+}

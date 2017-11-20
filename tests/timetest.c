@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 #include "../samlib.h"
 
 #ifdef TESTALL
@@ -7,8 +8,10 @@ static int time_main(void)
 int main(int argc, char *argv[])
 #endif
 {
+	time_t now;
 	struct timeval start, end;
 	int rc = 0;
+	unsigned long delta;
 
 	start.tv_sec = 10;
 	start.tv_usec = 100;
@@ -69,6 +72,19 @@ int main(int argc, char *argv[])
 		puts("PROBS 6");
 		rc = 1;
 	}
+
+	/* Test the windows gettimeofday */
+	gettimeofday(&start, NULL);
+	time(&now);
+	usleep(1000000);
+	gettimeofday(&end, NULL);
+	delta = delta_timeval_now(&start);
+	/* Delta should be within +/-2ms of 1 second */
+	if (delta < 998000 || delta > 1002000)
+		printf("Warning: %s should be about 1,000,000\n", nice_number(delta));
+	/* Now should be within a second of start */
+	if (now != start.tv_sec && now + 1 != start.tv_sec && now - 1 != start.tv_sec)
+		printf("Warning: time %ld should be about %ld\n", now, start.tv_sec);
 
 	return rc;
 }
