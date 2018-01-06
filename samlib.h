@@ -419,8 +419,15 @@ void dump_stack(void);
 #ifdef WIN32
 /* Windows still cannot handle void * correctly */
 #define WIN32_COERCE (unsigned char *)
+
+#define likely(x)		(x)
+#define unlikely(x)		(x)
 #else
 #define WIN32_COERCE
+
+#define likely(x)       __builtin_expect((x),1)
+#define unlikely(x)     __builtin_expect((x),0)
+
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
