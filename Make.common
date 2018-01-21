@@ -24,7 +24,8 @@ CFILES += crc16.c file.c dumpstack.c sha256.c aes128.c
 
 O := $(CFILES:.c=.o)
 
-all: $(EXTRA) libsamlib.a libsamthread.a stest ipaddr
+all: $(EXTRA) libsamlib.a libsamthread.a stest
+	$(MAKE) $(MFLAGS) -C utils
 
 libsamlib.a: $O $(EXTRA_LIB)
 	$(QUIET_AR)$(AR) cr $@ $O $(EXTRA_OBJ)
@@ -36,9 +37,6 @@ db.1.85/libdb.a:
 
 aes128.o: aes128.c
 	$(QUIET_CC)$(CC) $(CFLAGS) -maes -c $< -o $@
-
-ipaddr: ipaddr.c libsamlib.a
-	$(QUIET_LINK)$(CC) -o $@ $< libsamlib.a
 
 stest: stest.c libsamlib.a
 	$(QUIET_LINK)$(CC) -o $@ stest.c libsamlib.a $(DBLIB)
@@ -56,13 +54,14 @@ install:
 	install -m644 libsamlib.a $(DESTDIR)$(LIBDIR)/libsamlib.a
 	install -m644 samthread.h $(DESTDIR)$(INCDIR)/samthread.h
 	install -m644 libsamthread.a $(DESTDIR)$(LIBDIR)/libsamthread.a
-	install ipaddr $(DESTDIR)$(BINDIR)/ipaddr
+	install utils/ipaddr $(DESTDIR)$(BINDIR)/ipaddr
 
 # sparse cannot handle aes128.c
 check:
 	sparse $(filter-out aes128.c,$(CFILES))
 
 clean:
-	rm -f *.o libsamlib.a libsamthread.a stest ipaddr
+	rm -f *.o libsamlib.a libsamthread.a stest
 	$(MAKE) $(MFLAGS) -C db.1.85 clean
 	$(MAKE) $(MFLAGS) -C tests clean
+	$(MAKE) $(MFLAGS) -C utils clean
