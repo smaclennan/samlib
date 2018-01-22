@@ -40,7 +40,9 @@
 static int server_side(unsigned host, int port);
 static int client_side(unsigned host, int port);
 static void done(int sig);
+#ifndef __FreeBSD__
 static int get_ifindex(const char *ifname, int fd);
+#endif
 static int proto_udp_writev(int sock, struct iovec *iov, size_t iovlen,
 			    struct sockaddr *to, int ifindex);
 
