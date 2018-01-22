@@ -141,7 +141,9 @@ static void zedit_defines(void)
 	add_define("SIGHUP", SIGHUP);
 	add_define("SIGTERM", SIGTERM);
 	add_define("SIGWINCH", SIGWINCH);
+#ifdef WNOWAIT
 	add_define("WNOWAIT", WNOWAIT);
+#endif
 	add_define("HAVE_CONFIG_H", 1);
 	add_define("TAB3", 1);
 }

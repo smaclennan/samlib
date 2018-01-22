@@ -22,4 +22,4 @@ ${LIBDB}: ${OBJS}
 
 clean:
 	rm -f ${LIBDB} ${OBJS} db.1.85.o
-	make -C test clean
+	$(MAKE) $(MFLAGS) -C test clean
