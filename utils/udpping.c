@@ -17,9 +17,9 @@
  * the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
  */
-
 #include <stdio.h>
 #include <stdlib.h>
+#ifndef __FreeBSD__
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
@@ -427,3 +427,7 @@ static int proto_udp_writev(int sock, struct iovec *iov, size_t iovlen,
 
 	return sendmsg(sock, &msg, 0);
 }
+
+#else
+int main(void) { puts("Not supported in FreeBSD"); exit(1); }
+#endif
