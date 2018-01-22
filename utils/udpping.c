@@ -19,7 +19,6 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef __FreeBSD__
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
@@ -91,11 +90,15 @@ int main(int argc, char *argv[])
 	while ((c = getopt(argc, argv, "i:n:p:qst:v")) != EOF)
 		switch (c) {
 		case 'i':
+#ifndef __FreeBSD__
 			ifindex = get_ifindex(optarg, -1);
 			if (ifindex == 0) {
 				printf("Unable to get index for %s\n", optarg);
 				exit(1);
 			}
+#else
+			puts("-i not supported in FreeBSD");
+#endif
 			break;
 		case 'n':
 			loops = strtol(optarg, 0, 0);
@@ -365,6 +368,7 @@ void done(int sig)
 /****** WARNING: Roman code from here on! You have been warned! ******/
 
 
+#ifndef __FreeBSD__
 /* fd is a socket */
 static int get_ifindex(const char *ifname, int fd)
 {
@@ -392,7 +396,7 @@ static int get_ifindex(const char *ifname, int fd)
 
 	return ifr.ifr_ifindex;
 }
-
+#endif
 
 static int proto_udp_writev(int sock, struct iovec *iov, size_t iovlen,
 			    struct sockaddr *to, int ifindex)
@@ -405,6 +409,7 @@ static int proto_udp_writev(int sock, struct iovec *iov, size_t iovlen,
 	msg.msg_iov = iov;
 	msg.msg_iovlen = iovlen;
 
+#ifndef __FreeBSD__
 	if (ifindex) {
 		/* send through specific interface */
 		struct cmsghdr *cmsg;
@@ -424,10 +429,7 @@ static int proto_udp_writev(int sock, struct iovec *iov, size_t iovlen,
 		pktinfo->ipi_ifindex = ifindex;
 		pktinfo->ipi_spec_dst.s_addr = 0;
 	}
+#endif
 
 	return sendmsg(sock, &msg, 0);
 }
-
-#else
-int main(void) { puts("Not supported in FreeBSD"); exit(1); }
-#endif
