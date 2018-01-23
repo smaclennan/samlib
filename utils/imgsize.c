@@ -28,30 +28,41 @@ static void try_jpeg(const char *fname)
 	printf("%dx%d\n", cinfo.image_width, cinfo.image_height);
 }
 
-static void try_gif(const char *fname)
+static int try_gif(const char *fname, int no_fail)
 {
+#if GIFLIB_MAJOR == 4 /* guess */
+	GifFileType *gft = DGifOpenFileName(fname);
+
+	if (!gft) {
+		if (no_fail)
+			return 1;
+
+		fprintf(stderr, "%s: Unable to open gif file (%d)\n",
+				fname, GifLastError());
+		exit(1);
+	}
+#else
 	int error;
 	GifFileType *gft = DGifOpenFileName(fname, &error);
 
 	if (!gft) {
+		if (no_fail)
+			return 1;
+
 		fprintf(stderr, "%s: %s\n", fname, GifErrorString(error));
 		exit(1);
 	}
+#endif
 
 	printf("%dx%d\n", gft->SWidth, gft->SHeight);
+	return 0;
 }
 
 static void try_all(const char *fname)
 {
-	int error;
-	GifFileType *gft = DGifOpenFileName(fname, &error);
-
-	if (gft)
-		printf("%dx%d\n", gft->SWidth, gft->SHeight);
-	else
+	if (try_gif(fname, 1))
 		try_jpeg(fname);
 }
-
 
 void usage(int rc)
 {
@@ -86,7 +97,7 @@ int main(int argc, char *argv[])
 	fname = argv[optind];
 
 	switch (flags) {
-	case DO_GIF: try_gif(fname); break;
+	case DO_GIF: try_gif(fname, 0); break;
 	case DO_JPEG: try_jpeg(fname); break;
 	default: try_all(fname); break;
 	}

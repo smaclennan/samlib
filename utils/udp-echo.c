@@ -27,7 +27,6 @@
 #include <sys/time.h>
 #include <sys/poll.h>
 #include <sys/ioctl.h>
-#include <sys/signal.h>
 #include <sys/poll.h>
 
 #include <sys/socket.h>

@@ -23,10 +23,10 @@
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
+#include <signal.h>
 #include <sys/time.h>
 #include <sys/poll.h>
 #include <sys/ioctl.h>
-#include <sys/signal.h>
 
 #include <sys/socket.h>
 #include <net/if.h>
@@ -37,14 +37,18 @@
 
 #define PORT 9898
 
+#if defined(__FreeBSD__) || defined(__QNXNTO__)
+#define NO_IFINDEX
+#endif
+
 static int server_side(unsigned host, int port);
 static int client_side(unsigned host, int port);
 static void done(int sig);
-#ifndef __FreeBSD__
+#ifndef NO_IFINDEX
 static int get_ifindex(const char *ifname, int fd);
 #endif
 static int proto_udp_writev(int sock, struct iovec *iov, size_t iovlen,
-			    struct sockaddr *to, int ifindex);
+				struct sockaddr *to, int ifindex);
 
 struct ping_pkt {
 	unsigned magic;
@@ -92,14 +96,14 @@ int main(int argc, char *argv[])
 	while ((c = getopt(argc, argv, "i:n:p:qst:v")) != EOF)
 		switch (c) {
 		case 'i':
-#ifndef __FreeBSD__
+#ifndef NO_IFINDEX
 			ifindex = get_ifindex(optarg, -1);
 			if (ifindex == 0) {
 				printf("Unable to get index for %s\n", optarg);
 				exit(1);
 			}
 #else
-			puts("-i not supported in FreeBSD");
+			puts("-i not supported");
 #endif
 			break;
 		case 'n':
@@ -201,15 +205,15 @@ static int server_side(in_addr_t host, int port)
 
 		if (verbose > 1)
 			printf("Got a request from %s:%d\n",
-			       inet_ntoa(from.sin_addr), ntohs(from.sin_port));
+				   inet_ntoa(from.sin_addr), ntohs(from.sin_port));
 
 		if (n < sizeof(struct ping_pkt)) {
 			printf("Expected %ld, got %d\n",
-			       sizeof(struct ping_pkt), n);
+				   sizeof(struct ping_pkt), n);
 			continue;
 		} else if (verbose && n != sizeof(struct ping_pkt))
 			printf("Expected %ld, got %d\n",
-			       sizeof(struct ping_pkt), n);
+				   sizeof(struct ping_pkt), n);
 
 		if (pkt->magic != MAGIC) {
 			printf("Bad magic %x (%x)\n", pkt->magic, MAGIC);
@@ -370,7 +374,7 @@ void done(int sig)
 /****** WARNING: Roman code from here on! You have been warned! ******/
 
 
-#ifndef __FreeBSD__
+#ifndef NO_IFINDEX
 /* fd is a socket */
 static int get_ifindex(const char *ifname, int fd)
 {
@@ -401,7 +405,7 @@ static int get_ifindex(const char *ifname, int fd)
 #endif
 
 static int proto_udp_writev(int sock, struct iovec *iov, size_t iovlen,
-			    struct sockaddr *to, int ifindex)
+				struct sockaddr *to, int ifindex)
 {
 	struct msghdr msg;
 
@@ -411,7 +415,7 @@ static int proto_udp_writev(int sock, struct iovec *iov, size_t iovlen,
 	msg.msg_iov = iov;
 	msg.msg_iovlen = iovlen;
 
-#ifndef __FreeBSD__
+#ifndef NO_IFINDEX
 	if (ifindex) {
 		/* send through specific interface */
 		struct cmsghdr *cmsg;

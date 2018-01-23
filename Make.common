@@ -25,7 +25,7 @@ CFILES += crc16.c file.c dumpstack.c sha256.c aes128.c
 O := $(CFILES:.c=.o)
 
 all: $(EXTRA) libsamlib.a libsamthread.a stest
-	$(MAKE) $(MFLAGS) -C utils
+	$(MAKE) $(MFLAGS) CC=$(CC) -C utils
 
 libsamlib.a: $O $(EXTRA_LIB)
 	$(QUIET_AR)$(AR) cr $@ $O $(EXTRA_OBJ)

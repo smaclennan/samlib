@@ -5,6 +5,9 @@
 
 #define MAX_DEPTH 128 /* 128 = 1k */
 
+#ifdef __QNXNTO__
+void dump_stack(void) { puts("dump_stack not supported"); }
+#else
 #ifndef WIN32
 #ifndef __OpenBSD__
 #include <execinfo.h>
@@ -62,4 +65,5 @@ void dump_stack(void)
 
 	SymCleanup(process);
 }
+#endif
 #endif

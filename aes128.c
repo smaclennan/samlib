@@ -5,8 +5,10 @@
 /* It is always safe to enable AES_HW on x86 systems. It will only be
  * used if the CPU supports it.
  */
+#ifndef __QNXNTO__ // SAM FIXME
 #ifndef AES_HW
 #define AES_HW 1
+#endif
 #endif
 
 /* TI_aes.c from:

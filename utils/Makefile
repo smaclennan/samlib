@@ -2,7 +2,7 @@
 CFLAGS += -Wall
 
 # Needed for freebsd
-CFLAGS += -I/usr/local/include -L/usr/local/lib
+CFLAGS += -I.. -I/usr/local/include -L/usr/local/lib
 
 include ../Rules.mk
 
