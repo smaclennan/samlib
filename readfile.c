@@ -17,7 +17,7 @@ static int out_line(char *line, void *data)
 #define GETLINE_INCREMENT 128 /* real getline 120 */
 
 /* Simple getline implementation */
-ssize_t my_getline(char **lineptr, size_t *n, FILE *stream)
+ssize_t getline(char **lineptr, size_t *n, FILE *stream)
 {
 	char *p;
 
