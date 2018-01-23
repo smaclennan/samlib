@@ -13,6 +13,46 @@ static int out_line(char *line, void *data)
 	return 0;
 }
 
+#ifdef __QNXNTO__
+#define GETLINE_INCREMENT 128 /* real getline 120 */
+
+/* Simple getline implementation */
+ssize_t my_getline(char **lineptr, size_t *n, FILE *stream)
+{
+	char *p;
+
+	if (!*lineptr) {
+		*lineptr = malloc(GETLINE_INCREMENT);
+		if (!*lineptr) {
+			errno = ENOMEM;
+			return -1;
+		}
+		*n = GETLINE_INCREMENT;
+	}
+
+	if (!fgets(*lineptr, *n, stream)) {
+		errno = feof(stream) ? 0 : EIO;
+		return -1;
+	}
+
+	while (!(p = strchr(*lineptr, '\n')) && !feof(stream)) {
+		char *new = realloc(*lineptr, *n + GETLINE_INCREMENT);
+		if (!new) {
+			errno = ENOMEM;
+			return -1;
+		}
+		*lineptr = new;
+		if (!fgets(*lineptr + *n - 1, GETLINE_INCREMENT + 1, stream)) {
+			errno = feof(stream) ? 0 : EIO;
+			return -1;
+		}
+		*n += GETLINE_INCREMENT;
+	}
+
+	return strlen(*lineptr);
+}
+#endif
+
 /* Read a file line at a time calling line_func() for each
  * line. Removes the NL from the line. If line_func() returns
  * non-zero, it will stop reading the file and return 1.
