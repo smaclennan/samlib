@@ -24,7 +24,7 @@ CFILES += crc16.c file.c dumpstack.c sha256.c aes128.c
 
 O := $(CFILES:.c=.o)
 
-all: $(EXTRA) libsamlib.a libsamthread.a stest
+all: $(EXTRA) libsamlib.a libsamthread.a
 	$(MAKE) $(MFLAGS) CC=$(CC) -C utils
 
 libsamlib.a: $O $(EXTRA_LIB)
@@ -37,9 +37,6 @@ db.1.85/libdb.a:
 
 aes128.o: aes128.c
 	$(QUIET_CC)$(CC) $(CFLAGS) -maes -c $< -o $@
-
-stest: stest.c libsamlib.a
-	$(QUIET_LINK)$(CC) -o $@ stest.c libsamlib.a $(DBLIB)
 
 # Threading - Linux x86 only
 libsamthread.a: samthread.o
@@ -62,7 +59,7 @@ check:
 	sparse $(filter-out aes128.c,$(CFILES))
 
 clean:
-	rm -f *.o libsamlib.a libsamthread.a stest
+	rm -f *.o libsamlib.a libsamthread.a
 	$(MAKE) $(MFLAGS) -C db.1.85 clean
 	$(MAKE) $(MFLAGS) -C tests clean
 	$(MAKE) $(MFLAGS) -C utils clean
