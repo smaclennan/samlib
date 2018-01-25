@@ -433,4 +433,8 @@ void dump_stack(void);
 #endif
 #endif
 
+#ifdef __QNXNTO__
+ssize_t getline(char **lineptr, size_t *n, FILE *stream);
+#endif
+
 #endif
