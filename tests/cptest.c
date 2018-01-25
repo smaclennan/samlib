@@ -4,8 +4,8 @@
 #include <fcntl.h>
 #include "../samlib.h"
 
-#define FILENAME "readfile.txt" /* reuse this */
-#define TONAME "cptest.txt"
+#define FILENAME "/tmp/readfile.txt" /* reuse this */
+#define TONAME "/tmp/cptest.txt"
 
 #define MAX_FILE_SIZE (128 * 1024)
 static uint64_t buf[MAX_FILE_SIZE / sizeof(uint64_t)];

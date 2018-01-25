@@ -3,7 +3,7 @@
 #include <fcntl.h>
 #include "../samlib.h"
 
-#define FILENAME		"readfile.txt"
+#define FILENAME		"/tmp/readfile.txt"
 #define MAX_LINES		1000
 #define MAX_CHARS		128
 
