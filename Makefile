@@ -4,4 +4,4 @@ endif
 
 MFLAGS += --no-print-directory
 
-include Make.common
+include make.common
