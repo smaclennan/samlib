@@ -8,6 +8,8 @@ BINDIR ?= $(PREFIX)/bin
 LIBDIR ?= $(PREFIX)/lib
 INCDIR ?= $(PREFIX)/include
 
+MFLAGS += CC=$(CC)
+
 # Uncomment for system db rather than builtin
 #CFLAGS += -DHAVE_DB_H
 #DBLIB = -ldb
@@ -25,7 +27,8 @@ CFILES += crc16.c file.c dumpstack.c sha256.c aes128.c
 O := $(CFILES:.c=.o)
 
 all: $(EXTRA) libsamlib.a libsamthread.a
-	$(MAKE) $(MFLAGS) CC=$(CC) -C utils
+	$(MAKE) $(MFLAGS) -C utils
+	$(MAKE) $(MFLAGS) -C tests
 
 libsamlib.a: $O $(EXTRA_LIB)
 	$(QUIET_AR)$(AR) cr $@ $O $(EXTRA_OBJ)
