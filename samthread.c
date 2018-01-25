@@ -327,6 +327,11 @@ pid_t samthread_tid(void)
 {
 	return GetCurrentThreadId();
 }
+#elif defined(__QNXNTO__)
+pid_t samthread_tid(void)
+{
+	return gettid();
+}
 #else
 #warning No gettid
 

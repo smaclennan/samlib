@@ -12,23 +12,51 @@ static DEFINE_MUTEX(biglock);
 #endif
 
 #ifdef WIN32
-#define PRIO_PROCESS 0
-
 static int priority = 0;
 
 /* SAM HACK just so the test passes */
-int getpriority(int unused, int unused2)
+int get_priority(void)
 {
 	return priority;
 }
 
-int setpriority(int unused, int unused2, int newpriority)
+int set_priority(int newpriority)
 {
 	priority = newpriority;
 	return 0;
 }
 
 #define usleep(u) Sleep((u) / 1000)
+#elif defined(__QNXNTO__)
+int get_priority(void)
+{
+	struct sched_param param;
+	param.sched_priority = -1;
+	sched_getparam(0, &param);
+	return param.sched_priority;
+}
+
+int set_priority(int newpriority)
+{
+	struct sched_param param;
+	param.sched_priority = newpriority;
+	return sched_setparam(0, &param);
+}
+
+#define DEFAULT_PRIORITY 10
+#else
+int get_priority(void)
+{
+	return getpriority(PRIO_PROCESS, 0);
+}
+
+int set_priority(int newpriority)
+{
+	return setpriority(PRIO_PROCESS, 0, newpriority);
+}
+#endif
+#ifdef __linux__
+#define DEFAULT_PRIORITY 0
 #endif
 
 /* Shared with parent */
@@ -38,15 +66,15 @@ static int done;
 
 static int lower(void *arg)
 {
-	child_was = getpriority(PRIO_PROCESS, 0);
+	child_was = get_priority();
 
-	if (setpriority(PRIO_PROCESS, 0, child_was + 10)) {
+	if (set_priority(child_was + 10)) {
 		printf("Unable to set priority\n");
 		done = 1;
 		return 1;
 	}
 
-	child_is = getpriority(PRIO_PROCESS, 0);
+	child_is = get_priority();
 
 	done = 1;
 
@@ -62,7 +90,7 @@ static int test_priority(void)
 	samthread_t tid;
 	int parent_was, parent_is, parent_now;
 
-	parent_was = getpriority(PRIO_PROCESS, 0);
+	parent_was = get_priority();
 
 	tid = samthread_create(lower, NULL);
 	if (tid == (samthread_t)-1) {
@@ -73,22 +101,27 @@ static int test_priority(void)
 	while (done == 0)
 		usleep(1000);
 
-	parent_is = getpriority(PRIO_PROCESS, 0);
+	parent_is = get_priority();
 
 	done = 2;
 
 	samthread_join(tid);
 
-	parent_now = getpriority(PRIO_PROCESS, 0);
+	parent_now = get_priority();
 
-#ifdef __linux__
-	/* We expect 0 for everybody except child_is */
-	if (parent_was || parent_is || parent_now || child_was || child_is != 10) {
+#ifdef DEFAULT_PRIORITY
+	/* We expect default for everybody except child_is */
+	if (parent_was != DEFAULT_PRIORITY ||
+		parent_is  != DEFAULT_PRIORITY ||
+		parent_now != DEFAULT_PRIORITY ||
+		child_was  != DEFAULT_PRIORITY ||
+		child_is   != (DEFAULT_PRIORITY + 10)) {
 		printf("Parent was %d is %d now %d Child was %d is %d\n",
 			   parent_was, parent_is, parent_now, child_was, child_is);
 		return 1; /* test failed */
 	}
 #else
+	/* SAM test with sched_getparam */
 	/* For BSD at least, setting the thread priority affects the
 	 * parent. This is not what we want but we have to live with it.
 	 */
