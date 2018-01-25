@@ -9,55 +9,32 @@ static mutex_t biglock;
 #include <sys/resource.h>
 
 static DEFINE_MUTEX(biglock);
-#endif
 
-#ifdef WIN32
-static int priority = 0;
+int default_priority = -1;
 
-/* SAM HACK just so the test passes */
 int get_priority(void)
 {
-	return priority;
-}
-
-int set_priority(int newpriority)
-{
-	priority = newpriority;
-	return 0;
-}
-
-#define usleep(u) Sleep((u) / 1000)
-#elif defined(__QNXNTO__)
-int get_priority(void)
-{
+#ifdef __linux__
+	return getpriority(PRIO_PROCESS, 0);
+#else
 	struct sched_param param;
 	param.sched_priority = -1;
-	sched_getparam(0, &param);
+	if (sched_getparam(0, &param))
+		return -1;
 	return param.sched_priority;
+#endif
 }
 
 int set_priority(int newpriority)
 {
+#ifdef __linux__
+	return setpriority(PRIO_PROCESS, 0, newpriority);
+#else
 	struct sched_param param;
 	param.sched_priority = newpriority;
 	return sched_setparam(0, &param);
-}
-
-#define DEFAULT_PRIORITY 10
-#else
-int get_priority(void)
-{
-	return getpriority(PRIO_PROCESS, 0);
-}
-
-int set_priority(int newpriority)
-{
-	return setpriority(PRIO_PROCESS, 0, newpriority);
-}
 #endif
-#ifdef __linux__
-#define DEFAULT_PRIORITY 0
-#endif
+}
 
 /* Shared with parent */
 static int child_was, child_is;
@@ -84,13 +61,13 @@ static int lower(void *arg)
 	return 0;
 }
 
-/* This may be Linux specific */
 static int test_priority(void)
 {
 	samthread_t tid;
 	int parent_was, parent_is, parent_now;
 
 	parent_was = get_priority();
+	default_priority = parent_was;
 
 	tid = samthread_create(lower, NULL);
 	if (tid == (samthread_t)-1) {
@@ -109,31 +86,21 @@ static int test_priority(void)
 
 	parent_now = get_priority();
 
-#ifdef DEFAULT_PRIORITY
 	/* We expect default for everybody except child_is */
-	if (parent_was != DEFAULT_PRIORITY ||
-		parent_is  != DEFAULT_PRIORITY ||
-		parent_now != DEFAULT_PRIORITY ||
-		child_was  != DEFAULT_PRIORITY ||
-		child_is   != (DEFAULT_PRIORITY + 10)) {
-		printf("Parent was %d is %d now %d Child was %d is %d\n",
-			   parent_was, parent_is, parent_now, child_was, child_is);
+	if (-1         == default_priority ||
+		parent_was != default_priority ||
+		parent_is  != default_priority ||
+		parent_now != default_priority ||
+		child_was  != default_priority ||
+		child_is   != (default_priority + 10)) {
+		printf("Parent was %d is %d now %d Child was %d is %d (default %d)\n",
+			   parent_was, parent_is, parent_now, child_was, child_is, default_priority);
 		return 1; /* test failed */
 	}
-#else
-	/* SAM test with sched_getparam */
-	/* For BSD at least, setting the thread priority affects the
-	 * parent. This is not what we want but we have to live with it.
-	 */
-	if (parent_was || parent_is != 10 || parent_now != 10 || child_was || child_is != 10) {
-		printf("Parent was %d is %d now %d Child was %d is %d\n",
-			   parent_was, parent_is, parent_now, child_was, child_is);
-		return 1; /* test failed */
-	}
-#endif
 
 	return 0;
 }
+#endif /* !WIN32 */
 
 #if defined(__linux__) && !defined(WANT_PTHREADS)
 /* Test that the futex call works as expected */
@@ -258,7 +225,9 @@ static int thread_main(void)
 		}
 	}
 
+#ifndef WIN32
 	rc |= test_priority();
+#endif
 	rc |= futex_test();
 
 	return rc;
