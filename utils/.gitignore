@@ -1,6 +1,7 @@
 ipaddr
 find-dups
 imgsize
+md5sum
 meminfo
 mkfilesz
 pkg
