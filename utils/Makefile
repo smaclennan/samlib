@@ -3,6 +3,8 @@ CFLAGS += -Wall
 
 # Needed for freebsd
 CFLAGS += -I.. -I/usr/local/include -L/usr/local/lib
+# Needed for netbsd
+CFLAGS += -I/usr/pkg/include
 
 include ../Rules.mk
 

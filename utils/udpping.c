@@ -37,7 +37,7 @@
 
 #define PORT 9898
 
-#if defined(__FreeBSD__) || defined(__QNXNTO__)
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__QNXNTO__)
 #define NO_IFINDEX
 #endif
 

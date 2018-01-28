@@ -76,7 +76,9 @@ int main(int argc, char *argv[])
 	/* Test the windows gettimeofday */
 	gettimeofday(&start, NULL);
 	time(&now);
-	usleep(1000000);
+	/* NetBSD does not allow 1000000 */
+	usleep(500000);
+	usleep(500000);
 	gettimeofday(&end, NULL);
 	delta = delta_timeval_now(&start);
 	/* Delta should be within +/-2ms of 1 second */
