@@ -18,7 +18,7 @@ all:	${LIBDB}
 ${LIBDB}: ${OBJS}
 	@rm -f $@
 	${QUIET_AR}ar cqs $@ ${OBJS}
-	${QUIET_LINK}ld -r -o db.1.85.o ${OBJS}
+	${QUIET_LINK}${LD} -r -o db.1.85.o ${OBJS}
 
 clean:
 	rm -f ${LIBDB} ${OBJS} db.1.85.o

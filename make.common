@@ -8,7 +8,7 @@ BINDIR ?= $(PREFIX)/bin
 LIBDIR ?= $(PREFIX)/lib
 INCDIR ?= $(PREFIX)/include
 
-MFLAGS += CC=$(CC)
+MFLAGS += CC=$(CC) LD=$(LD)
 
 # Uncomment for system db rather than builtin
 #CFLAGS += -DHAVE_DB_H
