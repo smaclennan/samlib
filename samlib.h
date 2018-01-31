@@ -33,7 +33,7 @@
 #endif
 
 #define SAMLIB_MAJOR 1
-#define SAMLIB_MINOR 3
+#define SAMLIB_MINOR 4
 
 extern const char *samlib_version;
 extern const char *samlib_marker;
@@ -299,12 +299,11 @@ int get_address(const char *hostname, char *ipv4, char *ipv6);
 /* ipv4 only... but useful. Returns in host order. */
 uint32_t get_address4(const char *hostname);
 
-/* Skips the loopback interface. Returns < 0 on error else number of interfaces.
- * Interface names are malloced and must be freed.
+/* Skips the loopback interface. Returns < 0 on error else number of
+ * interfaces.  Interface names are malloced and must be freed. state
+ * is a bitmask of interface up or down and can be null.
  */
-int get_interfaces(char **ifname, int n, int flags);
-#define IFACE_UP 1
-#define IFACE_DOWN 2
+int get_interfaces(char **ifname, int n, uint64_t *state);
 void free_interfaces(char **ifnames, int n);
 
 /* DB functions - requires -ldb

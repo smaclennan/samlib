@@ -125,7 +125,7 @@ static void usage(int rc)
 int main(int argc, char *argv[])
 {
 	int c, rc = 0;
-	unsigned what = 0, flags = IFACE_UP;
+	unsigned what = 0;
 
 	while ((c = getopt(argc, argv, "abgmsh")) != EOF)
 		switch (c) {
@@ -146,7 +146,6 @@ int main(int argc, char *argv[])
 			break;
 		case 'a':
 			what |= W_ALL;
-			flags = 0;
 			break;
 		case 'h':
 			usage(0);
@@ -162,16 +161,18 @@ int main(int argc, char *argv[])
 			rc |= check_one(argv[optind++], what);
 	} else {
 		char *ifaces[MAX_INTERFACES];
+		uint64_t state;
 		int i, n;
 
-		n = get_interfaces(ifaces, MAX_INTERFACES, flags);
+		n = get_interfaces(ifaces, MAX_INTERFACES, &state);
 		if (n == 0) {
 			fputs("No interfaces found\n", stderr);
 			return 1;
 		}
 
-		for (i = 0; i < n; ++i)
-			rc |= check_one(ifaces[i], what | W_GUESSED);
+		for (i = 0; i < n; ++i, state >>= 1)
+			if ((what & W_ALL) || (state & 1))
+				rc |= check_one(ifaces[i], what | W_GUESSED);
 	}
 
 	return rc;

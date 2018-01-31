@@ -28,5 +28,7 @@ mkfilesz: mkfilesz.c
 md5sum: md5sum.c
 	$(CC) $(CFLAGS) -o $@ $< ../libsamlib.a
 
+$(ALL): ../libsamlib.a ../samlib.h
+
 clean:
 	rm -f $(ALL)

@@ -119,7 +119,7 @@ got_it:
 	return 0;
 }
 
-static int win32_get_interfaces(char **ifnames, int n, int flags)
+static int win32_get_interfaces(char **ifnames, int n, uint64_t *state)
 {
 	PIP_ADAPTER_INFO pAdapter;
 	DWORD dwRetVal = 0;
@@ -144,20 +144,16 @@ static int win32_get_interfaces(char **ifnames, int n, int flags)
 			continue;
 		}
 
-		int up = strcmp(pAdapter->IpAddressList.IpAddress.String, "0.0.0.0");
-		if (flags) {
-			if ((flags & IFACE_UP) && !up)
-				continue;
-			if ((flags & IFACE_DOWN) && up)
-				continue;
-		}
+		if (i >= n)
+			break;
 
-		if (i < n) {
-			ifnames[i] = strdup(name);
-			if (!ifnames[i])
-				goto failed;
-			++i;
-		}
+		if (state)
+			*state |= (strcmp(pAdapter->IpAddressList.IpAddress.String, "0.0.0.0") != 0) << i;
+
+		ifnames[i] = strdup(name);
+		if (!ifnames[i])
+			goto failed;
+		++i;
 	}
 
 	FREE(pAdapterInfo);
@@ -318,31 +314,31 @@ uint32_t get_address4(const char *hostname)
 }
 
 #ifdef __linux__
-static int check_flags(const char *name, int flags)
+static int check_state(const char *name)
 {
 	char buff[64];
 	int fd;
-
-	if (flags == 0)
-		return 1;
 
 	snprintf(buff, sizeof(buff), "/sys/class/net/%s/operstate", name);
 	fd = open(buff, O_RDONLY);
 	if (fd >= 0) {
 		int n = read(fd, buff, sizeof(buff));
 		close(fd);
-		if (n > 0) {
-			int up = strncmp(buff, "up", 2) == 0;
-			return (up && (flags & IFACE_UP)) || (!up && (flags & IFACE_DOWN));
-		}
+		if (n > 0)
+			return strncmp(buff, "up", 2) == 0;
 	}
 	return 0; /* down */
 }
 #endif
 
 /* Skips the loopback interface */
-int get_interfaces(char **ifnames, int n, int flags)
+int get_interfaces(char **ifnames, int n, uint64_t *state)
 {
+	if (state) {
+		*state = 0;
+		if (n > 64) n = 64;
+	}
+
 #ifdef __linux__
 	int i = 0;
 	DIR *dir = opendir("/sys/class/net");
@@ -352,12 +348,12 @@ int get_interfaces(char **ifnames, int n, int flags)
 	struct dirent *ent;
 	while ((ent = readdir(dir)) && i < n)
 		if (*ent->d_name != '.' && strcmp(ent->d_name, "lo")) {
-			if (check_flags(ent->d_name, flags)) {
-				ifnames[i] = strdup(ent->d_name);
-				if (!ifnames[i])
-					goto oom;
-				++i;
-			}
+			ifnames[i] = strdup(ent->d_name);
+			if (!ifnames[i])
+				goto oom;
+			if (state)
+				*state |= check_state(ent->d_name) << i;
+			++i;
 		}
 
 	closedir(dir);
@@ -367,7 +363,7 @@ oom:
 	free_interfaces(ifnames, i);
 	return -ENOMEM;
 #elif defined(WIN32)
-	return win32_get_interfaces(ifnames, n, flags);
+	return win32_get_interfaces(ifnames, n, state);
 #else
 	/* Fall back to ifconfig */
 	FILE *pfp = popen("ifconfig -a", "r");
@@ -378,13 +374,8 @@ oom:
 	char line[128];
 	while (fgets(line, sizeof(line), pfp))
 		if (!isspace(*line) && strncmp(line, "lo", 2) && i < n) {
-			if (flags) {
-				char *up = strstr(line, "UP");
-				if ((flags & IFACE_UP) && up == NULL)
-					continue;
-				if ((flags & IFACE_DOWN) && up)
-					continue;
-			}
+			if (state)
+				*state |= (strstr(line, "UP") != NULL) << i;
 			ifnames[i] = strdup(strtok(line, ":"));
 			if (!ifnames[i])
 				goto oom;
