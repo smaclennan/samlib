@@ -39,7 +39,7 @@ db.1.85/libdb.a:
 *.o: samlib.h
 
 aes128.o: aes128.c
-	$(QUIET_CC)$(CC) $(CFLAGS) -maes -c $< -o $@
+	$(QUIET_CC)$(CC) $(CFLAGS) $(AES) -c $< -o $@
 
 # Threading - Linux x86 only
 libsamthread.a: samthread.o
