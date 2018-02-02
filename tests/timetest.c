@@ -81,8 +81,8 @@ int main(int argc, char *argv[])
 	usleep(500000);
 	gettimeofday(&end, NULL);
 	delta = delta_timeval_now(&start);
-	/* Delta should be within +/-2ms of 1 second */
-	if (delta < 998000 || delta > 1002000)
+	/* Delta should be within +/-5ms of 1 second */
+	if (delta < 995000 || delta > 1005000)
 		printf("Warning: %s should be about 1,000,000\n", nice_number(delta));
 	/* Now should be within a second of start */
 	if (now != start.tv_sec && now + 1 != start.tv_sec && now - 1 != start.tv_sec)
