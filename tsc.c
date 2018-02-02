@@ -20,9 +20,18 @@ int cpuid(uint32_t id, uint32_t *regs)
 	return 0;
 }
 
-int cpu_info(int *family, int *model, int *stepping)
+int cpu_info(char *vendor, int *family, int *model, int *stepping)
 {
 	uint32_t regs[4];
+	
+	cpuid(0, regs);
+
+	if (vendor) {
+		memcpy(vendor, &regs[1], sizeof(uint32_t));
+		memcpy(vendor + 4, &regs[3], sizeof(uint32_t));
+		memcpy(vendor + 8, &regs[2], sizeof(uint32_t));
+		vendor[12] = 0;
+	}
 
 	cpuid(1, regs);
 
@@ -38,9 +47,9 @@ int cpu_info(int *family, int *model, int *stepping)
 
 int cpu_frequency(uint64_t *freq)
 {
-	if (freq) {
-		char name[49], *p;
+	char name[49], *p;
 
+	if (freq) {
 		*freq = 0;
 
 		unsigned int *v = (unsigned int *)name;
@@ -66,10 +75,24 @@ int cpu_frequency(uint64_t *freq)
 
 	/* This is how Linux decides to set constant_tsc flag in v4.15 */
 	int family, model;
-	cpu_info(&family, &model, NULL);
-	if ((family == 0xf && model >= 0x03) ||
-		(family == 0x6 && model >= 0x0e))
-		return 0;
+	cpu_info(name, &family, &model, NULL);
+
+	if (strcmp(name, "AuthenticAMD") == 0) {
+		uint32_t regs[4];
+
+		/*
+		 * c->x86_power is 8000_0007 edx. Bit 8 is TSC runs at constant rate
+		 * with P/T states and does not stop in deep C-states
+		 */
+		cpuid(0x80000007, regs);
+		if (regs[3] & (1 << 8))
+			return 0;
+	} else {
+		/* Intel */
+		if ((family == 0xf && model >= 0x03) ||
+			(family == 0x6 && model >= 0x0e))
+			return 0;
+	}
 
 	return EINVAL;
 }

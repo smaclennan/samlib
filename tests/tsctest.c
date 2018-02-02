@@ -14,13 +14,16 @@ int tsc_main(void)
 int main(void)
 #endif
 {
+	char name[13];
+	cpu_info(name, NULL, NULL, NULL);
+
 	uint64_t freq;
 	switch (cpu_frequency(&freq)) {
 	case 0:
-		printf("Freq %.2fGHz\n", (double)freq / 1000000000.0);
+		printf("%s %.2fGHz\n", name, (double)freq / 1000000000.0);
 		break;
 	case EINVAL:
-		printf("Freq %.2fGHz but not constant\n", (double)freq  / 1000000000.0);
+		printf("%s %.2fGHz but not constant\n", name, (double)freq  / 1000000000.0);
 		break;
 	case ENOTNAM:
 		printf("Unable to parse model name\n");
