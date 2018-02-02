@@ -25,12 +25,15 @@ int main(void)
 	case EINVAL:
 		printf("%s %.2fGHz but not constant\n", name, (double)freq  / 1000000000.0);
 		break;
-	case ENOTNAM:
-		printf("Unable to parse model name\n");
-		return 1;
 	case -1:
 		return 0; /* not a supported arch */
+	default:
+		printf("%s: unexpected return\n", name);
+		return 1;
 	}
+
+	if (freq == 0)
+		return 1;
 
 	uint64_t start = rdtsc();
 	usleep(88000); /* 88 ms */

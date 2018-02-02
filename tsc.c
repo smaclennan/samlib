@@ -48,32 +48,8 @@ int cpu_info(char *vendor, int *family, int *model, int *stepping)
 int cpu_frequency(uint64_t *freq)
 {
 	char name[49], *p;
+	int rc = EINVAL;
 
-	if (freq) {
-		*freq = 0;
-
-		unsigned int *v = (unsigned int *)name;
-		cpuid(0x80000002, v);
-		cpuid(0x80000003, v + 4);
-		cpuid(0x80000004, v + 8);
-		name[48] = 0;
-
-		if (!(p = strchr(name, '@')))
-			return ENOTNAM;
-
-		double d = strtod(p + 1, &p);
-		while (isspace(*p)) ++p;
-		if (strncasecmp(p, "ghz", 3) == 0) {
-			d *= 1000000000.0;
-		} else if (strncasecmp(p, "mhz", 3) == 0) {
-			d *= 1000000.0;
-		} else
-			return ENOTNAM;
-
-		*freq = d;
-	}
-
-	/* This is how Linux decides to set constant_tsc flag in v4.15 */
 	int family, model;
 	cpu_info(name, &family, &model, NULL);
 
@@ -86,15 +62,40 @@ int cpu_frequency(uint64_t *freq)
 		 */
 		cpuid(0x80000007, regs);
 		if (regs[3] & (1 << 8))
-			return 0;
+			rc = 0;
 	} else {
 		/* Intel */
+		/* This is how Linux decides to set constant_tsc flag in v4.15 */
 		if ((family == 0xf && model >= 0x03) ||
 			(family == 0x6 && model >= 0x0e))
-			return 0;
+			rc = 0;
 	}
 
-	return EINVAL;
+	if (freq) {
+		*freq = 0;
+
+		unsigned int *v = (unsigned int *)name;
+		cpuid(0x80000002, v);
+		cpuid(0x80000003, v + 4);
+		cpuid(0x80000004, v + 8);
+		name[48] = 0;
+
+		if (!(p = strchr(name, '@')))
+			return rc;
+
+		double d = strtod(p + 1, &p);
+		while (isspace(*p)) ++p;
+		if (strncasecmp(p, "ghz", 3) == 0) {
+			d *= 1000000000.0;
+		} else if (strncasecmp(p, "mhz", 3) == 0) {
+			d *= 1000000.0;
+		} else
+			return rc;
+
+		*freq = d;
+	}
+
+	return rc;
 }
 
 /* Returns the delta in microseconds */
