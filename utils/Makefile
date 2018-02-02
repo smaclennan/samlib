@@ -6,8 +6,9 @@ CFLAGS += -I.. -I/usr/local/include -L/usr/local/lib
 # Needed for netbsd
 CFLAGS += -I/usr/pkg/include
 
-# For QNX
-#LIBS += -lsocket
+ifneq ($(findstring nto-qnx,$(shell $(CC) -dumpmachine)),)
+LIBS += -lsocket
+endif
 
 ALL := ipaddr find-dups imgsize  meminfo mkfilesz pkg prepro serial
 ALL += strip-comments strip-comments2 udp-echo udpping md5sum
