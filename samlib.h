@@ -433,7 +433,7 @@ static inline uint64_t rdtsc(void)
 	/* generic timer */
 	uint64_t tsc;
 	asm volatile ("isb; mrs %0, cntvct_el0" : "=r" (tsc));
-	return t;
+	return tsc;
 #elif defined(WIN32)
 	LARGE_INTEGER tsc;
 	QueryPerformanceCounter(&tsc);
