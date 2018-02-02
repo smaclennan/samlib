@@ -97,6 +97,21 @@ int cpu_frequency(uint64_t *freq)
 
 	return rc;
 }
+#elif defined(__aarch64__)
+/* SAM FIXME */
+int cpuid(uint32_t id, uint32_t *regs) { return -1; }
+int cpu_info(char *vendor, int *family, int *model, int *stepping) { return -1; }
+
+int cpu_frequency(uint64_t *freq)
+{   /* actually generic timer frequency - which is what we want */
+	asm volatile ("isb; mrs %0, cntfrq_el0" : "=r" (*freq));
+	return 0;
+}
+#else
+int cpuid(uint32_t id, uint32_t *regs) { return -1; }
+int cpu_info(char *vendor, int *family, int *model, int *stepping) { return -1; }
+int cpu_frequency(uint64_t *freq) { return -1; }
+#endif
 
 /* Returns the delta in microseconds */
 uint64_t delta_tsc(uint64_t start)
@@ -106,14 +121,11 @@ uint64_t delta_tsc(uint64_t start)
 
 	if (divisor == 0) {
 		cpu_frequency(&divisor);
-		divisor /= 1000000; /* us */
+		if (divisor)
+			divisor /= 1000000; /* us */
+		else
+			divisor = 1;
 	}
 
 	return (end - start) / divisor;
 }
-#else
-int cpuid(uint32_t id, uint32_t *regs) { return -1; }
-int cpu_info(int *family, int *model, int *stepping) { return -1; }
-int cpu_frequency(uint64_t *freq) { return -1; }
-uint64_t delta_tsc(uint64_t start) { return 0; }
-#endif

@@ -425,10 +425,15 @@ static inline uint64_t rdtsc(void)
 	asm volatile("rdtsc" : "=a" (low), "=d" (high));
 	return low | (high << 32);
 #elif defined(__i386__)
-	unsigned long long val;
+	unsigned long long tsc;
 	asm volatile("mfence" : : : "memory");
-	asm volatile("rdtsc" : "=A" (val));
-	return val;
+	asm volatile("rdtsc" : "=A" (tsc));
+	return tsc;
+#elif defined(__aarch64__)
+	/* generic timer */
+	uint64_t tsc;
+	asm volatile ("isb; mrs %0, cntvct_el0" : "=r" (tsc));
+	return t;
 #elif defined(WIN32)
 	LARGE_INTEGER tsc;
 	QueryPerformanceCounter(&tsc);
