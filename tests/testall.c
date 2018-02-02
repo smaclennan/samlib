@@ -11,6 +11,7 @@
 #include "readfile.c"
 #include "readproctest.c"
 #include "sha256test.c"
+#include "testtsc.c"
 #include "threadtest.c"
 #include "timetest.c"
 #include "spinlock.c"
@@ -35,6 +36,7 @@ int main(int argc, char *argv[])
 	rc |= readfile_main();
 	rc |= readproc_main();
 	rc |= sha256_main();
+	rc |= tsc_main();
 	rc |= spinlock_main();
 	rc |= thread_main();
 	rc |= time_main();

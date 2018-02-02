@@ -17,3 +17,4 @@ spinlock
 testall
 threadtest
 timetest
+testtsc

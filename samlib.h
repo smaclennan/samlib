@@ -417,6 +417,32 @@ pid_t findpid(const char *cmd, pid_t start_pid);
  */
 void dump_stack(void);
 
+static inline uint64_t rdtsc(void)
+{
+#ifdef __x86_64__
+	unsigned long low, high;
+	asm volatile("mfence" : : : "memory");
+	asm volatile("rdtsc" : "=a" (low), "=d" (high));
+	return low | (high << 32);
+#elif defined(__i386__)
+	unsigned long long val;
+	asm volatile("mfence" : : : "memory");
+	asm volatile("rdtsc" : "=A" (val));
+	return val;
+#elif defined(WIN32)
+	LARGE_INTEGER tsc;
+	QueryPerformanceCounter(&tsc);
+	return tsc.QuadPart;
+#else
+	return 0;
+#endif
+}
+
+int cpuid(uint32_t id, uint32_t *regs);
+int cpu_info(int *family, int *model, int *stepping);
+int cpu_frequency(uint64_t *freq);
+uint64_t delta_tsc(uint64_t start);
+
 #ifdef WIN32
 /* Windows still cannot handle void * correctly */
 #define WIN32_COERCE (unsigned char *)

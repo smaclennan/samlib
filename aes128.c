@@ -373,15 +373,7 @@ static int cpu_supports_aes(void)
 	uint32_t regs[4];
 
 	if (supported == -1) {
-#ifdef WIN32
-		__cpuid(regs, 1);
-#else
-		asm volatile
-			("cpuid"
-			 : "=a" (regs[0]), "=b" (regs[1]), "=c" (regs[2]), "=d" (regs[3])
-			 : "a" (1), "c" (0));
-#endif
-
+		cpuid(1, regs);
 		supported = !!(regs[2] & (1 << 25)); /* bit 25 is aes */
 	}
 
