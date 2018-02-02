@@ -8,7 +8,7 @@ QUIET_AR      = $(Q:@=@echo    '     AR       '$@;)
 QUIET_MAKE    = $(Q:@=@echo    '     MAKE     '$@;)
 
 D = -O2
-CFLAGS += $(D:1=-g -D__DEBUG__)
+CFLAGS += $(D:1=-g -D__DEBUG__) -Wall
 
 .c.o:
 	$(QUIET_CC)$(CC) -o $@ -c $(CFLAGS) $<

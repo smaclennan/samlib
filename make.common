@@ -17,8 +17,6 @@ MFLAGS += CC=$(CC) LD=$(LD)
 EXTRA_LIB = db.1.85/libdb.a
 EXTRA_OBJ = db.1.85/db.1.85.o
 
-CFLAGS += -Wall
-
 CFILES := version.c readfile.c readcmd.c do-system.c walkfiles.c
 CFILES += mkdir-p.c md5.c ip.c copy.c binary.c samdb.c time.c
 CFILES += arg-helpers.c xorshift.c must.c readproc.c base64.c

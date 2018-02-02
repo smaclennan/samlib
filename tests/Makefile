@@ -1,4 +1,4 @@
-CFLAGS += -Wall -O2
+include ../Rules.mk
 
 #CC = clang -fno-color-diagnostics
 
@@ -24,7 +24,7 @@ test: all
 	for t in $(TESTS); do echo $$t; ./$$t; done
 
 %: %.c
-	$(CC) $(CFLAGS) -o $@ $< ../libsamlib.a ../libsamthread.a $(LIBS)
+	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< ../libsamlib.a ../libsamthread.a $(LIBS)
 
 $(TESTS): ../libsamlib.a ../samlib.h
 
