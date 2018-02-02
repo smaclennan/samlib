@@ -12,7 +12,7 @@ include ../Rules.mk
 TESTS := args base64 cptest crc16test md5test random readfile
 TESTS += sha256test timetest threadtest spinlock dbtest
 TESTS += readproctest aes-test aes-stress mmap-test mutex-timing
-TESTS += testtsc
+TESTS += tsctest
 
 OTHERS := bitgen
 

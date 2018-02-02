@@ -11,7 +11,7 @@
 #include "readfile.c"
 #include "readproctest.c"
 #include "sha256test.c"
-#include "testtsc.c"
+#include "tsctest.c"
 #include "threadtest.c"
 #include "timetest.c"
 #include "spinlock.c"
