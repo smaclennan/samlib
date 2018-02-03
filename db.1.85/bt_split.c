@@ -86,14 +86,14 @@ __bt_split(t, sp, key, data, flags, ilen, argskip)
 	size_t ilen;
 	uint32_t argskip;
 {
-	BINTERNAL *bi;
-	BLEAF *bl, *tbl;
+	BINTERNAL *bi = NULL;
+	BLEAF *bl = NULL, *tbl;
 	DBT a, b;
 	EPGNO *parent;
 	PAGE *h, *l, *r, *lchild, *rchild;
 	indx_t nxtindex;
 	uint16_t skip;
-	uint32_t n, nbytes, nksize;
+	uint32_t n, nbytes, nksize = 0;
 	int parentsplit;
 	char *dest;
 
@@ -244,7 +244,7 @@ __bt_split(t, sp, key, data, flags, ilen, argskip)
 			WR_BINTERNAL(dest, nksize ? nksize : bl->ksize,
 				rchild->pgno, bl->flags & P_BIGKEY);
 			memmove(dest, bl->bytes, nksize ? nksize : bl->ksize);
-			if (bl->flags & P_BIGKEY &&
+			if ((bl->flags & P_BIGKEY) &&
 				bt_preserve(t, *(pgno_t *)bl->bytes) == RET_ERROR)
 				goto err1;
 			break;
@@ -567,7 +567,7 @@ bt_broot(t, h, l, r)
 		 * If the key is on an overflow page, mark the overflow chain
 		 * so it isn't deleted when the leaf copy of the key is deleted.
 		 */
-		if (bl->flags & P_BIGKEY &&
+		if ((bl->flags & P_BIGKEY) &&
 			bt_preserve(t, *(pgno_t *)bl->bytes) == RET_ERROR)
 			return (RET_ERROR);
 		break;
