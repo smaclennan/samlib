@@ -175,7 +175,7 @@ typedef struct _bleaf {
 	uint32_t	ksize;		/* size of key */
 	uint32_t	dsize;		/* size of data */
 	u_char	flags;			/* P_BIGDATA, P_BIGKEY */
-	char	bytes[1];		/* data */
+	int	    bytes[];		/* data */
 } BLEAF;
 
 /* Get the page's BLEAF structure at index indx. */
