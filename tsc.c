@@ -98,9 +98,30 @@ int cpu_frequency(uint64_t *freq)
 	return rc;
 }
 #elif defined(__aarch64__)
-/* SAM FIXME */
-int cpuid(uint32_t id, uint32_t *regs) { return -1; }
-int cpu_info(char *vendor, int *family, int *model, int *stepping) { return -1; }
+/* SAM not complete */
+int cpuid(uint32_t id, uint32_t *regs)
+{       /* Needs el1 privilege */
+		asm volatile ("mrs %0, midr_el1" : "=r" (regs[0]));
+		return 0;
+}
+
+int cpu_info(char *vendor, int *family, int *model, int *stepping)
+{
+	uint32_t regs[1];
+
+	cpuid(0, regs);
+	if (vendor) { /* implementer */
+		*vendor = (regs[0] >> 24) & 0xff;
+		*(vendor + 1) = 0;
+	}
+
+	if (family) /* partno */
+		*family = (regs[0] >> 4) & 0xfff;
+	if (model) /* variant + arch */
+		*model = (regs[0] >> 16) & 0xff;
+	if (stepping) /* revision */
+		*stepping = regs[0] & 0xf;
+}
 
 int cpu_frequency(uint64_t *freq)
 {   /* actually generic timer frequency - which is what we want */
