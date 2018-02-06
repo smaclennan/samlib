@@ -72,7 +72,8 @@ static void handle_stdin(void)
 	char c;
 	int n;
 
-	read(0, &c, 1);
+	if (read(0, &c, 1) != 1)
+		return;
 
 	// Two CTRL-Zs exits
 	if(c == 0x1a) {
@@ -80,7 +81,7 @@ static void handle_stdin(void)
 		if(exit_count > 1) exit(0);
 	} else if(exit_count == 1) {
 		char c1 = 0x1a;
-		write(fd, &c1, 1); //we should check return
+		n = write(fd, &c1, 1);
 	}
 	exit_count = 0;
 
@@ -99,7 +100,7 @@ static void handle_serial(void)
 	int n;
 
 	if((n = read(fd, &c, 1)) == 1)
-		write(1, &c, 1);
+		n = write(1, &c, 1);
 	else if(n == 0) {
 		printf("EOF on serial port\n");
 		exit(1);
