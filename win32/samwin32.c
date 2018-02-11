@@ -134,6 +134,6 @@ void gettimeofday(struct timeval *tv, void *ignored)
 	now.LowPart = file.dwLowDateTime;
 	now.QuadPart /= 10; /* convert from 100 nanoseconds to microseconds */
 
-	tv->tv_sec = (now.QuadPart / 1000000) - FILETIME2UNIXTIME;
+	tv->tv_sec = (long)((now.QuadPart / 1000000) - FILETIME2UNIXTIME);
 	tv->tv_usec = now.QuadPart % 1000000;
 }

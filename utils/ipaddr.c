@@ -19,7 +19,7 @@
 
 #include <stdio.h>
 #include <errno.h>
-#include "samlib.h"
+#include "../samlib.h"
 
 #ifndef WIN32
 #include <arpa/inet.h> /* inet_ntoa */

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "../samthread.h"
+#include "../samlib.h"
 
 #define N_CHILDREN  4
 

@@ -72,6 +72,8 @@ int getline(char **line, int *len, FILE *fp);
 
 void gettimeofday(struct timeval *tv, void *ignored);
 
+static _inline void usleep(unsigned int us) { Sleep(us / 1000); }
+
 typedef DWORD pid_t;
 typedef int mode_t;
 
