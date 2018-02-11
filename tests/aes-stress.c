@@ -2,11 +2,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
-#include <sys/time.h>
 
 #include "../samlib.h"
 
@@ -15,7 +13,11 @@
 /* This one is better for testing software solution */
 #define LOOPS_SW 2000000UL
 
+#ifdef TESTALL
+int aes_stress(void)
+#else
 int main(int argc, char *argv[])
+#endif
 {
 	unsigned long i, delta, loops;
 	uint8_t buf[64], output[64];

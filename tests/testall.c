@@ -16,6 +16,7 @@
 #include "timetest.c"
 #include "spinlock.c"
 #include "aes-test.c"
+#include "aes-stress.c"
 #include "mmap-test.c"
 
 
@@ -26,6 +27,7 @@ int main(int argc, char *argv[])
 	printf("Version %s\n", samlib_version);
 
 	rc |= aes_main();
+	rc |= aes_stress();
 	rc |= args_main();
 	rc |= base64_main();
 	rc |= cptest_main();

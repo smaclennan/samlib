@@ -5,10 +5,8 @@
 /* It is always safe to enable AES_HW on x86 systems. It will only be
  * used if the CPU supports it.
  */
-#ifndef WIN32 // SAM FIXME - windows has the API.. but it keeps getting an exception
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(_M_X64)
 #define AES_HW 1
-#endif
 #endif
 
 /* TI_aes.c from:
