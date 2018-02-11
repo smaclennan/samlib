@@ -6,8 +6,10 @@
  * used if the CPU supports it.
  */
 #ifndef __QNXNTO__ // SAM FIXME
+#ifndef WIN32 // SAM FIXME - windows has the API.. but it keeps getting an exception
 #ifndef AES_HW
 #define AES_HW 1
+#endif
 #endif
 #endif
 

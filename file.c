@@ -69,8 +69,7 @@ char *tmpfilename(const char *fname)
 #ifdef WIN32
 	char tmp[MAX_PATH];
 
-	DWORD n = GetTempPath(sizeof(path), path);
-	if (n == 0)
+	if (GetTempPath(sizeof(tmp), tmp) == 0)
 		strcpy(tmp, "c:/tmp");
 #else
 	char *tmp = getenv("TMPDIR");

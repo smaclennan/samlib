@@ -152,6 +152,14 @@ uint64_t delta_tsc(uint64_t start)
 	static uint64_t divisor = 0;
 	uint64_t end = rdtsc();
 
+#ifdef WIN32
+	if (divisor == 0) {
+		cpu_frequency(&divisor);
+		divisor /= 1000;
+	}
+
+	return ((end - start) / divisor) * 1000;
+#else
 	if (divisor == 0) {
 		cpu_frequency(&divisor);
 		if (divisor)
@@ -161,4 +169,5 @@ uint64_t delta_tsc(uint64_t start)
 	}
 
 	return (end - start) / divisor;
+#endif
 }
