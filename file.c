@@ -60,3 +60,42 @@ int mktempfile(char *fname, int len)
 	return _open(fname, O_RDWR | O_CREAT | O_TRUNC | O_BINARY, 0644);
 #endif
 }
+
+/* Create a file name in the temp directory. If fname is NULL, just
+ * returns the tmp directory. The returned name is malloced.
+ */
+char *tmpfilename(const char *fname)
+{
+#ifdef WIN32
+	char tmp[MAX_PATH];
+
+	DWORD n = GetTempPath(sizeof(path), path);
+	if (n == 0)
+		strcpy(tmp, "c:/tmp");
+#else
+	char *tmp = getenv("TMPDIR");
+	if (!tmp || !*tmp)
+		tmp = "/tmp";
+#endif
+	int len = strlen(tmp);
+	int n = len + 2;
+	if (fname)
+		n += strlen(fname);
+
+	char *out = malloc(n);
+	if (!out)
+		return NULL;
+
+	strcpy(out, tmp);
+	if (*(tmp + n - 1) == '/')
+		*(tmp + n - 1) = 0;
+
+	if (fname) {
+		strcat(out, "/");
+		while (*fname == '/') ++fname;
+		if (*fname)
+			strcat(out, fname);
+	}
+
+	return out;
+}

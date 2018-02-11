@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <assert.h>
 #include "../samlib.h"
 
 #define FILENAME "/tmp/readfile.txt" /* reuse this */
@@ -38,6 +39,38 @@ static int create_random_bin_file(const char *fname)
 	return 0;
 }
 
+static int test_tmpfilename(void)
+{
+	int rc = 0;
+	char path[128];
+
+	char *tmp = tmpfilename(NULL);
+	assert(tmp && *tmp);
+	if (*(tmp + strlen(tmp) - 1) == '/') {
+		printf("Bad tmp '%s'\n", tmp);
+		rc = 1;
+	}
+
+	snprintf(path, sizeof(path), "%s/test", tmp);
+
+	char *fname = tmpfilename("test");
+	if (strcmp(fname, path)) {
+		printf("'%s' != '%s'\n", fname, path);
+		rc = 1;
+	}
+	free(fname);
+
+	fname = tmpfilename("/test");
+	if (strcmp(fname, path)) {
+		printf("'%s' != '%s'\n", fname, path);
+		rc = 1;
+	}
+	free(fname);
+	free(tmp);
+
+	return rc;
+}
+
 #ifdef TESTALL
 static int cptest_main(void)
 #else
@@ -46,18 +79,25 @@ int main(int argc, char *argv[])
 {
 	int fd, n, rc;
 
-	if (create_random_bin_file(FILENAME))
+	char *filename = tmpfilename("readfile.txt");
+	char *toname = tmpfilename("cptest.txt");
+	if (!filename || !toname) {
+		puts("cptest: Out of memory!");
+		return 1;
+	}
+
+	if (create_random_bin_file(filename))
 		return 1;
 
-	rc = copy_file(FILENAME, TONAME);
+	rc = copy_file(filename, toname);
 	if (rc != len) {
 		printf("copy_file failed: %d != %d\n", rc, len);
 		return 1;
 	}
 
-	fd = open(TONAME, O_RDONLY | O_BINARY);
+	fd = open(toname, O_RDONLY | O_BINARY);
 	if (fd < 0) {
-		perror(TONAME);
+		perror(toname);
 		return 1;
 	}
 	n = read(fd, buf2, sizeof(buf2));
@@ -73,8 +113,9 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	unlink(FILENAME);
-	unlink(TONAME);
+	unlink(filename);
+	unlink(toname);
 
-	return 0;
+	/* Since we use tmpfilename, test it here */
+	return test_tmpfilename();
 }

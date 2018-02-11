@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
+#include <assert.h>
 #ifdef HAVE_DB_H
 #include <db.h>
 #endif
@@ -25,24 +26,6 @@ static int db_walk_strings(const char *key, void *data, int len)
 	return 0;
 }
 
-char *create_tmp_file(void)
-{
-#ifdef WIN32
-	static char path[100];
-	DWORD n;
-
-	n = GetTempPath(sizeof(path) - 8, path);
-	if (n >= sizeof(path) - 8 || n == 0)
-		_snprintf(path, sizeof(path), "c:/tmp/dbtest");
-	else
-		strcat(path, "dbtest");
-	printf("tmpfile %s\n", path);
-	return path;
-#else
-	return "/tmp/dbtest";
-#endif
-}
-
 #ifdef TESTALL
 int db_main(void)
 #else
@@ -52,7 +35,8 @@ int main(int argc, char *argv[])
 	char str[8];
 	int rc = 0;
 
-	char *tmpfile = create_tmp_file();
+	char *tmpfile = tmpfilename("dbtest");
+	assert(tmpfile);
 
 	unlink(tmpfile);
 

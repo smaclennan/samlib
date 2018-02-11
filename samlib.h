@@ -100,6 +100,11 @@ int create_file(const char *fname, off_t length, mode_t mode);
 /* Create a temporary file and return the file name */
 int mktempfile(char *fname, int len);
 
+/* Create a file name in the temp directory. If fname is NULL, just
+ * returns the tmp directory. The returned name is malloced.
+ */
+char *tmpfilename(const char *fname);
+
 /* This mimics the shell's `mkdir -p' */
 int mkdir_p(const char *dir);
 

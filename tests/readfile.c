@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
+#include <assert.h>
 #include "../samlib.h"
 
-#define FILENAME		"/tmp/readfile.txt"
 #define MAX_LINES		1000
 #define MAX_CHARS		128
 
@@ -115,11 +115,14 @@ static int readfile_main(void)
 int main(int argc, char *argv[])
 #endif
 {
-	if (create_random_file(FILENAME))
+	char *filename = tmpfilename("readfile.txt");
+	assert(filename);
+
+	if (create_random_file(filename))
 		return 1;
 
-	if (readfile(check_line, NULL, FILENAME, 0)) {
-		perror(FILENAME);
+	if (readfile(check_line, NULL, filename, 0)) {
+		perror(filename);
 		return 1;
 	}
 
@@ -129,7 +132,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Test no NL at EOF */
-	if (truncate_file(FILENAME)) {
+	if (truncate_file(filename)) {
 		perror("truncate");
 		return 1;
 	}
@@ -137,8 +140,8 @@ int main(int argc, char *argv[])
 	p = readbuf;
 	lineno = 0;
 	buflen = readlen;
-	if (readfile(check_line, NULL, FILENAME, 0)) {
-		perror(FILENAME);
+	if (readfile(check_line, NULL, filename, 0)) {
+		perror(filename);
 		return 1;
 	}
 
@@ -148,7 +151,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	unlink(FILENAME);
+	unlink(filename);
+	free(filename);
 
 	return 0;
 }
