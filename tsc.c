@@ -47,6 +47,17 @@ int cpu_info(char *vendor, int *family, int *model, int *stepping)
 
 int cpu_frequency(uint64_t *freq)
 {
+#ifdef WIN32
+	LARGE_INTEGER val;
+
+	if (QueryPerformanceFrequency(&val)) {
+		*freq = val.QuadPart;
+		return 0;
+	} else {
+		*freq = 0;
+		return ENOENT;
+	}
+#else
 	char name[49], *p;
 	int rc = EINVAL;
 
@@ -96,6 +107,7 @@ int cpu_frequency(uint64_t *freq)
 	}
 
 	return rc;
+#endif
 }
 #elif defined(__aarch64__)
 /* SAM not complete */
