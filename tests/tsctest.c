@@ -17,13 +17,13 @@ int main(void)
 	char name[13];
 	cpu_info(name, NULL, NULL, NULL);
 
-	uint64_t freq;
-	switch (cpu_frequency(&freq)) {
+	uint64_t divisor;
+	switch (tsc_divisor(&divisor)) {
 	case 0:
-		printf("%s %.2fGHz\n", name, (double)freq / 1000000000.0);
+		printf("%s %lx\n", name, divisor);
 		break;
 	case EINVAL:
-		printf("%s %.2fGHz but not constant\n", name, (double)freq  / 1000000000.0);
+		printf("%s %lx but not constant\n", name, divisor);
 		break;
 	case -1:
 		return 0; /* not a supported arch */
@@ -31,9 +31,6 @@ int main(void)
 		printf("%s: unexpected return\n", name);
 		return 1;
 	}
-
-	if (freq == 0)
-		return 1;
 
 	uint64_t start = rdtsc();
 	usleep(88000); /* 88 ms */

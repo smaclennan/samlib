@@ -45,16 +45,18 @@ int cpu_info(char *vendor, int *family, int *model, int *stepping)
 	return 0;
 }
 
-int cpu_frequency(uint64_t *freq)
+int tsc_divisor(uint64_t *divisor)
 {
 #ifdef WIN32
 	LARGE_INTEGER val;
 
 	if (QueryPerformanceFrequency(&val)) {
-		*freq = val.QuadPart;
+		if (divisor)
+			*divisor = val.QuadPart / 1000;
 		return 0;
 	} else {
-		*freq = 0;
+		if (divisor)
+			*divisor = 1;
 		return ENOENT;
 	}
 #else
@@ -82,8 +84,8 @@ int cpu_frequency(uint64_t *freq)
 			rc = 0;
 	}
 
-	if (freq) {
-		*freq = 0;
+	if (divisor) {
+		*divisor = 1;
 
 		unsigned int *v = (unsigned int *)name;
 		cpuid(0x80000002, v);
@@ -103,7 +105,8 @@ int cpu_frequency(uint64_t *freq)
 		} else
 			return rc;
 
-		*freq = d;
+		/* Probably could compensate for this above */
+		*divisor = d / 1000000; /* us */
 	}
 
 	return rc;
@@ -135,15 +138,18 @@ int cpu_info(char *vendor, int *family, int *model, int *stepping)
 		*stepping = regs[0] & 0xf;
 }
 
-int cpu_frequency(uint64_t *freq)
+int tsc_divisor(uint64_t *divisor)
 {   /* actually generic timer frequency - which is what we want */
-	asm volatile ("isb; mrs %0, cntfrq_el0" : "=r" (*freq));
+	if (divisor) {
+		asm volatile ("isb; mrs %0, cntfrq_el0" : "=r" (*divisor));
+		*divisor /= 1000000;
+	}
 	return 0;
 }
 #else
 int cpuid(uint32_t id, uint32_t *regs) { return -1; }
 int cpu_info(char *vendor, int *family, int *model, int *stepping) { return -1; }
-int cpu_frequency(uint64_t *freq) { return -1; }
+int tsc_divisor(uint64_t *divisor) { if (divisor) *divisor = 1; return -1; }
 #endif
 
 /* Returns the delta in microseconds */
@@ -152,22 +158,11 @@ uint64_t delta_tsc(uint64_t start)
 	static uint64_t divisor = 0;
 	uint64_t end = rdtsc();
 
+	if (divisor == 0)
+		tsc_divisor(&divisor);
 #ifdef WIN32
-	if (divisor == 0) {
-		cpu_frequency(&divisor);
-		divisor /= 1000;
-	}
-
 	return ((end - start) / divisor) * 1000;
 #else
-	if (divisor == 0) {
-		cpu_frequency(&divisor);
-		if (divisor)
-			divisor /= 1000000; /* us */
-		else
-			divisor = 1;
-	}
-
 	return (end - start) / divisor;
 #endif
 }
