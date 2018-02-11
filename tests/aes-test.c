@@ -4,26 +4,6 @@
 
 #include "../samlib.h"
 
-static void phex(uint8_t* str);
-static int test_encrypt_ecb(void);
-static int test_decrypt_ecb(void);
-static int test_encrypt_ecb_malloc(void);
-
-#ifdef TESTALL
-int aes_main(void)
-#else
-int main(void)
-#endif
-{
-	int rc = 0;
-
-	rc |= test_decrypt_ecb();
-	rc |= test_encrypt_ecb();
-	rc |= test_encrypt_ecb_malloc();
-
-	return rc;
-}
-
 // prints string as hex
 static void phex(uint8_t* str)
 {
@@ -143,4 +123,19 @@ static int test_decrypt_ecb(void)
   out_msg("decrypt buffer", rc, ctx.have_hw);
 
   return rc;
+}
+
+#ifdef TESTALL
+int aes_main(void)
+#else
+int main(void)
+#endif
+{
+	int rc = 0;
+
+	rc |= test_decrypt_ecb();
+	rc |= test_encrypt_ecb();
+	rc |= test_encrypt_ecb_malloc();
+
+	return rc;
 }
