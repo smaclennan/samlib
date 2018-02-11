@@ -5,11 +5,9 @@
 /* It is always safe to enable AES_HW on x86 systems. It will only be
  * used if the CPU supports it.
  */
-#ifndef __QNXNTO__ // SAM FIXME
 #ifndef WIN32 // SAM FIXME - windows has the API.. but it keeps getting an exception
-#ifndef AES_HW
+#ifdef __x86_64__
 #define AES_HW 1
-#endif
 #endif
 #endif
 
