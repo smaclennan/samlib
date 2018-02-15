@@ -29,7 +29,187 @@
  * interface and wlanN is the Nth wireless interface.
  */
 
-#ifdef WIN32
+#ifdef __linux__
+/* Returns 0 on success, < 0 for errors, and > 0 if ifname not found.
+ * The gateway arg can be NULL.
+ */
+static int get_gateway(const char *ifname, struct in_addr *gateway)
+{
+	FILE *fp = fopen("/proc/net/route", "r");
+	if (!fp)
+		return -1;
+
+	char line[128], iface[8];
+	uint32_t dest, gw, flags;
+	while (fgets(line, sizeof(line), fp))
+		if (sscanf(line, "%s %x %x %x", iface, &dest, &gw, &flags) == 4 &&
+			strcmp(iface, ifname) == 0 && dest == 0 && (flags & 2)) {
+			fclose(fp);
+			if (gateway)
+				gateway->s_addr = gw;
+			return 0;
+		}
+
+	fclose(fp);
+	return 1;
+}
+
+static int check_state(const char *name)
+{
+	char buff[64];
+	int fd;
+
+	snprintf(buff, sizeof(buff), "/sys/class/net/%s/operstate", name);
+	fd = open(buff, O_RDONLY);
+	if (fd >= 0) {
+		int n = read(fd, buff, sizeof(buff));
+		close(fd);
+		if (n > 0)
+			return strncmp(buff, "up", 2) == 0;
+	}
+	return 0; /* down */
+}
+
+/* Skips the loopback interface */
+int get_interfaces(char **ifnames, int n, uint64_t *state)
+{
+	if (state) {
+		*state = 0;
+		if (n > 64) n = 64;
+	}
+
+	int i = 0;
+	DIR *dir = opendir("/sys/class/net");
+	if (!dir)
+		return -ENOENT;
+
+	struct dirent *ent;
+	while ((ent = readdir(dir)) && i < n)
+		if (*ent->d_name != '.' && strcmp(ent->d_name, "lo")) {
+			ifnames[i] = strdup(ent->d_name);
+			if (!ifnames[i])
+				goto oom;
+			if (state)
+				*state |= check_state(ent->d_name) << i;
+			++i;
+		}
+
+	closedir(dir);
+	return i;
+
+oom:
+	free_interfaces(ifnames, i);
+	return -ENOMEM;
+}
+
+#elif !defined(WIN32)
+
+/* Returns 0 on success, < 0 for errors, and > 0 if ifname not found.
+ * The gateway arg can be NULL.
+ */
+static int get_gateway(const char *ifname, struct in_addr *gateway)
+{
+	/* Fall back to netstat */
+	FILE *pfp = popen("netstat -nr", "r");
+	if (!pfp)
+		return -ENOENT;
+
+	char line[128];
+	while (fgets(line, sizeof(line), pfp))
+		if (strncmp(line, "default", 7) == 0 || strncmp(line, "0.0.0.0", 7) == 0) {
+			if (strstr(line, ifname))
+				pclose(pfp);
+				if (gateway) {
+					struct in_addr addr;
+					char *p = line + 7;
+					while (isspace(*p)) ++p;
+					if (inet_aton(p, &addr)) {
+						*gateway = addr;
+						return 0;
+					}
+					return -1;
+				}
+				return 0;
+		}
+
+	pclose(pfp);
+	return 1;
+
+}
+
+/* Skips the loopback interface */
+int get_interfaces(char **ifnames, int n, uint64_t *state)
+{
+	/* Fall back to ifconfig */
+	FILE *pfp = popen("ifconfig -a", "r");
+	if (!pfp)
+		return -ENOENT;
+
+	if (state) {
+		*state = 0;
+		if (n > 64) n = 64;
+	}
+
+	int i = 0;
+	char line[128];
+	while (fgets(line, sizeof(line), pfp))
+		if (!isspace(*line) && strncmp(line, "lo", 2) && i < n) {
+			if (state)
+				*state |= (strstr(line, "UP") != NULL) << i;
+			ifnames[i] = strdup(strtok(line, ":"));
+			if (!ifnames[i])
+				goto oom;
+			++i;
+		}
+
+	pclose(pfp);
+	return i;
+
+oom:
+	free_interfaces(ifnames, i);
+	return -ENOMEM;
+}
+#endif
+
+#ifndef WIN32
+
+/* Returns 0 on success. The args addr and/or mask and/or gw can be NULL. */
+int ip_addr(const char *ifname,
+			struct in_addr *addr, struct in_addr *mask, struct in_addr *gw)
+{
+	int s = socket(AF_INET, SOCK_DGRAM, 0);
+	if (s < 0)
+		return -1;
+
+	struct ifreq ifr;
+	snprintf(ifr.ifr_name, IFNAMSIZ, "%s", ifname);
+
+	if (addr) {
+		if (ioctl(s, SIOCGIFADDR, &ifr) < 0)
+			goto failed;
+		*addr = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
+	}
+
+	if (mask) {
+		if (ioctl(s, SIOCGIFNETMASK, &ifr) < 0)
+			goto failed;
+		*mask = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
+	}
+
+	close(s);
+
+	if (gw)
+		return get_gateway(ifname, gw);
+
+	return 0;
+
+failed:
+	close(s);
+	return -1;
+}
+
+#else /* WIN32 */
+
 #include <winsock2.h>
 #include <iphlpapi.h>
 
@@ -59,10 +239,9 @@ static IP_ADAPTER_INFO *win32_getadapterinfo(void)
 	return pAdapterInfo;
 }
 
-static int win32_getinfo(const char *ifname,
-						 struct in_addr *addr,
-						 struct in_addr *mask,
-						 struct in_addr *gw)
+/* Returns 0 on success. The args addr and/or mask and/or gw can be NULL. */
+int ip_addr(const char *ifname,
+			struct in_addr *addr, struct in_addr *mask, struct in_addr *gw)
 {
 	PIP_ADAPTER_INFO pAdapter;
 	DWORD dwRetVal = 0;
@@ -119,7 +298,7 @@ got_it:
 	return 0;
 }
 
-static int win32_get_interfaces(char **ifnames, int n, uint64_t *state)
+int get_interfaces(char **ifnames, int n, uint64_t *state)
 {
 	PIP_ADAPTER_INFO pAdapter;
 	DWORD dwRetVal = 0;
@@ -129,6 +308,11 @@ static int win32_get_interfaces(char **ifnames, int n, uint64_t *state)
 	PIP_ADAPTER_INFO pAdapterInfo = win32_getadapterinfo();
 	if (!pAdapterInfo)
 		return -1;
+
+	if (state) {
+		*state = 0;
+		if (n > 64) n = 64;
+	}
 
 	for (pAdapter = pAdapterInfo; pAdapter; pAdapter = pAdapter->Next) {
 		switch (pAdapter->Type) {
@@ -165,100 +349,6 @@ failed:
 	return -1;
 }
 #endif
-
-#ifndef WIN32
-/* Returns 0 on success, < 0 for errors, and > 0 if ifname not found.
- * The gateway arg can be NULL.
- */
-static int get_gateway(const char *ifname, struct in_addr *gateway)
-{
-#ifdef __linux__
-	FILE *fp = fopen("/proc/net/route", "r");
-	if (!fp)
-		return -1;
-
-	char line[128], iface[8];
-	uint32_t dest, gw, flags;
-	while (fgets(line, sizeof(line), fp))
-		if (sscanf(line, "%s %x %x %x", iface, &dest, &gw, &flags) == 4 &&
-			strcmp(iface, ifname) == 0 && dest == 0 && (flags & 2)) {
-			fclose(fp);
-			if (gateway)
-				gateway->s_addr = gw;
-			return 0;
-		}
-
-	fclose(fp);
-	return 1;
-#else
-	/* Fall back to netstat */
-	FILE *pfp = popen("netstat -nr", "r");
-	if (!pfp)
-		return -ENOENT;
-
-	char line[128];
-	while (fgets(line, sizeof(line), pfp))
-		if (strncmp(line, "default", 7) == 0 || strncmp(line, "0.0.0.0", 7) == 0) {
-			if (strstr(line, ifname))
-				pclose(pfp);
-				if (gateway) {
-					struct in_addr addr;
-					char *p = line + 7;
-					while (isspace(*p)) ++p;
-					if (inet_aton(p, &addr)) {
-						*gateway = addr;
-						return 0;
-					}
-					return -1;
-				}
-				return 0;
-		}
-
-	pclose(pfp);
-	return 1;
-
-#endif
-}
-#endif
-
-/* Returns 0 on success. The args addr and/or mask and/or gw can be NULL. */
-int ip_addr(const char *ifname,
-			struct in_addr *addr, struct in_addr *mask, struct in_addr *gw)
-{
-#ifdef WIN32
-	return win32_getinfo(ifname, addr, mask, gw);
-#else
-	int s = socket(AF_INET, SOCK_DGRAM, 0);
-	if (s < 0)
-		return -1;
-
-	struct ifreq ifr;
-	snprintf(ifr.ifr_name, IFNAMSIZ, "%s", ifname);
-
-	if (addr) {
-		if (ioctl(s, SIOCGIFADDR, &ifr) < 0)
-			goto failed;
-		*addr = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
-	}
-
-	if (mask) {
-		if (ioctl(s, SIOCGIFNETMASK, &ifr) < 0)
-			goto failed;
-		*mask = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
-	}
-
-	close(s);
-
-	if (gw)
-		return get_gateway(ifname, gw);
-
-	return 0;
-
-failed:
-	close(s);
-	return -1;
-#endif
-}
 
 /* Returns 0 on success or an errno suitable for gai_strerror().
  * The ipv4 arg should be at least INET_ADDRSTRLEN long or NULL.
@@ -311,84 +401,6 @@ uint32_t get_address4(const char *hostname)
 		return ntohl(*(uint32_t *)host->h_addr);
 	else
 		return 0;
-}
-
-#ifdef __linux__
-static int check_state(const char *name)
-{
-	char buff[64];
-	int fd;
-
-	snprintf(buff, sizeof(buff), "/sys/class/net/%s/operstate", name);
-	fd = open(buff, O_RDONLY);
-	if (fd >= 0) {
-		int n = read(fd, buff, sizeof(buff));
-		close(fd);
-		if (n > 0)
-			return strncmp(buff, "up", 2) == 0;
-	}
-	return 0; /* down */
-}
-#endif
-
-/* Skips the loopback interface */
-int get_interfaces(char **ifnames, int n, uint64_t *state)
-{
-	if (state) {
-		*state = 0;
-		if (n > 64) n = 64;
-	}
-
-#ifdef __linux__
-	int i = 0;
-	DIR *dir = opendir("/sys/class/net");
-	if (!dir)
-		return -ENOENT;
-
-	struct dirent *ent;
-	while ((ent = readdir(dir)) && i < n)
-		if (*ent->d_name != '.' && strcmp(ent->d_name, "lo")) {
-			ifnames[i] = strdup(ent->d_name);
-			if (!ifnames[i])
-				goto oom;
-			if (state)
-				*state |= check_state(ent->d_name) << i;
-			++i;
-		}
-
-	closedir(dir);
-	return i;
-
-oom:
-	free_interfaces(ifnames, i);
-	return -ENOMEM;
-#elif defined(WIN32)
-	return win32_get_interfaces(ifnames, n, state);
-#else
-	/* Fall back to ifconfig */
-	FILE *pfp = popen("ifconfig -a", "r");
-	if (!pfp)
-		return -ENOENT;
-
-	int i = 0;
-	char line[128];
-	while (fgets(line, sizeof(line), pfp))
-		if (!isspace(*line) && strncmp(line, "lo", 2) && i < n) {
-			if (state)
-				*state |= (strstr(line, "UP") != NULL) << i;
-			ifnames[i] = strdup(strtok(line, ":"));
-			if (!ifnames[i])
-				goto oom;
-			++i;
-		}
-
-	pclose(pfp);
-	return i;
-
-oom:
-	free_interfaces(ifnames, i);
-	return -ENOMEM;
-#endif
 }
 
 void free_interfaces(char **ifnames, int n)
