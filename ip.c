@@ -5,10 +5,6 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
-#ifdef WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#else
 #include <dirent.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -16,18 +12,12 @@
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <netdb.h>
-#endif
 
 #include "samlib.h"
 
-/* WINDOWS interface names:
- *
- * Warning: I am not a windows network expert. I am assuming that for
- * any given machine windows will always enumerate in the same order!
- *
- * For windows I am going to assume that ethN is the Nth ethernet
- * interface and wlanN is the Nth wireless interface.
- */
+#ifdef WIN32
+#error You want win32/win32-ip.c
+#endif
 
 #ifdef __linux__
 /* Returns 0 on success, < 0 for errors, and > 0 if ifname not found.
@@ -102,7 +92,7 @@ oom:
 	return -ENOMEM;
 }
 
-#elif !defined(WIN32)
+#else
 
 /* Returns 0 on success, < 0 for errors, and > 0 if ifname not found.
  * The gateway arg can be NULL.
@@ -171,8 +161,6 @@ oom:
 }
 #endif
 
-#ifndef WIN32
-
 /* Returns 0 on success. The args addr and/or mask and/or gw can be NULL. */
 int ip_addr(const char *ifname,
 			struct in_addr *addr, struct in_addr *mask, struct in_addr *gw)
@@ -207,148 +195,6 @@ failed:
 	close(s);
 	return -1;
 }
-
-#else /* WIN32 */
-
-#include <winsock2.h>
-#include <iphlpapi.h>
-
-#pragma comment(lib, "Ws2_32.lib")
-#pragma comment(lib, "IPHLPAPI.lib")
-
-#define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
-#define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
-
-static IP_ADAPTER_INFO *win32_getadapterinfo(void)
-{
-	PIP_ADAPTER_INFO pAdapterInfo;
-	ULONG ulOutBufLen = 0;
-
-	/* Initial call to GetAdaptersInfo to get size */
-	GetAdaptersInfo(NULL, &ulOutBufLen);
-
-	pAdapterInfo = (IP_ADAPTER_INFO *)MALLOC(ulOutBufLen);
-	if (pAdapterInfo == NULL)
-		return NULL;
-
-	if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) {
-		FREE(pAdapterInfo);
-		return NULL;
-	}
-
-	return pAdapterInfo;
-}
-
-/* Returns 0 on success. The args addr and/or mask and/or gw can be NULL. */
-int ip_addr(const char *ifname,
-			struct in_addr *addr, struct in_addr *mask, struct in_addr *gw)
-{
-	PIP_ADAPTER_INFO pAdapter;
-	DWORD dwRetVal = 0;
-	UINT ethn = 0, wlann = 0;
-	UINT want_eth = 0, want_wlan = 0;
-
-	if (strncmp(ifname, "eth", 3) == 0)
-		want_eth = strtol(ifname + 3, NULL, 10);
-	else if (strncmp(ifname, "wlan", 4) == 0)
-		want_wlan = strtol(ifname + 4, NULL, 10);
-	else
-		return -ENOENT;
-
-	PIP_ADAPTER_INFO pAdapterInfo = win32_getadapterinfo();
-	if (!pAdapterInfo)
-		return -1;
-
-	for (pAdapter = pAdapterInfo; pAdapter; pAdapter = pAdapter->Next)
-		switch (pAdapter->Type) {
-		case MIB_IF_TYPE_ETHERNET:
-			if (ethn == want_eth)
-				goto got_it;
-			++ethn;
-			break;
-		case IF_TYPE_IEEE80211:
-			if (wlann == want_wlan)
-				goto got_it;
-			++wlann;
-			break;
-		}
-
-failed:
-	FREE(pAdapterInfo);
-	return -1; /* not found */
-
-got_it:
-	if (addr) {
-		addr->s_addr = inet_addr(pAdapter->IpAddressList.IpAddress.String);
-		if (addr->s_addr == INADDR_NONE)
-			goto failed;
-	}
-	if (mask) {
-		mask->s_addr = inet_addr(pAdapter->IpAddressList.IpMask.String);
-		if (mask->s_addr == INADDR_NONE)
-			goto failed;
-	}
-	if (gw) {
-		gw->s_addr = inet_addr(pAdapter->GatewayList.IpAddress.String);
-		if (gw->s_addr == INADDR_NONE)
-			goto failed;
-	}
-
-	FREE(pAdapterInfo);
-	return 0;
-}
-
-int get_interfaces(char **ifnames, int n, uint64_t *state)
-{
-	PIP_ADAPTER_INFO pAdapter;
-	DWORD dwRetVal = 0;
-	int i = 0, ethn = 0, wlann = 0;
-	char name[16];
-
-	PIP_ADAPTER_INFO pAdapterInfo = win32_getadapterinfo();
-	if (!pAdapterInfo)
-		return -1;
-
-	if (state) {
-		*state = 0;
-		if (n > 64) n = 64;
-	}
-
-	for (pAdapter = pAdapterInfo; pAdapter; pAdapter = pAdapter->Next) {
-		switch (pAdapter->Type) {
-		case MIB_IF_TYPE_ETHERNET:
-			snprintf(name, sizeof(name), "eth%d", ethn);
-			++ethn;
-			break;
-		case IF_TYPE_IEEE80211:
-			snprintf(name, sizeof(name), "wlan%d", wlann);
-			++wlann;
-			break;
-		default:
-			continue;
-		}
-
-		if (i >= n)
-			break;
-
-		if (state)
-			*state |= (strcmp(pAdapter->IpAddressList.IpAddress.String, "0.0.0.0") != 0) << i;
-
-		ifnames[i] = strdup(name);
-		if (!ifnames[i])
-			goto failed;
-		++i;
-	}
-
-	FREE(pAdapterInfo);
-	return i;
-
-failed:
-	free_interfaces(ifnames, i);
-	FREE(pAdapterInfo);
-	return -1;
-}
-#endif
 
 /* Returns 0 on success or an errno suitable for gai_strerror().
  * The ipv4 arg should be at least INET_ADDRSTRLEN long or NULL.
