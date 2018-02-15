@@ -49,7 +49,7 @@ static int maskcnt(unsigned mask)
 	return count;
 }
 
-static int check_one(const char *ifname, unsigned what)
+static int check_one(const char *ifname, int state, unsigned what)
 {
 	int n = 0;
 	struct in_addr addr, mask, gw, *gw_ptr = NULL;
@@ -62,9 +62,12 @@ static int check_one(const char *ifname, unsigned what)
 		if (errno == EADDRNOTAVAIL) {
 			if (what & W_ALL) {
 				/* not an error, they asked for down interfaces */
-				printf("down (%s)\n", ifname);
+				if (state)
+					printf("0.0.0.0 (%s)\n", ifname);
+				else
+					printf("down (%s)\n", ifname);
 				return 0;
-			} else
+			} else if ((what & W_GUESSED) == 0)
 				fprintf(stderr, "%s: No address\n", ifname);
 		} else
 			perror(ifname);
@@ -158,7 +161,7 @@ int main(int argc, char *argv[])
 
 	if (optind < argc) {
 		while (optind < argc)
-			rc |= check_one(argv[optind++], what);
+			rc |= check_one(argv[optind++], 0, what);
 	} else {
 		char *ifaces[MAX_INTERFACES];
 		uint64_t state;
@@ -172,7 +175,7 @@ int main(int argc, char *argv[])
 
 		for (i = 0; i < n; ++i, state >>= 1)
 			if ((what & W_ALL) || (state & 1))
-				rc |= check_one(ifaces[i], what | W_GUESSED);
+				rc |= check_one(ifaces[i], state & 1, what | W_GUESSED);
 	}
 
 	return rc;
