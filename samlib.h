@@ -259,21 +259,10 @@ typedef struct aes128_ctx {
 	int have_hw;
 } aes128_ctx;
 
-/* Lower level routines that deal with one AES128_KEYLEN block at a time. */
+/* These deal with a AES128_KEYLEN sized block at a time. Zero pad if necessary. */
 int AES128_init_ctx(aes128_ctx *ctx, const uint8_t *key, int encrypt);
 void AES128_ECB_encrypt(aes128_ctx *ctx, const uint8_t* input, uint8_t *output);
 void AES128_ECB_decrypt(aes128_ctx *ctx, const uint8_t* input, uint8_t *output);
-
-/* Higher level routines for when you have just one buffer to deal with. */
-void AES128_ECB_encrypt_buffer(const uint8_t* input,
-							   const uint8_t *key,
-							   uint8_t *output,
-							   int len);
-
-void AES128_ECB_decrypt_buffer(const uint8_t* input,
-							   const uint8_t *key,
-							   uint8_t *output,
-							   int len);
 
 /* base64 functions */
 

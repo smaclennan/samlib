@@ -365,17 +365,18 @@ static void aes_decr(unsigned char *state, unsigned char *expandedKey)
  * https://www.intel.com/content/dam/doc/white-paper/advanced-encryption-standard-new-instructions-set-paper.pdf
  */
 
+/* We expose this as a global for aes-test */
+int hw_aes_support = -1;
+
 static int cpu_supports_aes(void)
 {
-	static int supported = -1;
-	uint32_t regs[4];
-
-	if (supported == -1) {
+	if (hw_aes_support == -1) {
+		uint32_t regs[4];
 		cpuid(1, regs);
-		supported = !!(regs[2] & (1 << 25)); /* bit 25 is aes */
+		hw_aes_support = !!(regs[2] & (1 << 25)); /* bit 25 is aes */
 	}
 
-	return supported;
+	return hw_aes_support;
 }
 
 static inline __m128i AES_128_ASSIST (__m128i temp1, __m128i temp2)
@@ -537,35 +538,6 @@ void AES128_ECB_encrypt(aes128_ctx *ctx, const uint8_t* input, uint8_t* output)
 	}
 }
 
-/* wrapper function for the simple case */
-void AES128_ECB_encrypt_buffer(const uint8_t* input,
-							   const uint8_t *key,
-							   uint8_t *output,
-							   int len)
-{
-	aes128_ctx ctx;
-
-	AES128_init_ctx(&ctx, key, 1);
-
-	while (len >= AES128_KEYLEN) {
-		AES128_ECB_encrypt(&ctx, input, output);
-		input += AES128_KEYLEN;
-		output += AES128_KEYLEN;
-		len -= AES128_KEYLEN;
-	}
-
-	if (len) {
-		uint8_t inbuf[AES128_KEYLEN], outbuf[AES128_KEYLEN];
-
-		memset(inbuf, 0, AES128_KEYLEN); /* zero pad */
-		memcpy(inbuf, input, len);
-		AES128_ECB_encrypt(&ctx, inbuf, outbuf);
-		memcpy(output, outbuf, len);
-	}
-
-	memset(&ctx, 0, sizeof(ctx)); /* zeroize */
-}
-
 void AES128_ECB_decrypt(aes128_ctx *ctx, const uint8_t* input, uint8_t *output)
 {
 #if AES_HW
@@ -577,33 +549,4 @@ void AES128_ECB_decrypt(aes128_ctx *ctx, const uint8_t* input, uint8_t *output)
 		memcpy(output, input, 16);
 		aes_decr(output, ctx->roundkey);
 	}
-}
-
-/* wrapper function for the simple case */
-void AES128_ECB_decrypt_buffer(const uint8_t* input,
-							   const uint8_t *key,
-							   uint8_t *output,
-							   int len)
-{
-	aes128_ctx ctx;
-
-	AES128_init_ctx(&ctx, key, 0);
-
-	while (len >= AES128_KEYLEN) {
-		AES128_ECB_decrypt(&ctx, input, output);
-		input += AES128_KEYLEN;
-		output += AES128_KEYLEN;
-		len -= AES128_KEYLEN;
-	}
-
-	if (len) {
-		uint8_t inbuf[AES128_KEYLEN], outbuf[AES128_KEYLEN];
-
-		memset(inbuf, 0, AES128_KEYLEN); /* zero pad */
-		memcpy(inbuf, input, len);
-		AES128_ECB_decrypt(&ctx, inbuf, outbuf);
-		memcpy(output, outbuf, len);
-	}
-
-	memset(&ctx, 0, sizeof(ctx)); /* zeroize */
 }

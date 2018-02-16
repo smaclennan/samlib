@@ -1,8 +1,18 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "../samlib.h"
+
+/* GCOV CFLAGS="-coverage -maes -DGCOV" make D=1
+ * Only add -maes on x86_64
+ * 100% Fri Feb 16, 2018
+ */
+
+/* Verified with
+ * http://www.cryptogrium.com/aes-encryption-online-ecb.html
+ */
 
 // prints string as hex
 static void phex(uint8_t* str)
@@ -76,13 +86,14 @@ static int test_encrypt_ecb_malloc(void)
 	return rc;
 }
 
+/* in/out from encryption point of view */
+uint8_t key[] = {0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c};
+uint8_t in[]  = {0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a};
+uint8_t out[] = {0x3a, 0xd7, 0x7b, 0xb4, 0x0d, 0x7a, 0x36, 0x60, 0xa8, 0x9e, 0xca, 0xf3, 0x24, 0x66, 0xef, 0x97};
+uint8_t buffer[AES128_KEYLEN];
 
 static int test_encrypt_ecb(void)
 {
-  uint8_t key[] = {0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c};
-  uint8_t in[]  = {0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a};
-  uint8_t out[] = {0x3a, 0xd7, 0x7b, 0xb4, 0x0d, 0x7a, 0x36, 0x60, 0xa8, 0x9e, 0xca, 0xf3, 0x24, 0x66, 0xef, 0x97};
-  uint8_t buffer[16];
   aes128_ctx ctx;
   int rc;
 
@@ -93,49 +104,58 @@ static int test_encrypt_ecb(void)
   out_msg("encrypt", rc, ctx.have_hw);
   if (rc) return rc;
 
-  AES128_ECB_encrypt_buffer(in, key, buffer, 16);
-  rc = strncmp((char*)out, (char*) buffer, 16);
-  out_msg("encrypt buffer", rc, ctx.have_hw);
-
   return rc;
 }
 
 static int test_decrypt_ecb(void)
 {
-  uint8_t key[] = {0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c};
-  uint8_t in[]  = {0x3a, 0xd7, 0x7b, 0xb4, 0x0d, 0x7a, 0x36, 0x60, 0xa8, 0x9e, 0xca, 0xf3, 0x24, 0x66, 0xef, 0x97};
-  uint8_t out[] = {0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a};
-  uint8_t buffer[16];
+  uint8_t buffer[17];
   aes128_ctx ctx;
   int rc;
 
   AES128_init_ctx(&ctx, key, 0);
 
-  AES128_ECB_decrypt(&ctx, in, buffer);
+  AES128_ECB_decrypt(&ctx, out, buffer);
 
-  rc = strncmp((char*) out, (char*) buffer, 16);
+  rc = strncmp((char*)in, (char*) buffer, 16);
   out_msg("decrypt", rc, ctx.have_hw);
   if (rc) return rc;
-
-  AES128_ECB_decrypt_buffer(in, key, buffer, 16);
-
-  rc = strncmp((char*) out, (char*) buffer, 16);
-  out_msg("decrypt buffer", rc, ctx.have_hw);
 
   return rc;
 }
 
-#ifdef TESTALL
-int aes_main(void)
-#else
-int main(void)
-#endif
+static int do_testsuite(void)
 {
 	int rc = 0;
 
 	rc |= test_decrypt_ecb();
 	rc |= test_encrypt_ecb();
 	rc |= test_encrypt_ecb_malloc();
+
+	return rc;
+}
+
+#ifndef TESTALL
+#ifdef GCOV
+#include "../aes128.c"
+#endif
+
+int main(void)
+#else
+int aes_main(void)
+#endif
+{
+	extern int hw_aes_support;
+	int rc = do_testsuite();
+
+	if (hw_aes_support == 1) {
+		hw_aes_support = 0;
+		rc |= do_testsuite();
+	}
+
+	/* Check some error conditions */
+	aes128_ctx ctx;
+	assert(AES128_init_ctx(&ctx, NULL, 1) == EINVAL);
 
 	return rc;
 }
