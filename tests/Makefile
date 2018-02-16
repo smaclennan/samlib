@@ -20,9 +20,6 @@ all: $(TESTS) $(OTHERS) testall
 
 testall: testall.c $(TESTS)
 
-md5test: md5test.c
-	$(CC) $(CFLAGS) -o $@ $<
-
 test: all
 	for t in $(TESTS); do echo $$t; ./$$t; done
 
