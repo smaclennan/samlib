@@ -107,8 +107,8 @@ static int decode_block(uint8_t *dst, const char *src)
 			return -1;
 	}
 
-	if (i > 1)
-		*dst++ = ((block[0] << 2) & 0xfc) | ((block[1] >> 4) & 3);
+	/* For legal input, i > 1 */
+	*dst++ = ((block[0] << 2) & 0xfc) | ((block[1] >> 4) & 3);
 	if (i > 2)
 		*dst++ = ((block[1] << 4) & 0xf0) | ((block[2] >> 2) & 0xf);
 	if (i > 3)

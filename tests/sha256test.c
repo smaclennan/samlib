@@ -2,7 +2,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <assert.h>
 #include "../samlib.h"
+
+/* GCOV CFLAGS=-coverage make D=1
+ * 100% Thu Feb 15, 2018
+ */
 
 /*
  *  Define patterns for testing
@@ -72,9 +77,15 @@ static struct test256 {
 };
 #define N_TEST256 ((sizeof(test256) / sizeof(struct test256)))
 
-static int do_test256_suite(void)
+#ifndef TESTALL
+#include "../sha256.c"
+
+int main(void)
+#else
+static int sha256_main(void)
+#endif
 {
-	int i, j, len;
+	int i, j, len, rc = 0;
 	uint8_t *in;
 	uint8_t digest[SHA256_DIGEST_SIZE];
 	char digeststr[65];
@@ -109,56 +120,22 @@ static int do_test256_suite(void)
 			printf("%d: failed\n", i + 1);
 			printf("  %s\n", digeststr);
 			printf("  %s\n", test256[i].digest_str);
+			rc = 1;
 		}
 
 		if (test256[i].repeatcount > 1)
 			free(in);
 	}
 
-	return 0;
-}
-
-#ifdef TESTALL
-static int sha256_main(void)
-{
-	return do_test256_suite();
-}
-#else
-int sha256sum_file(const char *fname)
-{
+	/* Test error conditions */
 	sha256ctx ctx;
-	uint8_t digest[SHA256_DIGEST_SIZE];
+	uint8_t msg[32];
+	assert(sha256_init(NULL) == EINVAL);
+	assert(sha256_update(NULL, msg, sizeof(msg)) == EINVAL);
+	assert(sha256_update(&ctx, NULL, sizeof(msg)) == EINVAL);
+	assert(sha256_update(&ctx, msg, 0) == 0);
+	assert(sha256_final(NULL, msg) == EINVAL);
+	assert(sha256_final(&ctx, NULL) == EINVAL);
 
-	sha256_init(&ctx);
-
-	int fd = open(fname, O_RDONLY);
-	if (fd < 0) {
-		perror(fname);
-		exit(1);
-	}
-
-	uint8_t buf[4096];
-	int n;
-	while ((n = read(fd, buf, sizeof(buf))) > 0)
-		sha256_update(&ctx, buf, n);
-
-	close(fd);
-	if (n) {
-		printf("Read error\n");
-		exit(1);
-	}
-
-	sha256_final(&ctx, digest);
-
-	puts(sha256str(digest, (char *)buf));
-	return 0;
+	return rc;
 }
-
-int main(int argc, char *argv[])
-{
-	if (argc > 1)
-		return sha256sum_file(argv[1]);
-
-	return do_test256_suite();
-}
-#endif

@@ -2,6 +2,10 @@
 #include <string.h>
 #include "../samlib.h"
 
+/* GCOV CFLAGS=-coverage make D=1
+ * 100% Thu Feb 15, 2018
+ */
+
 static struct test {
 	char *in;
 	char *hash;
@@ -26,7 +30,13 @@ static struct test {
 };
 #define N_TEST ((sizeof(test_suite) / sizeof(struct test)))
 
-static int do_testsuite(void)
+#ifndef TESTALL
+#include "../md5.c"
+
+int main(void)
+#else
+static int md5_main(void)
+#endif
 {
 	uint8_t hash[MD5_DIGEST_LEN];
 	char str[34];
@@ -52,39 +62,3 @@ static int do_testsuite(void)
 
 	return rc;
 }
-
-#ifdef TESTALL
-static int md5_main(void)
-{
-	return do_testsuite();
-}
-#else
-static int md5sum(char *line, void *data)
-{
-	md5ctx *ctx = data;
-	md5_update(ctx, line, strlen(line));
-	md5_update(ctx, "\n", 1);
-	return 0;
-}
-
-int main(int argc, char *argv[])
-{
-	if (argc == 1)
-		return do_testsuite();
-
-	md5ctx ctx;
-	md5_init(&ctx);
-
-	if (readfile(md5sum, &ctx, argv[1], 0)) {
-		puts("Readfile failed");
-		exit(1);
-	}
-
-	uint8_t hash[MD5_DIGEST_LEN];
-	char str[34];
-	md5_final(&ctx, hash);
-	printf("%s  %s\n", md5str(hash, str), argv[1]);
-
-	return 0;
-}
-#endif

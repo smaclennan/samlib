@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include "../samlib.h"
+
+/* GCOV CFLAGS=-coverage make D=1
+ * 100% Thu Feb 15, 2018
+ */
 
 /* Test vectors from rfc4648 */
 
@@ -18,10 +23,12 @@ struct test_vector {
 };
 #define N_TESTS (sizeof(test_vectors) / sizeof(struct test_vector))
 
-#ifdef TESTALL
-static int base64_main(void)
-#else
+#ifndef TESTALL
+#include "../base64.c"
+
 int main(int argc, char *argv[])
+#else
+static int base64_main(void)
 #endif
 {
 	char buf[16]; /* tons of space */
@@ -82,6 +89,10 @@ int main(int argc, char *argv[])
 		rc = 1;
 	}
 	base64url_safe = 0;
+
+	/* Test some error conditions */
+	assert(base64_decode((uint8_t *)buf, 5, buf, 8) == -1); /* decode buffer too small */
+	assert(base64_decode((uint8_t *)buf, 8, "a~bc", 4) == 0); /* invalid char */
 
 	return rc;
 }
