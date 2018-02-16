@@ -43,3 +43,4 @@ $(ALL): ../libsamlib.a ../samlib.h
 
 clean:
 	rm -f $(ALL)
+	rm -f *.gcno *.gcda

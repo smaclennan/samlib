@@ -61,6 +61,7 @@ check:
 
 clean:
 	rm -f *.o libsamlib.a libsamthread.a
+	rm -f *.gcno *.gcda
 	$(MAKE) $(MFLAGS) -C db.1.85 clean
 	$(MAKE) $(MFLAGS) -C tests clean
 	$(MAKE) $(MFLAGS) -C utils clean

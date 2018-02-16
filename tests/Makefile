@@ -20,6 +20,9 @@ all: $(TESTS) $(OTHERS) testall
 
 testall: testall.c $(TESTS)
 
+md5test: md5test.c
+	$(CC) $(CFLAGS) -o $@ $<
+
 test: all
 	for t in $(TESTS); do echo $$t; ./$$t; done
 
@@ -30,4 +33,5 @@ $(TESTS): ../libsamlib.a ../samlib.h
 
 clean:
 	rm -f $(TESTS) $(OTHERS) testall
+	rm -f *.gcno *.gcda *.gcov
 	rm -f TAGS readfile.txt cptest.txt
