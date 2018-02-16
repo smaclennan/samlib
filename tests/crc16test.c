@@ -1,5 +1,12 @@
 #include <stdio.h>
+#include <string.h>
+#include <assert.h>
 #include "../samlib.h"
+
+/* GCOV CFLAGS=-coverage make D=1
+ * 100% Fri Feb 16, 2018
+ * Note: LARGE_BUFFERS must be defined for 100% coverage.
+ */
 
 static struct ref {
 	uint16_t msg[20];
@@ -28,10 +35,13 @@ static struct ref {
 };
 #define N_REFS (sizeof(refs) / sizeof(struct ref))
 
-#ifdef TESTALL
-static int crc16_main(void)
-#else
+#ifndef TESTALL
+// #define LARGE_BUFFERS
+#include "../crc16.c"
+
 int main(int argc, char *argv[])
+#else
+static int crc16_main(void)
 #endif
 {
 	int i, rc = 0;
@@ -44,6 +54,26 @@ int main(int argc, char *argv[])
 			rc = 1;
 		}
 	}
+
+	/* Test an odd number of bytes */
+	chksum = chksum16("123456789", 9);
+	if (chksum != 0x2af6) {
+		printf("PROBLEMS: %x != 2af6\n", chksum);
+		rc = 1;
+	}
+
+#ifdef LARGE_BUFFERS
+	/* Needs to be > 64K */
+#define LARGE_SIZE ((64 << 10) + 1)
+	void *buf = malloc(LARGE_SIZE);
+	assert(buf);
+	memset(buf, 0xff, LARGE_SIZE);
+	chksum = chksum16(buf, LARGE_SIZE);
+	if (chksum != 0xff00) {
+		printf("PROBLEMS: %x != ff00\n", chksum);
+		rc = 1;
+	}
+#endif
 
 	return rc;
 }
