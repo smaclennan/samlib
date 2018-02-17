@@ -2,6 +2,13 @@
 #include <errno.h>
 #include "samlib.h"
 
+/* WARNING: Before using these routines, you should understand the
+ * limitations of ECB. There are a lot of good, and bad, descriptions
+ * of ECB on the net. These routines should only be used for small
+ * buffers. Also, duplicate blocks will produce the same output. The
+ * trade off is that AES128 ECB is fast.
+ */
+
 /* It is always safe to enable AES_HW on x86 systems. It will only be
  * used if the CPU supports it.
  */
