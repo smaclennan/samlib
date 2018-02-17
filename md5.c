@@ -20,7 +20,7 @@
 #define H(x, y, z) ((x) ^ (y) ^ (z))
 #define I(x, y, z) ((y) ^ ((x) | ~(z)))
 
-#if defined(WIN32) || defined(__QNXNTO__)
+#if defined(WIN32) || !defined(__x86_64__)
 #define ROTATE(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
 #else
 static inline uint32_t ROTATE(uint32_t word, uint8_t bits)
