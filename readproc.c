@@ -20,7 +20,11 @@ static int readproc(pid_t pid, const char *file, char *buf, int len)
 		return -1;
 	n = read(fd, buf, len - 1);
 	close(fd);
-	if (n <= 0)
+
+	/* Zero length is not an error. Some files, like a kernel thread
+	 * cmdline, are zero length.
+	 */
+	if (n < 0)
 		return -1;
 
 	buf[n] = 0;
