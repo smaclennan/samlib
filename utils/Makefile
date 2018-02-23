@@ -28,7 +28,7 @@ find-dups: find-dups.c
 	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< ../libsamlib.a
 
 imgsize: imgsize.c
-	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< -ljpeg -lgif
+	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< -ljpeg -lgif -lpng
 
 mkfilesz: mkfilesz.c
 	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< ../libsamlib.a
