@@ -157,5 +157,8 @@ int aes_main(void)
 	aes128_ctx ctx;
 	assert(AES128_init_ctx(&ctx, NULL, 1) == EINVAL);
 
+	/* Reset it for testall */
+	hw_aes_support = -1;
+
 	return rc;
 }
