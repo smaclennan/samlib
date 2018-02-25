@@ -1,5 +1,10 @@
+#define HAVE_TIMERSUB
+
 #include <errno.h>
 #include <math.h>
+#ifdef HAVE_TIMERSUB
+#include <sys/time.h>
+#endif
 
 #include "samlib.h"
 
@@ -73,6 +78,9 @@ int timeval_delta(const struct timeval *start,
 	if (!start || !end || !delta || !timeval_delta_valid(start, end))
 		return EINVAL;
 
+#ifdef HAVE_TIMERSUB
+	timersub(end, start, delta);
+#else
 	if (start->tv_usec > end->tv_usec) {
 		delta->tv_sec = end->tv_sec - 1 - start->tv_sec;
 		delta->tv_usec = end->tv_usec + ONE_SECOND - start->tv_usec;
@@ -80,6 +88,7 @@ int timeval_delta(const struct timeval *start,
 		delta->tv_sec = end->tv_sec - start->tv_sec;
 		delta->tv_usec = end->tv_usec - start->tv_usec;
 	}
+#endif
 
 	return 0;
 }
