@@ -77,8 +77,9 @@ static const unsigned char Rcon[11] = {
 static void expandKey(unsigned char *expandedKey, const unsigned char *key)
 {
   unsigned short ii, buf1;
-  for (ii=0;ii<16;ii++)
-	expandedKey[ii] = key[ii];
+
+  memcpy(expandedKey, key, 16);
+
   for (ii=1;ii<11;ii++){
 	buf1 = expandedKey[ii*16 - 4];
 	expandedKey[ii*16 + 0] = sbox[expandedKey[ii*16 - 3]]^expandedKey[(ii-1)*16 + 0]^Rcon[ii];
@@ -365,15 +366,15 @@ static void aes_decr(unsigned char *state, unsigned char *expandedKey)
 					   End of AES128
  **************************************************************/
 
+/* We expose this as a global for aes-test */
+int hw_aes_support = -1;
+
 #if AES_HW
 #include <wmmintrin.h>
 
 /* Originally from:
  * https://www.intel.com/content/dam/doc/white-paper/advanced-encryption-standard-new-instructions-set-paper.pdf
  */
-
-/* We expose this as a global for aes-test */
-int hw_aes_support = -1;
 
 static int cpu_supports_aes(void)
 {
@@ -384,60 +385,6 @@ static int cpu_supports_aes(void)
 	}
 
 	return hw_aes_support;
-}
-
-static inline __m128i AES_128_ASSIST (__m128i temp1, __m128i temp2)
-{
-	__m128i temp3;
-
-	temp2 = _mm_shuffle_epi32 (temp2 ,0xff);
-	temp3 = _mm_slli_si128 (temp1, 0x4);
-	temp1 = _mm_xor_si128 (temp1, temp3);
-	temp3 = _mm_slli_si128 (temp3, 0x4);
-	temp1 = _mm_xor_si128 (temp1, temp3);
-	temp3 = _mm_slli_si128 (temp3, 0x4);
-	temp1 = _mm_xor_si128 (temp1, temp3);
-	temp1 = _mm_xor_si128 (temp1, temp2);
-	return temp1;
-}
-
-static void AES_128_Key_Expansion(const unsigned char *userkey, unsigned char *key)
-{
-	__m128i temp1, temp2;
-	__m128i *Key_Schedule = (__m128i*)key;
-
-	temp1 = _mm_loadu_si128((__m128i*)userkey);
-	Key_Schedule[0] = temp1;
-	temp2 = _mm_aeskeygenassist_si128 (temp1 ,0x1);
-	temp1 = AES_128_ASSIST(temp1, temp2);
-	Key_Schedule[1] = temp1;
-	temp2 = _mm_aeskeygenassist_si128 (temp1,0x2);
-	temp1 = AES_128_ASSIST(temp1, temp2);
-	Key_Schedule[2] = temp1;
-	temp2 = _mm_aeskeygenassist_si128 (temp1,0x4);
-	temp1 = AES_128_ASSIST(temp1, temp2);
-	Key_Schedule[3] = temp1;
-	temp2 = _mm_aeskeygenassist_si128 (temp1,0x8);
-	temp1 = AES_128_ASSIST(temp1, temp2);
-	Key_Schedule[4] = temp1;
-	temp2 = _mm_aeskeygenassist_si128 (temp1,0x10);
-	temp1 = AES_128_ASSIST(temp1, temp2);
-	Key_Schedule[5] = temp1;
-	temp2 = _mm_aeskeygenassist_si128 (temp1,0x20);
-	temp1 = AES_128_ASSIST(temp1, temp2);
-	Key_Schedule[6] = temp1;
-	temp2 = _mm_aeskeygenassist_si128 (temp1,0x40);
-	temp1 = AES_128_ASSIST(temp1, temp2);
-	Key_Schedule[7] = temp1;
-	temp2 = _mm_aeskeygenassist_si128 (temp1,0x80);
-	temp1 = AES_128_ASSIST(temp1, temp2);
-	Key_Schedule[8] = temp1;
-	temp2 = _mm_aeskeygenassist_si128 (temp1,0x1b);
-	temp1 = AES_128_ASSIST(temp1, temp2);
-	Key_Schedule[9] = temp1;
-	temp2 = _mm_aeskeygenassist_si128 (temp1,0x36);
-	temp1 = AES_128_ASSIST(temp1, temp2);
-	Key_Schedule[10] = temp1;
 }
 
 /* Unrolling the loop is a big win for ECB... but not for CBC */
@@ -483,29 +430,25 @@ static void AES128_ECB_decrypt_block(const unsigned char *in,
 	_mm_storeu_si128 ((__m128i *)out, tmp);
 }
 
-static void AES128_expand_key(const uint8_t *userkey, uint8_t *key, int encrypt)
+static void AES128_expand_key(uint8_t *key)
 {
-	if (encrypt)
-		AES_128_Key_Expansion(userkey, key);
-	else {
-		ALIGN16 unsigned char temp_key[16 * 11];
-		__m128i *Key_Schedule = (__m128i *)key;
-		__m128i *Temp_Key_Schedule = (__m128i *)temp_key;
+	ALIGN16 unsigned char temp_key[16 * 11];
+	__m128i *Key_Schedule = (__m128i *)key;
+	__m128i *Temp_Key_Schedule = (__m128i *)temp_key;
 
-		AES_128_Key_Expansion(userkey, temp_key);
+	memcpy(temp_key, key, sizeof(temp_key));
 
-		Key_Schedule[10] = Temp_Key_Schedule[0];
-		Key_Schedule[9] = _mm_aesimc_si128(Temp_Key_Schedule[1]);
-		Key_Schedule[8] = _mm_aesimc_si128(Temp_Key_Schedule[2]);
-		Key_Schedule[7] = _mm_aesimc_si128(Temp_Key_Schedule[3]);
-		Key_Schedule[6] = _mm_aesimc_si128(Temp_Key_Schedule[4]);
-		Key_Schedule[5] = _mm_aesimc_si128(Temp_Key_Schedule[5]);
-		Key_Schedule[4] = _mm_aesimc_si128(Temp_Key_Schedule[6]);
-		Key_Schedule[3] = _mm_aesimc_si128(Temp_Key_Schedule[7]);
-		Key_Schedule[2] = _mm_aesimc_si128(Temp_Key_Schedule[8]);
-		Key_Schedule[1] = _mm_aesimc_si128(Temp_Key_Schedule[9]);
-		Key_Schedule[0] = Temp_Key_Schedule[10];
-	}
+	Key_Schedule[10] = Temp_Key_Schedule[0];
+	Key_Schedule[9] = _mm_aesimc_si128(Temp_Key_Schedule[1]);
+	Key_Schedule[8] = _mm_aesimc_si128(Temp_Key_Schedule[2]);
+	Key_Schedule[7] = _mm_aesimc_si128(Temp_Key_Schedule[3]);
+	Key_Schedule[6] = _mm_aesimc_si128(Temp_Key_Schedule[4]);
+	Key_Schedule[5] = _mm_aesimc_si128(Temp_Key_Schedule[5]);
+	Key_Schedule[4] = _mm_aesimc_si128(Temp_Key_Schedule[6]);
+	Key_Schedule[3] = _mm_aesimc_si128(Temp_Key_Schedule[7]);
+	Key_Schedule[2] = _mm_aesimc_si128(Temp_Key_Schedule[8]);
+	Key_Schedule[1] = _mm_aesimc_si128(Temp_Key_Schedule[9]);
+	Key_Schedule[0] = Temp_Key_Schedule[10];
 }
 #endif
 
@@ -518,13 +461,16 @@ int AES128_init_ctx(aes128_ctx *ctx, const uint8_t *key, int encrypt)
 
 	memset(ctx, 0, sizeof(aes128_ctx));
 
+	expandKey(ctx->roundkey, key);
+
 #if AES_HW
 	if (cpu_supports_aes()) {
 		ctx->have_hw = 1;
-		AES128_expand_key(key, ctx->roundkey, encrypt);
-	} else
+		if (encrypt == 0)
+			/* extra work for decrypt - reverse the key */
+			AES128_expand_key(ctx->roundkey);
+	}
 #endif
-		expandKey(ctx->roundkey, key);
 
 	return 0;
 }
