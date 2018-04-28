@@ -459,6 +459,11 @@ uint64_t delta_tsc(uint64_t start);
 #endif
 #endif
 
+static inline int is_power_of_2(unsigned x)
+{
+	return x != 0 && !(x & (x - 1));
+}
+
 #ifdef __QNXNTO__
 ssize_t getline(char **lineptr, size_t *n, FILE *stream);
 #endif
