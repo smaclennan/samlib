@@ -98,8 +98,7 @@ int readfile(int (*line_func)(char *line, void *data), void *data,
 		rc = -1;
 
 closeit:
-	if (line)
-		free(line);
+	free(line);
 
 	if (path && fclose(fp))
 		return -1;

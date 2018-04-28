@@ -114,8 +114,7 @@ mutex_t *mutex_create(void)
 
 void mutex_destroy(mutex_t *mutex)
 {
-	if (mutex)
-		free(mutex);
+	free(mutex);
 }
 
 void mutex_lock(mutex_t *mutex)

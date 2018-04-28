@@ -253,9 +253,8 @@ void free_interfaces(char **ifnames, int n)
 {
 	int i;
 
-	for (i = 0; i < n; ++i)
-		if (ifnames[i]) {
-			free(ifnames[i]);
-			ifnames[i] = NULL;
-		}
+	for (i = 0; i < n; ++i) {
+		free(ifnames[i]);
+		ifnames[i] = NULL;
+	}
 }
