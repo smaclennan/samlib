@@ -368,6 +368,11 @@ void *must_realloc(void *ptr, int size);
 void *must_mmap(int size, int prot, int flags);
 void *must_mmap_file(int size, int prot, int flags, int fd);
 
+/* all return number of bytes actually copied to dst */
+int safecpy(char *dst, const char *src, int dstsize);
+int safecat(char *dst, const char *src, int dstsize);
+int safe_snprintf(char *dst, int dstsize, const char *fmt, ...);
+
 #ifdef WIN32
 /* Use these and must_mmap_file will do the right thing */
 #define PROT_READ 1
