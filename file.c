@@ -55,7 +55,7 @@ int mktempfile(char *fname, int len)
 	if (strlen(out) > len)
 		return -EINVAL;
 
-	_snprintf(fname, len, "%s", out);
+	safecpy(fname, out, len);
 
 	return _open(fname, O_RDWR | O_CREAT | O_TRUNC | O_BINARY, 0644);
 #endif
