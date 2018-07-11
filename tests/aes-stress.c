@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 	struct timeval start, end;
 	aes128_ctx ctx;
 
-	AES128_init_ctx(&ctx, key, 1);
+	AES128_init_ctx(&ctx, key, NULL, 1);
 	loops = ctx.have_hw ? LOOPS_HW : LOOPS_SW;
 
 #if 1

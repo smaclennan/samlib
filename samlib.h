@@ -35,7 +35,7 @@
 #endif
 
 #define SAMLIB_MAJOR 1
-#define SAMLIB_MINOR 4
+#define SAMLIB_MINOR 5
 
 extern const char *samlib_version;
 extern const char *samlib_marker;
@@ -255,14 +255,20 @@ char *sha256str(uint8_t *digest, char *str);
 #endif
 
 typedef struct aes128_ctx {
+	uint8_t ivec[AES128_KEYLEN];	/* CBC only */
+	uint8_t *ivptr;					/* CBC only */
 	ALIGN16 uint8_t roundkey[AES128_KEYLEN * 11];
 	int have_hw;
 } aes128_ctx;
 
 /* These deal with a AES128_KEYLEN sized block at a time. Zero pad if necessary. */
-int AES128_init_ctx(aes128_ctx *ctx, const uint8_t *key, int encrypt);
-void AES128_ECB_encrypt(aes128_ctx *ctx, const uint8_t* input, uint8_t *output);
-void AES128_ECB_decrypt(aes128_ctx *ctx, const uint8_t* input, uint8_t *output);
+int AES128_init_ctx(aes128_ctx *ctx, const uint8_t *key, const uint8_t *iv, int encrypt);
+void AES128_ECB_encrypt(aes128_ctx *ctx, const uint8_t *input, uint8_t *output);
+void AES128_ECB_decrypt(aes128_ctx *ctx, const uint8_t *input, uint8_t *output);
+
+/* NOTE: Input length must be evenly divisible by 16 bytes. Zero pad if necessary. */
+void AES128_CBC_encrypt_buffer(aes128_ctx *ctx, uint8_t *output, uint8_t *input, uint32_t length);
+void AES128_CBC_decrypt_buffer(aes128_ctx *ctx, uint8_t *output, uint8_t *input, uint32_t length);
 
 /* base64 functions */
 
