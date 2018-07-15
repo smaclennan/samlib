@@ -1,4 +1,6 @@
+#ifndef WIN32
 #define HAVE_TIMERSUB
+#endif
 
 #include <errno.h>
 #include <math.h>

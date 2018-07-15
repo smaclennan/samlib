@@ -62,9 +62,6 @@
     <ClCompile Include="regex.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ip.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\base64.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -138,6 +135,18 @@
       <Filter>db files</Filter>
     </ClCompile>
     <ClCompile Include="..\tsc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\aes128-cbc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\safecpy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="win32-ip.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\cpuid.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

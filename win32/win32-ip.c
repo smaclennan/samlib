@@ -9,7 +9,7 @@
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
 
-#include "samlib.h"
+#include "../samlib.h"
 
 /* WINDOWS interface names:
  *
