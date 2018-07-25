@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 #include "../samlib.h"
 
 /* GCOV CFLAGS=-coverage make D=1
@@ -91,8 +90,14 @@ static int base64_main(void)
 	base64url_safe = 0;
 
 	/* Test some error conditions */
-	assert(base64_decode((uint8_t *)buf, 5, buf, 8) == -1); /* decode buffer too small */
-	assert(base64_decode((uint8_t *)buf, 8, "a~bc", 4) == 0); /* invalid char */
+	if (base64_decode((uint8_t *)buf, 5, buf, 8) != -1) { /* decode buffer too small */
+		puts("Decode small buffer failed");
+		rc = 1;
+	}
+	if (base64_decode((uint8_t *)buf, 8, "a~bc", 4) != 0) { /* invalid char */
+		puts("Invalid char test failed");
+		rc = 1;
+	}
 
 	return rc;
 }
