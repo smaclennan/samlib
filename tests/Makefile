@@ -9,6 +9,9 @@ include ../Rules.mk
 # Define for pthreads
 #LIBS += -lpthread
 
+# For gcov
+#CFLAGS += -coverage
+
 TESTS := args base64 cptest crc16test md5test random readfile
 TESTS += sha256test timetest threadtest spinlock dbtest
 TESTS += readproctest aes-test aes-stress mmap-test mutex-timing
