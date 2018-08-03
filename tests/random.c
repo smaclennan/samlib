@@ -1,7 +1,12 @@
 #include <stdio.h>
-#include <valgrind/valgrind.h>
 #include "../samlib.h"
 #include "../samthread.h"
+
+#ifdef HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#else
+#define RUNNING_ON_VALGRIND 0
+#endif
 
 #define N_CHILDREN 8
 #define COUNT (0x200000000UL / N_CHILDREN)

@@ -5,9 +5,13 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
-#include <valgrind/valgrind.h>
-
 #include "../samlib.h"
+
+#ifdef HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#else
+#define RUNNING_ON_VALGRIND 0
+#endif
 
 /* This one is good for testing changes to aes-hw.c routines */
 #define LOOPS_HW 100000000UL

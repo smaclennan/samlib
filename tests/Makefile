@@ -12,6 +12,12 @@ include ../Rules.mk
 # For gcov
 #CFLAGS += -coverage
 
+ifneq ($(wildcard /usr/include/valgrind/valgrind.h),)
+CFLAGS += -DHAVE_VALGRIND_H
+endif
+
+VAL=$(wildcard /usr/include/valgrind/valgrind.h)
+
 TESTS := args base64 cptest crc16test md5test random readfile
 TESTS += sha256test timetest threadtest spinlock dbtest
 TESTS += readproctest aes-test aes-stress mmap-test mutex-timing
