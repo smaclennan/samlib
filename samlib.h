@@ -378,6 +378,10 @@ void *must_mmap_file(int size, int prot, int flags, int fd);
 int safecpy(char *dst, const char *src, int dstsize);
 int safecat(char *dst, const char *src, int dstsize);
 int safe_snprintf(char *dst, int dstsize, const char *fmt, ...);
+/* strlcpy returns length of src */
+#if defined(__linux__) || defined(WIN32)
+size_t strlcpy(char *dst, const char *src, size_t dstsize);
+#endif
 
 #ifdef WIN32
 /* Use these and must_mmap_file will do the right thing */

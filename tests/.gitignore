@@ -4,6 +4,7 @@ args
 base64
 bitgen
 cptest
+copy
 crc16test
 dbtest
 md5test

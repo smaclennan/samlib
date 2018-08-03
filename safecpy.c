@@ -47,3 +47,22 @@ int safe_snprintf(char *dst, int dstsize, const char *fmt, ...)
 
 	return n;
 }
+
+#if defined(__linux__) || defined(WIN32)
+size_t strlcpy(char *dst, const char *src, size_t dstsize)
+{
+	size_t srcsize = strlen(src);
+
+	if (dstsize) {
+		if (dstsize >= srcsize)
+			strcpy(dst, src);
+		else {
+			--dstsize;
+			strncpy(dst, src, dstsize);
+			dst[dstsize] = 0;
+		}
+	}
+
+	return srcsize;
+}
+#endif
