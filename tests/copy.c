@@ -28,11 +28,13 @@ static void setup(int i)
 {
 	memset(dst, 0xea, sizeof(dst));
 	memset(dst2, 0xea, sizeof(dst2));
-	dst[sizeof(dst) - 1] = 0;
-	dst2[sizeof(dst2) - 1] = 0;
 
-	if (tests[i].expect == NULL)
+	if (tests[i].expect == NULL) {
 		tests[i].expect = dst2;
+		/* Make them real strings so we can strcmp() */
+		dst[sizeof(dst) - 1] = 0;
+		dst2[sizeof(dst2) - 1] = 0;
+	}
 }
 
 #ifdef TESTALL
@@ -65,7 +67,7 @@ int main(void)
 		if (s1 != MIN(s2, dlen)) {
 			printf("safecpy %d len mismatch\n", i);
 			rc = 1;
-		} else if (strcmp(dst, dst2)) {
+		} else if (memcmp(dst, dst2, sizeof(dst))) {
 			printf("safecpy %d cmp mismatch\n", i);
 			rc = 1;
 		}
@@ -88,7 +90,7 @@ int main(void)
 		if (s1 != s2) {
 			printf("strlcpy %d len mismatch\n", i);
 			rc = 1;
-		} else if (strcmp(dst, dst2)) {
+		} else if (memcmp(dst, dst2, sizeof(dst))) {
 			printf("strlcpy %d cmp mismatch\n", i);
 			rc = 1;
 		}
