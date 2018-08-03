@@ -1,11 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <fcntl.h>
-#include <ctype.h>
-#include <errno.h>
-
 #include "samlib.h"
 
 /* RFC 1321 */

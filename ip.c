@@ -1,10 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
 #include <fcntl.h>
-#include <ctype.h>
-#include <errno.h>
 #include <dirent.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>

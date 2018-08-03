@@ -1,6 +1,4 @@
-#include <string.h>
 #include <ctype.h>
-#include <errno.h>
 #include "samlib.h"
 
 #if defined(__x86_64__) || defined(__i386__) || defined(WIN32)

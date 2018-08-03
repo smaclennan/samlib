@@ -1,4 +1,3 @@
-#include <string.h>
 #include "samlib.h"
 
 /* Based on RFC 4648. Encodes using standard or base64url but can decode base64url

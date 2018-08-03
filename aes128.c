@@ -1,5 +1,3 @@
-#include <string.h>
-#include <errno.h>
 #include "samlib.h"
 
 /* WARNING: Before using these routines, you should understand the

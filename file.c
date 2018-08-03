@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <string.h>
 #include <fcntl.h>
-#include <errno.h>
 #include "samlib.h"
 
 /* Create a file of set length and mode. If mode is 0, a reasonable default is chosen. */

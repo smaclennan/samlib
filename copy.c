@@ -2,13 +2,11 @@
 #define USE_SENDFILE
 #endif
 
-#include <stdio.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #ifdef USE_SENDFILE
 #include <sys/sendfile.h>
 #endif
-
 #include "samlib.h"
 
 /* Copy a file. Uses sendfile by default.
