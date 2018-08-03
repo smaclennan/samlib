@@ -1,9 +1,12 @@
 #include <stdio.h>
+#include <valgrind/valgrind.h>
 #include "../samlib.h"
 #include "../samthread.h"
 
 #define N_CHILDREN 8
 #define COUNT (0x200000000UL / N_CHILDREN)
+
+static unsigned long count = COUNT;
 
 int verbose = 1;
 
@@ -92,7 +95,7 @@ static int generator(void *arg)
 		exit(1);
 	}
 
-	for (i = 0; i < COUNT; ++i) {
+	for (i = 0; i < count; ++i) {
 		r = xorshift128plus_r(&seed);
 		bin = __builtin_popcountl(r);
 		bins[bin]++;
@@ -106,6 +109,11 @@ int main(int argc, char *argv[])
 	samthread_t threads[N_CHILDREN];
 	int i, j;
 	double chi;
+
+	if (RUNNING_ON_VALGRIND) {
+		puts("random running under valgrind... limiting loops");
+		count /= 100;
+	}
 
 	for (i = 0; i < 65; ++i)
 		expected[i] >>= 31;

@@ -73,6 +73,7 @@ int main(int argc, char *argv[])
 	db_close(NULL);
 
 	unlink(tmpfile);
+	free(tmpfile);
 
 	return rc;
 }

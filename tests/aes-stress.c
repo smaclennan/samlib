@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
+#include <valgrind/valgrind.h>
 
 #include "../samlib.h"
 
@@ -35,6 +36,10 @@ int main(int argc, char *argv[])
 	AES128_init_ctx(&ctx, key, NULL, 1);
 	if (software_only) ctx.have_hw = 0;
 	loops = ctx.have_hw ? LOOPS_HW : LOOPS_SW;
+	if (RUNNING_ON_VALGRIND) {
+		puts("aes-stress running under valgrind... limiting loops");
+		loops /= 1000; // the timings are useless
+	}
 
 #if 1
 	gettimeofday(&start, NULL);

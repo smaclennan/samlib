@@ -230,5 +230,7 @@ int main(int argc, char *argv[])
 	rc |= test_priority();
 	rc |= futex_test();
 
+	mutex_destroy(biglock);
+
 	return rc;
 }

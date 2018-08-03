@@ -116,6 +116,9 @@ int main(int argc, char *argv[])
 	unlink(filename);
 	unlink(toname);
 
+	free(filename);
+	free(toname);
+
 	/* Since we use tmpfilename, test it here */
 	return test_tmpfilename();
 }
