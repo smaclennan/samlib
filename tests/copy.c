@@ -17,11 +17,23 @@ static struct atest {
 } tests[] = {
 	{ "hello world", "hello world", sizeof(dst) }, // fits
 	{ "hello world", "hello world", 12 }, // fits - just
+	{ "hello world", "hello worl", 11 }, // truncated - just
 	{ "hello world", "hello", 6 }, // truncated
 	{ "hello world", "", 1 }, // one
 	{ "hello world", NULL, 0 }, // zero
 };
 #define NTESTS (sizeof(tests) / sizeof(struct atest))
+
+static void setup(int i)
+{
+	memset(dst, 0xea, sizeof(dst));
+	memset(dst2, 0xea, sizeof(dst2));
+	dst[sizeof(dst) - 1] = 0;
+	dst2[sizeof(dst2) - 1] = 0;
+
+	if (tests[i].expect == NULL)
+		tests[i].expect = dst2;
+}
 
 #ifdef TESTALL
 int copy_main(void)
@@ -35,16 +47,11 @@ int main(void)
 		int len = strlen(tests[i].src);
 		int dlen = MIN(len, MAX(0, tests[i].dstlen - 1));
 
-		memset(dst, 0xea, sizeof(dst));
-		memset(dst2, 0xea, sizeof(dst2));
-		dst[sizeof(dst) - 1] = 0;
-		dst2[sizeof(dst2) - 1] = 0;
-
-		if (tests[i].expect == NULL)
-			tests[i].expect = dst2;
+		setup(i);
 
 		// safecpy
 		s1 = safecpy(dst, tests[i].src, tests[i].dstlen);
+		s2 = snprintf(dst2, tests[i].dstlen, "%s", tests[i].src);
 		if (s1 != dlen) {
 			printf("safecpy %d failed len\n", i);
 			rc = 1;
@@ -55,6 +62,15 @@ int main(void)
 			printf("safecpy %d failed +1\n", i);
 			rc = 1;
 		}
+		if (s1 != MIN(s2, dlen)) {
+			printf("safecpy %d len mismatch\n", i);
+			rc = 1;
+		} else if (strcmp(dst, dst2)) {
+			printf("safecpy %d cmp mismatch\n", i);
+			rc = 1;
+		}
+
+		setup(i);
 
 		// strcpy
 		s1 = strlcpy(dst, tests[i].src, tests[i].dstlen);
