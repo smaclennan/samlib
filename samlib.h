@@ -384,6 +384,23 @@ int safe_snprintf(char *dst, int dstsize, const char *fmt, ...);
 size_t strlcpy(char *dst, const char *src, size_t dstsize);
 #endif
 
+/* The name field is the allocated space. All the other char *
+ * pointers just point into name. The private field is never touched in
+ * pkgparse.
+ */
+struct slack_pkg {
+	char *name;
+	char *version;
+	char *arch;
+	char *build_tag;
+	void *private;
+};
+
+/* Parse a Slackware package into it's parts. The string can be a full
+ * path or just the package name. Returns 0 on success or an errno.
+ */
+int pkgparse(const char *pkg_str, struct slack_pkg *pkg);
+
 #ifdef WIN32
 /* Use these and must_mmap_file will do the right thing */
 #define PROT_READ 1
