@@ -191,6 +191,8 @@ int walkfiles(struct walkfile_struct *walk, const char *path,
 /* Don't walk directories on other filesystems (like find -xdev) */
 #define WALK_XDEV 2
 
+#define WALK_NO_SUBDIRS 4
+
 /* Adds a regular expression of paths to ignore. */
 void add_ignore(struct walkfile_struct *walk, const char *str);
 
@@ -400,6 +402,11 @@ struct slack_pkg {
  * path or just the package name. Returns 0 on success or an errno.
  */
 int pkgparse(const char *pkg_str, struct slack_pkg *pkg);
+
+/* Returns 0 if path is an exe (not a script). Returns -1 on error and
+ * errno should be set.
+ */
+int isexe(const char *path);
 
 #ifdef WIN32
 /* Use these and must_mmap_file will do the right thing */

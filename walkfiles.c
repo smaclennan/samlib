@@ -150,13 +150,15 @@ static int do_dir(struct walkfile_struct *walk, const char *dname, struct stat *
 		match = sbuf.st_mode & S_IFMT;
 		switch (match) {
 		case S_IFDIR:
-			if (walk->flags & WALK_XDEV)
-				if (dbuf->st_dev != sbuf.st_dev) {
-					if (walk_verbose)
-						printf("Skipping dir %s\n", path);
-					break;
-				}
-			error |= do_dir(walk, path, &sbuf);
+			if (!(walk->flags & WALK_NO_SUBDIRS)) {
+				if (walk->flags & WALK_XDEV)
+					if (dbuf->st_dev != sbuf.st_dev) {
+						if (walk_verbose)
+							printf("Skipping dir %s\n", path);
+						break;
+					}
+				error |= do_dir(walk, path, &sbuf);
+			}
 			break;
 		default:
 			if ((match & walk->flags & S_IFMT) != match) {
