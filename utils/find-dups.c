@@ -147,12 +147,27 @@ static int file_func(const char *path, struct stat *sbuf)
 	return 0;
 }
 
+static void usage(int rc)
+{
+	fputs("find_dups [-hlnmv] [-i ignore] [-f filter] dir...\nwhere:"
+		  "\t-f  filter is a file globbing\n"
+		  "\t-h  this help\n"
+		  "\t-i  ignore is a regular expression\n"
+		  "\t-l  also checks links\n"
+		  "\t-n  normalize file names\n"
+		  "\t-m  use md5sums\n"
+		  "\t-v  more verbose\n"
+		  ,stderr);
+	exit(rc);
+}
+
 int main(int argc, char *argv[])
 {
 	int c, flags = 0, error = 0;
 
-	while ((c = getopt(argc, argv, "i:f:lmnv")) != EOF)
+	while ((c = getopt(argc, argv, "hi:f:lmnv")) != EOF)
 		switch (c) {
+		case 'h': usage(0);
 		case 'i': add_ignore(NULL, optarg); break;
 		case 'f': add_filter(NULL, optarg); break;
 		case 'l': flags |= WALK_LINKS; break;
@@ -161,7 +176,7 @@ int main(int argc, char *argv[])
 		case 'v': flags |= WALK_VERBOSE; break;
 		default:
 			puts("Sorry!");
-			exit(1);
+			usage(1);
 		}
 
 	if (optind == argc) {

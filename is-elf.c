@@ -3,7 +3,7 @@
 
 static const uint8_t elf_hdr[] = { 0177, 'E', 'L', 'F' };
 
-int isexe(const char *path)
+int is_elf(const char *path)
 {
 	int fd = open(path, O_RDONLY);
 	if (fd < 0)

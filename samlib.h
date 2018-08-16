@@ -403,10 +403,10 @@ struct slack_pkg {
  */
 int pkgparse(const char *pkg_str, struct slack_pkg *pkg);
 
-/* Returns 0 if path is an exe (not a script). Returns -1 on error and
+/* Returns 0 if path is an elf file. Returns -1 on error and
  * errno should be set.
  */
-int isexe(const char *path);
+int is_elf(const char *path);
 
 #ifdef WIN32
 /* Use these and must_mmap_file will do the right thing */
