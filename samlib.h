@@ -259,19 +259,19 @@ char *sha256str(uint8_t *digest, char *str);
 
 typedef struct aes128_ctx {
 	uint8_t ivec[AES128_KEYLEN];	/* CBC only */
-	uint8_t *ivptr;					/* CBC only */
+	const uint8_t *ivptr;			/* CBC only */
 	ALIGN16 uint8_t roundkey[AES128_KEYLEN * 11];
 	int have_hw;
 } aes128_ctx;
 
 /* These deal with a AES128_KEYLEN sized block at a time. Zero pad if necessary. */
-int AES128_init_ctx(aes128_ctx *ctx, const uint8_t *key, const uint8_t *iv, int encrypt);
-void AES128_ECB_encrypt(aes128_ctx *ctx, const uint8_t *input, uint8_t *output);
-void AES128_ECB_decrypt(aes128_ctx *ctx, const uint8_t *input, uint8_t *output);
+int AES128_init_ctx(aes128_ctx *ctx, const void *key, const void *iv, int encrypt);
+void AES128_ECB_encrypt(aes128_ctx *ctx, const void *input, void *output);
+void AES128_ECB_decrypt(aes128_ctx *ctx, const void *input, void *output);
 
 /* NOTE: Input length must be evenly divisible by 16 bytes. Zero pad if necessary. */
-void AES128_CBC_encrypt_buffer(aes128_ctx *ctx, uint8_t *output, uint8_t *input, uint32_t length);
-void AES128_CBC_decrypt_buffer(aes128_ctx *ctx, uint8_t *output, uint8_t *input, uint32_t length);
+int AES128_CBC_encrypt_buffer(aes128_ctx *ctx, void *output, const void *input, unsigned long length);
+int AES128_CBC_decrypt_buffer(aes128_ctx *ctx, void *output, const void *input, unsigned long length);
 
 /* base64 functions */
 

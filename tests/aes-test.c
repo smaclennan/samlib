@@ -208,6 +208,9 @@ int aes_main(void)
 	aes128_ctx ctx;
 	assert(AES128_init_ctx(&ctx, NULL, NULL, 1) == EINVAL);
 
+	assert(AES128_CBC_encrypt_buffer(&ctx, NULL, NULL, 257) == EINVAL);
+	assert(AES128_CBC_decrypt_buffer(&ctx, NULL, NULL, 257) == EINVAL);
+
 	/* Reset it for testall */
 	hw_aes_support = -1;
 

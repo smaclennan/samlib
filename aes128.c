@@ -386,9 +386,9 @@ static int cpu_supports_aes(void)
 }
 
 /* Unrolling the loop is a big win for ECB... but not for CBC */
-static void AES128_ECB_encrypt_block(const unsigned char *in,
-									 unsigned char *out,
-									 const uint8_t *key)
+static void AES128_ECB_encrypt_block(const void *in,
+									 void *out,
+									 const void *key)
 {
 	__m128i tmp, *key128 = (__m128i *)key;
 
@@ -407,9 +407,9 @@ static void AES128_ECB_encrypt_block(const unsigned char *in,
 	_mm_storeu_si128((__m128i *)out, tmp);
 }
 
-static void AES128_ECB_decrypt_block(const unsigned char *in,
-									 unsigned char *out,
-									 const uint8_t *key)
+static void AES128_ECB_decrypt_block(const void *in,
+									 void *out,
+									 const void *key)
 {
 	__m128i tmp, *key128 = (__m128i *)key;
 
@@ -428,7 +428,7 @@ static void AES128_ECB_decrypt_block(const unsigned char *in,
 	_mm_storeu_si128 ((__m128i *)out, tmp);
 }
 
-static void AES128_expand_key(uint8_t *key)
+static void AES128_expand_key(void *key)
 {
 	ALIGN16 unsigned char temp_key[16 * 11];
 	__m128i *Key_Schedule = (__m128i *)key;
@@ -452,7 +452,7 @@ static void AES128_expand_key(uint8_t *key)
 
 /* Public functions */
 
-int AES128_init_ctx(aes128_ctx *ctx, const uint8_t *key, const uint8_t *iv, int encrypt)
+int AES128_init_ctx(aes128_ctx *ctx, const void *key, const void *iv, int encrypt)
 {
 	if (!key)
 		return EINVAL;
@@ -478,10 +478,7 @@ int AES128_init_ctx(aes128_ctx *ctx, const uint8_t *key, const uint8_t *iv, int 
 	return 0;
 }
 
-extern void aes_encr(unsigned char *state, unsigned char *expandedKey);
-
-
-void AES128_ECB_encrypt(aes128_ctx *ctx, const uint8_t* input, uint8_t* output)
+void AES128_ECB_encrypt(aes128_ctx *ctx, const void *input, void *output)
 {
 #if AES_HW
 	if (ctx->have_hw)
@@ -494,7 +491,7 @@ void AES128_ECB_encrypt(aes128_ctx *ctx, const uint8_t* input, uint8_t* output)
 	}
 }
 
-void AES128_ECB_decrypt(aes128_ctx *ctx, const uint8_t* input, uint8_t *output)
+void AES128_ECB_decrypt(aes128_ctx *ctx, const void *input, void *output)
 {
 #if AES_HW
 	if (ctx->have_hw)

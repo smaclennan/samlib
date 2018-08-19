@@ -240,7 +240,7 @@ static void InvCipher(aes128_ctx *ctx, state_t *state)
   AddRoundKey(ctx, 0, state);
 }
 
-static inline void BlockCopy(uint8_t* output, const uint8_t* input)
+static inline void BlockCopy(void *output, const void *input)
 {
 	memcpy(output, input, AES128_KEYLEN);
 }
@@ -256,141 +256,105 @@ static inline void BlockCopy(uint8_t* output, const uint8_t* input)
  * https://www.intel.com/content/dam/doc/white-paper/advanced-encryption-standard-new-instructions-set-paper.pdf
  */
 
-static void AES_CBC_encrypt(const unsigned char *in,
-							unsigned char *out,
-							const unsigned char *ivec,
-							unsigned long length,
-							const unsigned char *key)
+static void AES_CBC_encrypt(aes128_ctx *ctx, const void *in, void *out, unsigned long length)
 {
 	__m128i feedback, data;
 	int i, j;
-	int remainders = length & 15;
 
-	if (remainders) {
-		memset(out + remainders, 0, AES128_KEYLEN - remainders); /* add 0-padding */
-		length = length / 16 + 1;
-	} else
-		length /= 16;
+	length /= 16;
 
-	feedback = _mm_loadu_si128((__m128i*)ivec);
+	feedback = _mm_loadu_si128((__m128i*)ctx->ivec);
 	for(i=0; i < length; i++) {
 		data = _mm_loadu_si128 (&((__m128i*)in)[i]);
 		feedback = _mm_xor_si128 (data,feedback);
-		feedback = _mm_xor_si128 (feedback, ((__m128i*)key)[0]);
+		feedback = _mm_xor_si128 (feedback, ((__m128i*)ctx->roundkey)[0]);
 		for(j=1; j < Nr; j++)
-			feedback = _mm_aesenc_si128(feedback, ((__m128i*)key)[j]);
-		feedback = _mm_aesenclast_si128(feedback, ((__m128i*)key)[j]);
+			feedback = _mm_aesenc_si128(feedback, ((__m128i*)ctx->roundkey)[j]);
+		feedback = _mm_aesenclast_si128(feedback, ((__m128i*)ctx->roundkey)[j]);
 		_mm_storeu_si128(&((__m128i*)out)[i], feedback);
 	}
 }
 
-static void AES_CBC_decrypt(const unsigned char *in,
-							unsigned char *out,
-							unsigned char *ivec,
-							unsigned long length,
-							const unsigned char *key,
-							int number_of_rounds)
+static void AES_CBC_decrypt(aes128_ctx *ctx, const void *in, void *out, unsigned long length)
 {
 	__m128i data, last_in, feedback;
-	int i,j;
-	int remainders = length & 15;
+	int i, j;
 
-	if (remainders) {
-		memset(out + remainders, 0, AES128_KEYLEN - remainders); /* add 0-padding */
-		length = length / 16 + 1;
-	} else
-		length /= 16;
+	length /= 16;
 
-	if (ivec)
-		feedback = _mm_loadu_si128 ((__m128i*)ivec);
-	for(i=0; i < length; i++) {
+	if (ctx->ivec)
+		feedback = _mm_loadu_si128 ((__m128i*)ctx->ivec);
+	for (i = 0; i < length; i++) {
 		last_in =_mm_loadu_si128 (&((__m128i*)in)[i]);
-		data = _mm_xor_si128 (last_in,((__m128i*)key)[0]);
-		for(j=1; j <number_of_rounds; j++)
-			data = _mm_aesdec_si128 (data,((__m128i*)key)[j]);
-		data = _mm_aesdeclast_si128 (data,((__m128i*)key)[j]);
+		data = _mm_xor_si128 (last_in,((__m128i*)ctx->roundkey)[0]);
+		for(j = 1; j < Nr; j++)
+			data = _mm_aesdec_si128 (data,((__m128i*)ctx->roundkey)[j]);
+		data = _mm_aesdeclast_si128 (data,((__m128i*)ctx->roundkey)[j]);
 		data = _mm_xor_si128 (data,feedback);
 		_mm_storeu_si128 (&((__m128i*)out)[i],data);
 		feedback = last_in;
 	}
 
 	/* Save for possible next iter */
-	_mm_storeu_si128 ((__m128i*)ivec, feedback);
+	_mm_storeu_si128 ((__m128i*)ctx->ivec, feedback);
 }
 
 #endif
 
-static void XorWithIv(aes128_ctx *ctx, uint8_t *buf)
+static inline void XorWithIv(aes128_ctx *ctx, uint8_t *buf)
 {
-  uint8_t i;
-  for(i = 0; i < AES128_KEYLEN; ++i)
-	buf[i] ^= ctx->ivptr[i];
+	for (int i = 0; i < AES128_KEYLEN; ++i)
+		buf[i] ^= ctx->ivptr[i];
 }
 
 /*****************************************************************************/
 /* Public functions:                                                         */
 /*****************************************************************************/
 
-void AES128_CBC_encrypt_buffer(aes128_ctx *ctx, uint8_t *output, uint8_t *input, uint32_t length)
+int AES128_CBC_encrypt_buffer(aes128_ctx *ctx, void *output, const void *input, unsigned long length)
 {
-  uintptr_t i;
-  uint8_t remainders = length % AES128_KEYLEN; /* Remaining bytes in the last non-full block */
+	if (length & (AES128_KEYLEN - 1))
+		return EINVAL;
 
 #if AES_HW
-  if (ctx->have_hw) {
-	  AES_CBC_encrypt(input, output, ctx->ivec, length, ctx->roundkey);
-	  return;
-  }
+	if (ctx->have_hw) {
+		AES_CBC_encrypt(ctx, input, output, length);
+		return 0;
+	}
 #endif
 
-  BlockCopy(output, input);
+	for (unsigned long i = 0; i < length; i += AES128_KEYLEN) {
+		BlockCopy(output, input);
+		XorWithIv(ctx, output);
+		Cipher(ctx, (state_t *)output);
+		ctx->ivptr = output;
+		input += AES128_KEYLEN;
+		output += AES128_KEYLEN;
+	}
 
-  for(i = 0; i < length; i += AES128_KEYLEN)
-  {
-	  XorWithIv(ctx, input);
-	BlockCopy(output, input);
-	Cipher(ctx, (state_t *)output);
-	ctx->ivptr = output;
-	input += AES128_KEYLEN;
-	output += AES128_KEYLEN;
-  }
-
-  if(remainders)
-  {
-	BlockCopy(output, input);
-	memset(output + remainders, 0, AES128_KEYLEN - remainders); /* add 0-padding */
-	Cipher(ctx, (state_t *)output);
-  }
+	return 0;
 }
 
-void AES128_CBC_decrypt_buffer(aes128_ctx *ctx, uint8_t *output, uint8_t *input, uint32_t length)
+int AES128_CBC_decrypt_buffer(aes128_ctx *ctx, void *output, const void *input, unsigned long length)
 {
-  uintptr_t i;
-  uint8_t remainders = length % AES128_KEYLEN; /* Remaining bytes in the last non-full block */
+	if (length & (AES128_KEYLEN - 1))
+		return EINVAL;
 
 #if AES_HW
-  if (ctx->have_hw) {
-	AES_CBC_decrypt(input, output, ctx->ivec, length, ctx->roundkey, Nr);
-	return;
-  }
+	if (ctx->have_hw) {
+		AES_CBC_decrypt(ctx, input, output, length);
+		return 0;
+	}
 #endif
 
-  BlockCopy(output, input);
+	for (unsigned long i = 0; i < length; i += AES128_KEYLEN) {
+		BlockCopy(output, input);
+		InvCipher(ctx, (state_t *)output);
+		XorWithIv(ctx, output);
+		ctx->ivptr = input;
+		input += AES128_KEYLEN;
+		output += AES128_KEYLEN;
+	}
 
-  for(i = 0; i < length; i += AES128_KEYLEN)
-  {
-	BlockCopy(output, input);
-	InvCipher(ctx, (state_t *)output);
-	XorWithIv(ctx, output);
-	ctx->ivptr = input;
-	input += AES128_KEYLEN;
-	output += AES128_KEYLEN;
-  }
-
-  if(remainders)
-  {
-	BlockCopy(output, input);
-	memset(output+remainders, 0, AES128_KEYLEN - remainders); /* add 0-padding */
-	InvCipher(ctx, (state_t *)output);
-  }
+	return 0;
 }
