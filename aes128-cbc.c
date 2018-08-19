@@ -261,8 +261,10 @@ static void AES_CBC_encrypt(aes128_ctx *ctx, const void *in, void *out, unsigned
 	__m128i feedback, data;
 	int i, j;
 
+	length /= AES128_KEYLEN;
+
 	feedback = _mm_loadu_si128((__m128i*)ctx->ivec);
-	for (i = 0; i < length; i += AES128_KEYLEN) {
+	for (i = 0; i < length; i++) {
 		data = _mm_loadu_si128 (&((__m128i*)in)[i]);
 		feedback = _mm_xor_si128 (data,feedback);
 		feedback = _mm_xor_si128 (feedback, ((__m128i*)ctx->roundkey)[0]);
@@ -278,8 +280,10 @@ static void AES_CBC_decrypt(aes128_ctx *ctx, const void *in, void *out, unsigned
 	__m128i data, last_in, feedback;
 	int i, j;
 
+	length /= AES128_KEYLEN;
+
 	feedback = _mm_loadu_si128 ((__m128i*)ctx->ivec);
-	for (i = 0; i < length; i += AES128_KEYLEN) {
+	for (i = 0; i < length; i++) {
 		last_in =_mm_loadu_si128 (&((__m128i*)in)[i]);
 		data = _mm_xor_si128 (last_in,((__m128i*)ctx->roundkey)[0]);
 		for(j = 1; j < Nr; j++)
