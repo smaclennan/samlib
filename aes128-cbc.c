@@ -273,6 +273,9 @@ static void AES_CBC_encrypt(aes128_ctx *ctx, const void *in, void *out, unsigned
 		feedback = _mm_aesenclast_si128(feedback, ((__m128i*)ctx->roundkey)[j]);
 		_mm_storeu_si128(&((__m128i*)out)[i], feedback);
 	}
+
+	/* Save for possible next iter */
+	_mm_storeu_si128 ((__m128i*)ctx->ivec, feedback);
 }
 
 static void AES_CBC_decrypt(aes128_ctx *ctx, const void *in, void *out, unsigned long length)
@@ -317,6 +320,8 @@ int AES128_CBC_encrypt_buffer(aes128_ctx *ctx, void *output, const void *input, 
 
 #if AES_HW
 	if (ctx->have_hw) {
+		if ((ctx->have_hw & 1) == 0)
+			return EACCES;
 		AES_CBC_encrypt(ctx, input, output, length);
 		return 0;
 	}
@@ -341,6 +346,8 @@ int AES128_CBC_decrypt_buffer(aes128_ctx *ctx, void *output, const void *input, 
 
 #if AES_HW
 	if (ctx->have_hw) {
+		if ((ctx->have_hw & 1) == 1)
+			return EACCES;
 		AES_CBC_decrypt(ctx, input, output, length);
 		return 0;
 	}

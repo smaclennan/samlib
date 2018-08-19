@@ -31,7 +31,7 @@ void out_msg(const char *msg, int rc, int hw)
 	{
 		if (hw)
 			printf("HW ");
-		printf("%s: %s!\n", msg, rc ? "FAILURE" : "SUCCESS");
+		printf("%s: %s!\n", msg, rc ? "FAILURE" : "success");
 	}
 }
 
@@ -100,7 +100,7 @@ static int test_encrypt_ecb(void)
   AES128_init_ctx(&ctx, key, NULL, 1);
   AES128_ECB_encrypt(&ctx, in, buffer);
 
-  rc = strncmp((char*)out, (char*) buffer, 16);
+  rc = memcmp(out, buffer, 16);
   out_msg("ECB encrypt", rc, ctx.have_hw);
   return rc;
 }
@@ -115,7 +115,7 @@ static int test_decrypt_ecb(void)
 
   AES128_ECB_decrypt(&ctx, out, buffer);
 
-  rc = strncmp((char*)in, (char*) buffer, 16);
+  rc = memcmp(in, buffer, 16);
   out_msg("ECB decrypt", rc, ctx.have_hw);
   return rc;
 }
@@ -138,13 +138,9 @@ static int test_decrypt_cbc(void)
   aes128_ctx ctx;
 
   AES128_init_ctx(&ctx, key, iv, 0);
+  AES128_CBC_decrypt_buffer(&ctx, buffer, in, 64);
 
-  AES128_CBC_decrypt_buffer(&ctx, buffer+0, in+0,  16);
-  AES128_CBC_decrypt_buffer(&ctx, buffer+16, in+16, 16);
-  AES128_CBC_decrypt_buffer(&ctx, buffer+32, in+32, 16);
-  AES128_CBC_decrypt_buffer(&ctx, buffer+48, in+48, 16);
-
-  int rc = strncmp((char*) out, (char*) buffer, 64);
+  int rc = memcmp(out, buffer, 64);
   out_msg("CBC decrypt", rc, ctx.have_hw);
   return rc;
 }
@@ -167,8 +163,32 @@ static int test_encrypt_cbc(void)
   AES128_init_ctx(&ctx, key, iv, 1);
   AES128_CBC_encrypt_buffer(&ctx, buffer, in, 64);
 
-  int rc = strncmp((char*) out, (char*) buffer, 64);
+  int rc = memcmp(out, buffer, 64);
   out_msg("CBC encrypt", rc, ctx.have_hw);
+  return rc;
+}
+
+static int test_encrypt_decrypt_cbc(void)
+{
+  const uint8_t key[] = { 0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c };
+  const uint8_t iv[]  = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f };
+  const uint8_t in[]  = { 0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a,
+						  0xae, 0x2d, 0x8a, 0x57, 0x1e, 0x03, 0xac, 0x9c, 0x9e, 0xb7, 0x6f, 0xac, 0x45, 0xaf, 0x8e, 0x51,
+						  0x30, 0xc8, 0x1c, 0x46, 0xa3, 0x5c, 0xe4, 0x11, 0xe5, 0xfb, 0xc1, 0x19, 0x1a, 0x0a, 0x52, 0xef,
+						  0xf6, 0x9f, 0x24, 0x45, 0xdf, 0x4f, 0x9b, 0x17, 0xad, 0x2b, 0x41, 0x7b, 0xe6, 0x6c, 0x37, 0x10 };
+  uint8_t buffer[64], out[64];
+  aes128_ctx ctx;
+
+  AES128_init_ctx(&ctx, key, iv, 1);
+  AES128_CBC_encrypt_buffer(&ctx, buffer, in, 32);
+  AES128_CBC_encrypt_buffer(&ctx, buffer + 32, in + 32, 32);
+
+  AES128_init_ctx(&ctx, key, iv, 0);
+  AES128_CBC_decrypt_buffer(&ctx, out, buffer, 32);
+  AES128_CBC_decrypt_buffer(&ctx, out + 32, buffer + 32, 32);
+
+  int rc = memcmp(out, in, 64);
+  out_msg("CBC encrypt/decrypt", rc, ctx.have_hw);
   return rc;
 }
 
@@ -181,6 +201,7 @@ static int do_testsuite(void)
 	rc |= test_encrypt_ecb_malloc();
 	rc |= test_decrypt_cbc();
 	rc |= test_encrypt_cbc();
+	rc |= test_encrypt_decrypt_cbc();
 
 	return rc;
 }

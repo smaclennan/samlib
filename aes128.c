@@ -468,7 +468,7 @@ int AES128_init_ctx(aes128_ctx *ctx, const void *key, const void *iv, int encryp
 
 #if AES_HW
 	if (cpu_supports_aes()) {
-		ctx->have_hw = 1;
+		ctx->have_hw = 2 | !!encrypt;
 		if (encrypt == 0)
 			/* extra work for decrypt - reverse the key */
 			AES128_expand_key(ctx->roundkey);
