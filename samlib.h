@@ -385,6 +385,7 @@ int safe_snprintf(char *dst, int dstsize, const char *fmt, ...);
 #if defined(__linux__) || defined(WIN32)
 size_t strlcpy(char *dst, const char *src, size_t dstsize);
 #endif
+int strconcat(char *str, int len, ...);
 
 /* The name field is the allocated space. All the other char *
  * pointers just point into name. The private field is never touched in

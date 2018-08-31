@@ -6,10 +6,10 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
+#include <assert.h>
 #include "../samlib.h"
 
 #define STR "hello world"
-#define PRE_EXISTING "not "
 
 static int check_copy(const char *str, int len, int line)
 {
@@ -46,20 +46,54 @@ static int check_copy(const char *str, int len, int line)
 	return 0;
 }
 
+static void test_strconcat(void)
+{
+	char str[64], str2[64];
+	int n;
+
+	n = strconcat(str, sizeof(str), "hello", " ", "world", NULL);
+	assert(n == 11);
+	assert(strcmp(str, "hello world") == 0);
+
+	n = strconcat(NULL, 0, "hello", " ", "world", NULL);
+	assert(n == 0);
+
+	n = strconcat(str, 10, "hello", " ", "world", NULL);
+	assert(n == 9);
+	assert(strcmp(str, "hello wor") == 0);
+
+	n = strconcat(str, 5, "hello", " ", "world", NULL);
+	assert(n == 4);
+	assert(strcmp(str, "hell") == 0);
+
+	strcpy(str2, " and ");
+	n = strconcat(str, sizeof(str), "hello", str2, "world", NULL);
+	assert(n == 15);
+	assert(strcmp(str, "hello and world") == 0);
+}
+
 int main(int argc, char *argv[])
 {
 	int rc = 0;
+
+#if 1
 	int len = strlen(STR);
 
 	for (int i = 0; i < len + 2; ++i)
 		rc |= check_copy(STR, i, i);
 
+	test_strconcat();
+#endif
+
+#if 1
 	char dst[256], src[256];
 	struct timeval start;
 	gettimeofday(&start, NULL);
-	for (int i = 0; i < 100000000; ++i)
-		safecpy(dst, src, 256);
-	printf("%lu\n", delta_timeval_now(&start));
+	for (int i = 0; i < 200000000; ++i)
+		safecpy(dst, src, 64);
+	unsigned long delta = delta_timeval_now(&start);
+	printf("%luus (%fns)\n", delta, (double)delta / 200000000.0 * 1000.0);
+#endif
 
 	return rc;
 }

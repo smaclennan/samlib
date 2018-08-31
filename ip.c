@@ -43,7 +43,7 @@ static int check_state(const char *name)
 	char buff[64];
 	int fd;
 
-	snprintf(buff, sizeof(buff), "/sys/class/net/%s/operstate", name);
+	strconcat(buff, sizeof(buff), "/sys/class/net/", name, "/operstate", NULL);
 	fd = open(buff, O_RDONLY);
 	if (fd >= 0) {
 		int n = read(fd, buff, sizeof(buff));
@@ -82,6 +82,7 @@ int get_interfaces(char **ifnames, int n, uint64_t *state)
 	return i;
 
 oom:
+	closedir(dir);
 	free_interfaces(ifnames, i);
 	return -ENOMEM;
 }
