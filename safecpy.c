@@ -5,14 +5,16 @@
 
 static inline int __copy(char *dst, const char *src, int dstsize)
 {
-	int i;
+	int i = 0;
 
-	if (dstsize <= 0) return 0;
-
-	--dstsize;
-	for (i = 0; i < dstsize && *src; ++i)
-		*dst++ = *src++;
-	*dst = 0;
+	if (dstsize > 0) {
+		--dstsize;
+		while (i < dstsize && *src) {
+			*dst++ = *src++;
+			++i;
+		}
+		*dst = 0;
+	}
 
 	return i;
 }
@@ -51,19 +53,8 @@ int safe_snprintf(char *dst, int dstsize, const char *fmt, ...)
 #if defined(__linux__) || defined(WIN32)
 size_t strlcpy(char *dst, const char *src, size_t dstsize)
 {
-	size_t srcsize = strlen(src);
-
-	if (dstsize) {
-		if (dstsize > srcsize)
-			strcpy(dst, src);
-		else {
-			--dstsize;
-			strncpy(dst, src, dstsize);
-			dst[dstsize] = 0;
-		}
-	}
-
-	return srcsize;
+	__copy(dst, src, dstsize);
+	return strlen(src);
 }
 
 /* A simple strlcat implementation for Linux */
@@ -77,19 +68,10 @@ size_t strlcat(char *dst, const char *src, size_t dstsize)
 		++i;
 	}
 
-	if (dstsize) {
-		--dstsize;
-		while (*src && i < dstsize) {
-			*dst++ = *src++;
-			++i;
-		}
-		*dst = 0;
-	}
+	__copy(dst, src, dstsize);
 
 	/* strlcat returns the size of the src + initial dst */
-	while (*src++) ++i;
-
-	return i;
+	return i + strlen(src);
 }
 #endif
 
@@ -104,7 +86,7 @@ int strconcat(char *str, int len, ...)
 	va_list ap;
 	va_start(ap, len);
 	while ((arg = va_arg(ap, char *)) && len > 0) {
-		int n = safecpy(str, arg, len);
+		int n = __copy(str, arg, len);
 		str += n;
 		len -= n;
 		total += n;

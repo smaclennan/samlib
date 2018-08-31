@@ -384,6 +384,7 @@ int safe_snprintf(char *dst, int dstsize, const char *fmt, ...);
 /* strlcpy returns length of src */
 #if defined(__linux__) || defined(WIN32)
 size_t strlcpy(char *dst, const char *src, size_t dstsize);
+size_t strlcat(char *dst, const char *src, size_t dstsize);
 #endif
 int strconcat(char *str, int len, ...);
 
