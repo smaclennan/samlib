@@ -126,9 +126,9 @@ static int do_dir(struct walkfile_struct *walk, const char *dname, struct stat *
 		if (*ent->d_name == '.') continue;
 
 		if (strcmp(dname, "/"))
-			n = snprintf(path, sizeof(path), "%s/%s", dname, ent->d_name);
+			n = strconcat(path, sizeof(path), dname, "/", ent->d_name, NULL);
 		else
-			n = snprintf(path, sizeof(path), "/%s", ent->d_name);
+			n = strconcat(path, sizeof(path), "/", ent->d_name, NULL);
 		if (n >= sizeof(path)) {
 			printf("PATH TRUNCATED: %s/%s\n", dname, ent->d_name);
 			error = 1;

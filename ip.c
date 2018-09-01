@@ -166,7 +166,7 @@ int ip_addr(const char *ifname,
 		return -1;
 
 	struct ifreq ifr;
-	snprintf(ifr.ifr_name, IFNAMSIZ, "%s", ifname);
+	strlcpy(ifr.ifr_name, ifname, IFNAMSIZ);
 
 	if (addr) {
 		if (ioctl(s, SIOCGIFADDR, &ifr) < 0)

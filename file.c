@@ -35,7 +35,7 @@ int mktempfile(char *fname, int len)
 	if (!envtmp || strlen(envtmp) >= len -  12)
 		envtmp = "/tmp";
 
-	snprintf(fname, len, "%s/tmp.XXXXXX", envtmp);
+	strconcat(fname, len, envtmp, "/tmp.XXXXXX", NULL);
 
 	return mkstemp(fname);
 #else

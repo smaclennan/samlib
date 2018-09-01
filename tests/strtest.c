@@ -1,11 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <ctype.h>
-#include <errno.h>
 #include <assert.h>
 #include "../samlib.h"
 
@@ -22,7 +14,7 @@ static int check_copy(const char *str, int len, int line)
 	memset(dst2, '4', sizeof(dst2));
 	memset(expected, '6', sizeof(expected));
 
-	n1 = snprintf(expected, len, "%s", str);
+	n1 = SNPRINTF(expected, len, "%s", str);
 	n2 = safecpy(dst1, str, len);
 	n3 = strlcpy(dst2, str, len);
 
@@ -77,7 +69,7 @@ static int check_cat(const char *str, int len, int line)
 	strcpy(dst1, "INIT");
 	strcpy(dst2, "INIT");
 
-	n1 = snprintf(expected, len, "INIT%s", str);
+	n1 = SNPRINTF(expected, len, "INIT%s", str);
 	n2 = safecat(dst1, str, len);
 	n3 = strlcat(dst2, str, len);
 
