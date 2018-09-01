@@ -88,6 +88,7 @@ oom:
 }
 
 #else
+#include <ctype.h>
 
 /* Returns 0 on success, < 0 for errors, and > 0 if ifname not found.
  * The gateway arg can be NULL.
