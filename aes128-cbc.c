@@ -332,8 +332,8 @@ int AES128_CBC_encrypt_buffer(aes128_ctx *ctx, void *output, const void *input, 
 		XorWithIv(ctx, output);
 		Cipher(ctx, (state_t *)output);
 		ctx->ivptr = output;
-		input += AES128_KEYLEN;
-		output += AES128_KEYLEN;
+		WIN32_COERCE input += AES128_KEYLEN;
+		WIN32_COERCE output += AES128_KEYLEN;
 	}
 
 	return 0;
@@ -358,8 +358,8 @@ int AES128_CBC_decrypt_buffer(aes128_ctx *ctx, void *output, const void *input, 
 		InvCipher(ctx, (state_t *)output);
 		XorWithIv(ctx, output);
 		ctx->ivptr = input;
-		input += AES128_KEYLEN;
-		output += AES128_KEYLEN;
+		WIN32_COERCE input += AES128_KEYLEN;
+		WIN32_COERCE output += AES128_KEYLEN;
 	}
 
 	return 0;
