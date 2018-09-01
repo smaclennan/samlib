@@ -134,7 +134,11 @@ static void test_strconcat(void)
 	assert(strcmp(str, "hello and world") == 0);
 }
 
+#ifdef TESTALL
+int str_main(void)
+#else
 int main(int argc, char *argv[])
+#endif
 {
 	int rc = 0;
 
@@ -149,6 +153,7 @@ int main(int argc, char *argv[])
 	test_strconcat();
 #endif
 
+#ifndef TESTALL
 #if 1
 	char dst[256], src[256];
 	struct timeval start;
@@ -158,13 +163,7 @@ int main(int argc, char *argv[])
 	unsigned long delta = delta_timeval_now(&start);
 	printf("%luus (%fns)\n", delta, (double)delta / 200000000.0 * 1000.0);
 #endif
+#endif
 
 	return rc;
 }
-
-
-/*
- * Local Variables:
- * compile-command: "gcc -O2 -Wall strtest.c -o strtest ../libsamlib.a"
- * End:
- */

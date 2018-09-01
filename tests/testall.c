@@ -18,6 +18,7 @@
 #include "aes-test.c"
 #include "aes-stress.c"
 #include "mmap-test.c"
+#include "strtest.c"
 
 
 int main(int argc, char *argv[])
@@ -42,6 +43,7 @@ int main(int argc, char *argv[])
 	rc |= spinlock_main();
 	rc |= thread_main();
 	rc |= time_main();
+	rc |= str_main();
 
 	if (rc == 0)
 		puts("Success");

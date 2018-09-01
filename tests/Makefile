@@ -7,7 +7,7 @@ include ../Rules.mk
 #LIBS += -ldb
 
 # Define for pthreads
-#LIBS += -lpthread
+LIBS += -lpthread
 
 # For gcov
 #CFLAGS += -coverage
@@ -19,7 +19,7 @@ endif
 TESTS := args base64 cptest crc16test md5test random readfile
 TESTS += sha256test timetest threadtest spinlock dbtest
 TESTS += readproctest aes-test aes-stress mmap-test mutex-timing
-TESTS += tsctest copy
+TESTS += tsctest copy strtest
 
 OTHERS := bitgen
 
