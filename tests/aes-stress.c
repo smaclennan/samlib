@@ -13,10 +13,16 @@
 #define RUNNING_ON_VALGRIND 0
 #endif
 
+#if defined(WIN32) && defined(_DEBUG)
+/* The tests are at least an order of magnitude slower under debug */
+#define LOOPS_HW 1000000UL
+#define LOOPS_SW 20000UL
+#else
 /* This one is good for testing changes to aes-hw.c routines */
 #define LOOPS_HW 100000000UL
 /* This one is better for testing software solution */
 #define LOOPS_SW 2000000UL
+#endif
 
 #ifdef TESTALL
 int aes_stress(void)

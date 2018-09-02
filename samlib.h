@@ -28,15 +28,11 @@
 
 #ifdef WIN32
 #include "win32/samwin32.h"
-
-#define SNPRINTF sam_snprintf
 #else
 #include <unistd.h>
 #include <sys/time.h>
 #include <sys/param.h>
 #include <netinet/in.h>
-
-#define SNPRINTF snprintf
 #endif
 
 #define SAMLIB_MAJOR 1

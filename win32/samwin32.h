@@ -10,11 +10,7 @@
 #include "fnmatch.h"
 #include "regex.h"
 
-/* WIN32 snprintf return is broken... but vsnprint seems to work. Go figure.
- * snprintf is a macro and has some bogus "not allowed to redfine"
- * code around it. So we cannot just "do the right thing" and redefine
- * snprintf as our snprintf :(
- */
+/* WIN32 snprintf return is broken... but vsnprint seems to work. Go figure. */
 static inline int sam_snprintf(char *str, int len, const char *fmt, ...)
 {
 	va_list ap;
@@ -24,6 +20,7 @@ static inline int sam_snprintf(char *str, int len, const char *fmt, ...)
 	va_end(ap);
 	return n;
 }
+#define snprintf sam_snprintf
 
 /* WIN32 sure likes underscores */
 #define strcasecmp _stricmp
