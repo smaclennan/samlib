@@ -17,7 +17,7 @@ INCDIR ?= $(PREFIX)/include
 
 include ./Rules.mk
 
-MFLAGS += CC=$(CC) LD=$(LD) BDIR=$(BDIR)
+MFLAGS += CC=$(CC) LD=$(LD) BDIR=$(BDIR) --no-print-directory
 
 # Uncomment for system db rather than builtin
 #CFLAGS += -DHAVE_DB_H
@@ -34,8 +34,8 @@ CFILES += tsc.c cpuid.c safecpy.c slackware.c is-elf.c
 O := $(addprefix $(BDIR)/, $(CFILES:.c=.o))
 
 all: $(BDIR) $(EXTRA) $(BDIR)/libsamlib.a $(BDIR)/libsamthread.a
-	$(MAKE) $(MFLAGS) -C tests
-	$(MAKE) $(MFLAGS) -C utils
+	$(QUIET_MAKE)$(MAKE) $(MFLAGS) -C tests
+	$(QUIET_MAKE)$(MAKE) $(MFLAGS) -C utils
 
 $(BDIR)/libsamlib.a: $O $(EXTRA_OBJ)
 	$(QUIET_AR)$(AR) cr $@ $O $(EXTRA_OBJ)
@@ -54,7 +54,7 @@ $(BDIR)/aes128.o: aes128.c
 $(BDIR)/aes128-cbc.o: aes128-cbc.c
 	$(QUIET_CC)$(CC) $(CFLAGS) $(AES) -c $< -o $@
 
-# Threading - Linux x86 only
+# Threading - Linux only
 $(BDIR)/libsamthread.a: $(BDIR)/samthread.o
 	$(QUIET_AR)$(AR) cr $@ $(BDIR)/samthread.o
 
@@ -70,9 +70,9 @@ install:
 	install utils/ipaddr $(DESTDIR)$(BINDIR)/ipaddr
 	install utils/imgsize $(DESTDIR)$(BINDIR)/imgsize
 
-# sparse cannot handle aes128.c
+# sparse cannot handle aes128*.c
 check:
-	sparse $(filter-out aes128.c,$(CFILES))
+	sparse -D__linux__ $(filter-out aes128.c aes128-cbc.c, $(CFILES))
 
 clean:
 	rm -rf $(BDIR)

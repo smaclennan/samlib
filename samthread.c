@@ -9,6 +9,15 @@
 #include <sys/syscall.h>
 #include <linux/futex.h>
 
+/* Currently only tested with x86_64 and aarch64. */
+#ifdef __x86_64__
+#define STACK_DOWN 1
+#elif defined(__aarch64__)
+#define STACK_DOWN 1
+#else
+#error ARCH not supported?
+#endif
+
 /* The clone flags. */
 #define CLONE_FLAGS (CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND | \
 					 CLONE_THREAD | CLONE_CHILD_CLEARTID | CLONE_SYSVSEM)
@@ -65,10 +74,18 @@ samthread_t samthread_create(int (*fn)(void *arg), void *arg)
 	if (stack == MAP_FAILED)
 		return -1;
 
-	/* x86 64 grows stack down */
+#ifdef STACK_DOWN
+	/* stack grows down */
 	child_stack = stack + rlim.rlim_cur;
+	 /* steal some memory off the top */
+	f = stack;
+#else
+	/* stack grows up */
+	child_stack = stack;
+	/* steal some memory off the bottom */
+	f = stack + rlim.rlim_cur - sizeof(*f);
+#endif
 
-	f = stack; /* steal some memory off the top */
 	f->tid = 1;
 	f->stack_size = rlim.rlim_cur;
 	f->rc = -1;
@@ -152,7 +169,6 @@ void mutex_unlock(mutex_t *mutex)
 struct thread_wrapper_arg {
 	int(*fn)(void *arg);
 	void *arg;
-	int rc;
 };
 
 static DWORD __stdcall thread_wrapper(LPVOID lpThreadParameter)
