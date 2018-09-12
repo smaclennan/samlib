@@ -17,14 +17,13 @@ INCDIR ?= $(PREFIX)/include
 
 include ./Rules.mk
 
-MFLAGS += CC=$(CC) LD=$(LD)
+MFLAGS += CC=$(CC) LD=$(LD) BDIR=$(BDIR)
 
 # Uncomment for system db rather than builtin
 #CFLAGS += -DHAVE_DB_H
 #DBLIB = -ldb
 # And comment this out
-EXTRA_LIB = db.1.85/libdb.a
-EXTRA_OBJ = db.1.85/db.1.85.o
+EXTRA_OBJ = db.1.85/$(BDIR)/db.1.85.o
 
 CFILES := version.c readfile.c readcmd.c do-system.c walkfiles.c
 CFILES += mkdir-p.c md5.c ip.c copy.c binary.c samdb.c time.c
@@ -32,29 +31,32 @@ CFILES += arg-helpers.c xorshift.c must.c readproc.c base64.c
 CFILES += crc16.c file.c dumpstack.c sha256.c aes128.c aes128-cbc.c
 CFILES += tsc.c cpuid.c safecpy.c slackware.c is-elf.c
 
-O := $(CFILES:.c=.o)
+O := $(addprefix $(BDIR)/, $(CFILES:.c=.o))
 
-all: $(EXTRA) libsamlib.a libsamthread.a
+all: $(BDIR) $(EXTRA) $(BDIR)/libsamlib.a $(BDIR)/libsamthread.a
 	$(MAKE) $(MFLAGS) -C tests
 	$(MAKE) $(MFLAGS) -C utils
 
-libsamlib.a: $O $(EXTRA_LIB)
+$(BDIR)/libsamlib.a: $O $(EXTRA_OBJ)
 	$(QUIET_AR)$(AR) cr $@ $O $(EXTRA_OBJ)
 
-db.1.85/libdb.a:
+db.1.85/$(BDIR)/db.1.85.o:
 	$(QUIET_MAKE)$(MAKE) $(MFLAGS) -C db.1.85
+
+$(BDIR):
+	@mkdir -p $(BDIR)
 
 *.o: samlib.h
 
-aes128.o: aes128.c
+$(BDIR)/aes128.o: aes128.c
 	$(QUIET_CC)$(CC) $(CFLAGS) $(AES) -c $< -o $@
 
-aes128-cbc.o: aes128-cbc.c
+$(BDIR)/aes128-cbc.o: aes128-cbc.c
 	$(QUIET_CC)$(CC) $(CFLAGS) $(AES) -c $< -o $@
 
 # Threading - Linux x86 only
-libsamthread.a: samthread.o
-	$(QUIET_AR)$(AR) cr $@ samthread.o
+$(BDIR)/libsamthread.a: $(BDIR)/samthread.o
+	$(QUIET_AR)$(AR) cr $@ $(BDIR)/samthread.o
 
 install:
 	mkdir -p $(DESTDIR)$(BINDIR)
@@ -62,9 +64,9 @@ install:
 	mkdir -p $(DESTDIR)$(LIBDIR)
 	install -m644 linux-list.h $(DESTDIR)$(INCDIR)/linux-list.h
 	install -m644 samlib.h $(DESTDIR)$(INCDIR)/samlib.h
-	install -m644 libsamlib.a $(DESTDIR)$(LIBDIR)/libsamlib.a
+	install -m644 $(BDIR)/libsamlib.a $(DESTDIR)$(LIBDIR)/libsamlib.a
 	install -m644 samthread.h $(DESTDIR)$(INCDIR)/samthread.h
-	install -m644 libsamthread.a $(DESTDIR)$(LIBDIR)/libsamthread.a
+	install -m644 $(BDIR)/libsamthread.a $(DESTDIR)$(LIBDIR)/libsamthread.a
 	install utils/ipaddr $(DESTDIR)$(BINDIR)/ipaddr
 	install utils/imgsize $(DESTDIR)$(BINDIR)/imgsize
 
@@ -73,7 +75,7 @@ check:
 	sparse $(filter-out aes128.c,$(CFILES))
 
 clean:
-	rm -f *.o libsamlib.a libsamthread.a
+	rm -rf $(BDIR)
 	rm -f *.gcno *.gcda
 	$(MAKE) $(MFLAGS) -C db.1.85 clean
 	$(MAKE) $(MFLAGS) -C tests clean

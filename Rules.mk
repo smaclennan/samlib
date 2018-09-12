@@ -1,5 +1,7 @@
 #CC = clang -fno-color-diagnostics
 
+BDIR ?= $(shell uname -m)
+
 V	      = @
 Q	      = $(V:1=)
 QUIET_CC      = $(Q:@=@echo    '     CC       '$@;)
@@ -10,5 +12,5 @@ QUIET_MAKE    = $(Q:@=@echo    '     MAKE     '$@;)
 D = -O2
 CFLAGS += $(D:1=-g -D__DEBUG__) -Wall
 
-.c.o:
+$(BDIR)/%.o : %.c
 	$(QUIET_CC)$(CC) -o $@ -c $(CFLAGS) $<

@@ -30,10 +30,12 @@ testall: testall.c $(TESTS)
 test: all
 	for t in $(TESTS); do echo $$t; ./$$t; done
 
-%: %.c
-	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< ../libsamlib.a ../libsamthread.a $(LIBS)
+LIBS += ../$(BDIR)/libsamlib.a ../$(BDIR)/libsamthread.a
 
-$(TESTS): ../libsamlib.a ../samlib.h
+%: %.c
+	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
+
+$(TESTS): ../$(BDIR)/libsamlib.a ../samlib.h
 
 clean:
 	rm -f $(TESTS) $(OTHERS) testall

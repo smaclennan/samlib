@@ -10,36 +10,38 @@ ifneq ($(findstring nto-qnx,$(shell $(CC) -dumpmachine)),)
 LIBS += -lsocket
 endif
 
+LIBS += ../$(BDIR)/libsamlib.a
+
 ALL := ipaddr find-dups imgsize  meminfo mkfilesz pkg prepro serial
 ALL += strip-comments strip-comments2 udp-echo udpping md5sum
 
 all: $(ALL)
 
 ipaddr: ipaddr.c
-	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< ../libsamlib.a $(LIBS)
+	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
 
 udp-echo: udp-echo.c
-	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< ../libsamlib.a $(LIBS)
+	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
 
 udpping: udpping.c
-	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< ../libsamlib.a $(LIBS)
+	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
 
 find-dups: find-dups.c
-	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< ../libsamlib.a
+	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
 
 imgsize: imgsize.c
 	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< -ljpeg -lgif -lpng
 
 mkfilesz: mkfilesz.c
-	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< ../libsamlib.a
+	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
 
 md5sum: md5sum.c
-	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< ../libsamlib.a
+	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
 
 %: %.c
 	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $<
 
-$(ALL): ../libsamlib.a ../samlib.h
+$(ALL): ../$(BDIR)/libsamlib.a ../samlib.h
 
 clean:
 	rm -f $(ALL)

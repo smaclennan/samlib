@@ -2,25 +2,25 @@
 
 include ../Rules.mk
 
-LIBDB	= libdb.a
-
 CFLAGS	+= -D__DBINTERFACE_PRIVATE
 
 CFILES	:= db.c mpool.c
-CFILES	+= bt_close.c bt_conv.c bt_debug.c bt_delete.c bt_get.c bt_open.c \
+CFILES	+= bt_close.c bt_conv.c bt_delete.c bt_get.c bt_open.c \
 	bt_overflow.c bt_page.c bt_put.c bt_search.c bt_seq.c bt_split.c \
 	bt_utils.c
 
-OBJS	:= $(CFILES:.c=.o)
+OBJS	:= $(addprefix $(BDIR)/, $(CFILES:.c=.o))
 
-all:	${LIBDB}
+all:	$(BDIR) $(BDIR)/db.1.85.o
 
-${LIBDB}: ${OBJS}
-	@rm -f $@
-	${QUIET_AR}ar cqs $@ ${OBJS}
-	${QUIET_LINK}${LD} -r -o db.1.85.o ${OBJS}
+$(BDIR)/db.1.85.o: ${OBJS}
+	${QUIET_LINK}${LD} -r -o $@ ${OBJS}
+
+$(BDIR):
+	@mkdir -p $(BDIR)
 
 clean:
-	rm -f ${LIBDB} ${OBJS} db.1.85.o
+	rm -f ${LIBDB} *.o
 	rm -f *.gcno *.gcda
+	rm -rf $(BDIR)
 	$(MAKE) $(MFLAGS) -C test clean
