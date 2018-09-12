@@ -9,4 +9,4 @@ You have two choices to compile samlib under BSD.
 
 1) Install and use gmake (recommended)
 
-2) make -f make.common
+2) Fixup the Makefile
