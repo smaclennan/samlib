@@ -1,7 +1,3 @@
 *.o
 libsamlib.a
 libsamthread.a
-stest
-*.gcno
-*.gcda
-*.gcov
