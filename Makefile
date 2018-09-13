@@ -68,7 +68,7 @@ install:
 	install -m644 samthread.h $(DESTDIR)$(INCDIR)/samthread.h
 	install -m644 $(BDIR)/libsamthread.a $(DESTDIR)$(LIBDIR)/libsamthread.a
 	install utils/ipaddr $(DESTDIR)$(BINDIR)/ipaddr
-	install utils/imgsize $(DESTDIR)$(BINDIR)/imgsize
+	install utils/imgsize.py $(DESTDIR)$(BINDIR)/imgsize
 
 # sparse cannot handle aes128*.c
 check:

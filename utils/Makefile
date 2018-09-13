@@ -12,7 +12,7 @@ endif
 
 LIBS += ../$(BDIR)/libsamlib.a
 
-ALL := ipaddr find-dups imgsize  meminfo mkfilesz pkg prepro serial
+ALL := ipaddr find-dups meminfo mkfilesz pkg prepro serial
 ALL += strip-comments strip-comments2 udp-echo udpping md5sum
 
 all: $(ALL)
@@ -28,9 +28,6 @@ udpping: udpping.c
 
 find-dups: find-dups.c
 	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
-
-imgsize: imgsize.c
-	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< -ljpeg -lgif -lpng
 
 mkfilesz: mkfilesz.c
 	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
