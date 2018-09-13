@@ -16,13 +16,8 @@ int mkdir_p(const char *dir)
 		return -1;
 
 	int rc = -1;
-	char *p, *dirtmp = strdup(dir);
-	if (!dirtmp) {
-		errno = ENOMEM;
-		return -1;
-	}
-
-	p = dirtmp;
+	char *dirtmp = must_strdup(dir);
+	char *p = dirtmp;
 	if (*p == '/')
 		++p;
 

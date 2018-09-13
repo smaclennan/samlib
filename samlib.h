@@ -259,7 +259,7 @@ char *sha256str(uint8_t *digest, char *str);
 
 typedef struct aes128_ctx {
 	uint8_t ivec[AES128_KEYLEN];	/* CBC only */
-	const uint8_t *ivptr;			/* CBC only */
+	const uint64_t *ivptr;			/* CBC only */
 	ALIGN16 uint8_t roundkey[AES128_KEYLEN * 11];
 	int have_hw;
 } aes128_ctx;
