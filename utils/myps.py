@@ -12,14 +12,13 @@ pats  = [ re.compile(r'Name:\s+(\w+)'),
 
 def iskernelthread (fname):
     "Kernel threads have a zero length cmdline."
+    # We cannot use stat because it always returns 0 size
     fp = open("/proc/" + fname + "/cmdline", "r")
     n = fp.read(4)
     fp.close()
-    if len(n) == 0:
-        return True
-    return False
+    return len(n) == 0
 
-uidcache = [ [0, 'root'], [you, 'you'] ]
+uidcache = [ [0, 'root'] ]
 
 def lookup_uid (uid):
     global uidcache
@@ -46,6 +45,8 @@ def dump_ps (pid):
                     break
             if len(result) == 3: break # optimization
 
+    # It is easier to see the running processes if sleep is lowercase
+    if (result[1] == 'S'): result[1] = 's'
     print "%5s  %c  %-8.8s  %s" % (pid, result[1], lookup_uid(int(result[2])), result[0])
 
 for fname in os.listdir("/proc"):
