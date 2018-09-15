@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
 	printf("mutex %ld\n", delta_timeval(&start, &end));
 
-	mutex_destroy(mutex);
+	mutex_destroy(&mutex);
 
 	return 0;
 }
