@@ -129,13 +129,28 @@ mutex_t *mutex_create(void)
 	return calloc(1, sizeof(struct mutex));
 }
 
-void mutex_destroy(mutex_t *mutex)
+void mutex_destroy(mutex_t **mutex)
 {
-	free(mutex);
+	if (!*mutex)
+		return;
+
+	mutex_lock(*mutex);
+	mutex_t *save = *mutex;
+	*mutex = NULL;
+
+	while (save->count > 0) {
+		save->state = 0;
+		futex(&save->state, FUTEX_WAKE_PRIVATE, 1);
+	}
+
+	free(save);
 }
 
 void mutex_lock(mutex_t *mutex)
 {
+	if (unlikely(!mutex))
+		return;
+
 	/* Optimize for the non-contended state */
 	if (__sync_val_compare_and_swap(&mutex->state, 0, 1) == 0)
 		return;
@@ -149,11 +164,16 @@ void mutex_lock(mutex_t *mutex)
 		}
 
 		futex(&mutex->state, FUTEX_WAIT_PRIVATE, 1);
+		if (!mutex)
+			return;
 	}
 }
 
 void mutex_unlock(mutex_t *mutex)
 {
+	if (unlikely(!mutex))
+		return;
+
 	int r = __sync_val_compare_and_swap(&mutex->state, 1, 0);
 	if (r == 1)
 		if (mutex->count == 0)

@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
 	mutex_t *mutex = mutex_create();
 	mutex_lock(mutex);
 	mutex_unlock(mutex);
-	mutex_destroy(mutex);
+	mutex_destroy(&mutex);
 
 	mutex_lock(biglock);
 
@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
 	rc |= test_priority();
 	rc |= futex_test();
 
-	mutex_destroy(biglock);
+	mutex_destroy(&biglock);
 
 	return rc;
 }

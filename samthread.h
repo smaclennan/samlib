@@ -30,6 +30,8 @@ typedef struct mutex {
 
 #define DEFINE_MUTEX(name) mutex_t name = { 0 }
 
+#define unlikely(x)     __builtin_expect((x),0)
+
 #elif defined(WIN32)
 
 #include <Windows.h>
@@ -58,7 +60,7 @@ int samthread_join(samthread_t tid);
 pid_t samthread_tid(void);
 
 mutex_t *mutex_create(void);
-void mutex_destroy(mutex_t *mutex);
+void mutex_destroy(mutex_t **mutex);
 void mutex_lock(mutex_t *mutex);
 void mutex_unlock(mutex_t *mutex);
 
