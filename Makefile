@@ -55,8 +55,8 @@ $(BDIR)/aes128-cbc.o: aes128-cbc.c
 	$(QUIET_CC)$(CC) $(CFLAGS) $(AES) -c $< -o $@
 
 # Threading - Linux only
-$(BDIR)/libsamthread.a: $(BDIR)/samthread.o
-	$(QUIET_AR)$(AR) cr $@ $(BDIR)/samthread.o
+$(BDIR)/libsamthread.a: $(BDIR)/samthread.o $(BDIR)/mutex.o
+	$(QUIET_AR)$(AR) cr $@ $+
 
 install:
 	mkdir -p $(DESTDIR)$(BINDIR)

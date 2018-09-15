@@ -30,8 +30,6 @@ typedef struct mutex {
 
 #define DEFINE_MUTEX(name) mutex_t name = { 0 }
 
-#define unlikely(x)     __builtin_expect((x),0)
-
 #elif defined(WIN32)
 
 #include <Windows.h>
