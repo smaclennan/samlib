@@ -95,10 +95,7 @@ static int generator(void *arg)
 	uint64_t r;
 	int bin;
 
-	if (xorshift_seed(&seed)) {
-		puts("Unable to get seed");
-		exit(1);
-	}
+	xorshift_seed(&seed);
 
 	for (i = 0; i < count; ++i) {
 		r = xorshift128plus_r(&seed);
