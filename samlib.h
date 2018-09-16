@@ -19,7 +19,6 @@
 #ifndef __SAMLIB_H__
 #define __SAMLIB_H__
 
-#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>

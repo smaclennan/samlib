@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdarg.h>
 #ifndef WIN32
 #include <sys/wait.h>

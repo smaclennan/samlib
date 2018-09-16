@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "samlib.h"
 
 /* Returns duration in seconds. Supports fractional values. */

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "samlib.h"
 
 #define MAX_DEPTH 128 /* 128 = 1k */

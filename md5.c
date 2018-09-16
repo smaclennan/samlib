@@ -182,10 +182,13 @@ void md5_final(md5ctx *ctx, uint8_t *hash)
 
 char *md5str(uint8_t *hash, char *str)
 {
-	int i;
+	char *p = str;
 
-	for (i = 0; i < 32; i += 2, ++hash)
-		sprintf(str + i, "%02x", *hash);
+	for (int i = 0; i < MD5_DIGEST_LEN * 2; i += 2, ++hash) {
+		*p++ = tohex[(*hash >> 4) & 0xf];
+		*p++ = tohex[*hash & 0xf];
+	}
+	*p++ = 0;
 
 	return str;
 }

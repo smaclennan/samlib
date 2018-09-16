@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "samlib.h"
 #include <string.h>
 #include <stdarg.h>

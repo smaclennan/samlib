@@ -1,3 +1,4 @@
+#include <stdio.h>
 #ifndef WIN32
 #include <sys/mman.h>
 #endif
