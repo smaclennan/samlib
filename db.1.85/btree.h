@@ -343,8 +343,8 @@ typedef struct _btree {
 					/* R: recno input function */
 	int	(*bt_irec)(struct _btree *, recno_t);
 
-	FILE	 *bt_rfp;		/* R: record FILE pointer */
-	int	  bt_rfd;		/* R: record file descriptor */
+// Not used	FILE	 *bt_rfp;		/* R: record FILE pointer */
+// Not used	int	  bt_rfd;		/* R: record file descriptor */
 
 	void *	  bt_cmap;		/* R: current point in mapped space */
 	void *	  bt_smap;		/* R: start of mapped space */

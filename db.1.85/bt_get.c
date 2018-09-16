@@ -42,7 +42,6 @@ static char sccsid[] = "@(#)bt_get.c	8.6 (Berkeley) 7/20/94";
 
 #include <errno.h>
 #include <stddef.h>
-#include <stdio.h>
 
 #include "btree.h"
 

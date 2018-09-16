@@ -336,10 +336,6 @@ int db_get_raw(void *dbh, const void *key, int klen, void *val, int len);
 int db_peek(void *dbh, const char *keystr);
 int db_del(void *dbh, const char *keystr);
 int db_walk(void *dbh, int (*walk_func)(const char *key, void *data, int len));
-/* Sample db_walk function.
- * WARNING: Assumes data is a string!
- */
-int db_walk_puts(const char *key, void *data, int len);
 
 /* Advantages of xorshift128plus() over random().
  *     1. It is faster. (~7x)

@@ -40,8 +40,7 @@ static char sccsid[] = "@(#)bt_search.c	8.8 (Berkeley) 7/31/94";
 
 #include <sys/types.h>
 
-#include <stdio.h>
-
+#include "samlib.h"
 #include "btree.h"
 
 static int __bt_snext(BTREE *, PAGE *, const DBT *, int *);

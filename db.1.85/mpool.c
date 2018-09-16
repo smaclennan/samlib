@@ -38,7 +38,6 @@ static char sccsid[] = "@(#)mpool.c	8.5 (Berkeley) 7/26/94";
 #include <sys/stat.h>
 
 #include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #ifndef WIN32
@@ -122,10 +121,8 @@ mpool_new(mp, pgnoaddr)
 	struct _hqh *head;
 	BKT *bp;
 
-	if (mp->npages == MAX_PAGE_NUMBER) {
-		(void)fprintf(stderr, "mpool_new: page allocation overflow.\n");
-		abort();
-	}
+	if (mp->npages == MAX_PAGE_NUMBER)
+		return NULL;
 #ifdef STATISTICS
 	++mp->pagenew;
 #endif

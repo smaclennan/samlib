@@ -1,7 +1,4 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <errno.h>
 #ifdef HAVE_DB_H
 #include <db.h>
 #else
@@ -223,13 +220,6 @@ int db_del(void *dbh, const char *keystr)
 #else
 	return db->del(db, &key, 0);
 #endif
-}
-
-/* WARNING: Assumes data is a string! */
-int db_walk_puts(const char *key, void *data, int len)
-{
-	printf("%s: %.*s\n", key, len, (char *)data);
-	return 0;
 }
 
 int db_walk(void *dbh, int (*walk_func)(const char *key, void *data, int len))

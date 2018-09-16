@@ -37,8 +37,7 @@ static char sccsid[] = "@(#)bt_page.c	8.3 (Berkeley) 7/14/94";
 
 #include <sys/types.h>
 
-#include <stdio.h>
-
+#include "samlib.h"
 #include "btree.h"
 
 /*

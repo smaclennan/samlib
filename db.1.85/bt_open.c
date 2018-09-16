@@ -50,7 +50,6 @@ static char sccsid[] = "@(#)bt_open.c	8.10 (Berkeley) 8/17/94";
 #include <fcntl.h>
 #include <limits.h>
 #include <signal.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -168,7 +167,7 @@ __bt_open(fname, flags, mode, openinfo, dflags)
 	t->bt_order = NOT;
 	t->bt_cmp = b.compare;
 	t->bt_pfx = b.prefix;
-	t->bt_rfd = -1;
+	// Not used t->bt_rfd = -1;
 
 	if ((t->bt_dbp = dbp = (DB *)malloc(sizeof(DB))) == NULL)
 		goto err;
@@ -428,8 +427,8 @@ tmp()
 	char path[MAXPATHLEN];
 
 	envtmp = getenv("TMPDIR");
-	(void)snprintf(path,
-		sizeof(path), "%s/bt.XXXXXX", envtmp ? envtmp : "/tmp");
+	if (!envtmp) envtmp = "/tmp";
+	strconcat(path, sizeof(path), envtmp, "/bt.XXXXXX", NULL);
 
 	(void)sigfillset(&set);
 	(void)sigprocmask(SIG_BLOCK, &set, &oset);
