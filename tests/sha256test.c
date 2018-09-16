@@ -127,15 +127,5 @@ static int sha256_main(void)
 			free(in);
 	}
 
-	/* Test error conditions */
-	sha256ctx ctx;
-	uint8_t msg[32];
-	assert(sha256_init(NULL) == EINVAL);
-	assert(sha256_update(NULL, msg, sizeof(msg)) == EINVAL);
-	assert(sha256_update(&ctx, NULL, sizeof(msg)) == EINVAL);
-	assert(sha256_update(&ctx, msg, 0) == 0);
-	assert(sha256_final(NULL, msg) == EINVAL);
-	assert(sha256_final(&ctx, NULL) == EINVAL);
-
 	return rc;
 }

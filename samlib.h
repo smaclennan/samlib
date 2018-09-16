@@ -36,7 +36,7 @@
 #endif
 
 #define SAMLIB_MAJOR 1
-#define SAMLIB_MINOR 5
+#define SAMLIB_MINOR 6
 
 extern const char *samlib_version;
 extern const char *samlib_marker;
@@ -117,6 +117,8 @@ void binary_dump(const uint8_t *buf, int len);
 /* Zero based */
 extern const char *short_month[];
 extern const char *long_month[];
+
+extern const char tohex[];
 
 /* If set, then get_month() assumes months are 1 based. Default is 0
  * based.
@@ -241,11 +243,11 @@ typedef struct sha256ctx {
 										/* 512-bit message blocks */
 } sha256ctx;
 
-int sha256(const void *data, int len, uint8_t *digest);
-int sha256_init(sha256ctx *ctx);
-int sha256_update(sha256ctx *ctx, const uint8_t *bytes, unsigned bytecount);
-int sha256_final(sha256ctx *ctx, uint8_t *digest);
-char *sha256str(uint8_t *digest, char *str);
+void sha256(const void *data, int len, uint8_t *digest);
+void sha256_init(sha256ctx *ctx);
+void sha256_update(sha256ctx *ctx, const uint8_t *bytes, unsigned bytecount);
+void sha256_final(sha256ctx *ctx, uint8_t *digest);
+char *sha256str(const uint8_t *digest, char *str);
 
 /* AES 128 ECB functions */
 

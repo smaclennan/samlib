@@ -39,9 +39,6 @@
  * Various small cleanups
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
 #include "samlib.h"
 
 #define SHA256_Message_Block_Size (SHA256_DIGEST_SIZE * 2)
@@ -114,13 +111,10 @@ static void SHA256ProcessMessageBlock(sha256ctx *context);
  *   for computing a new SHA256 message digest.
  *
  * Parameters:
- *   context: [in/out]
- *     The context to reset.
- *
- * Returns:
- *   sha Error Code.
+ *   context: [out]
+ *     The context to init.
  */
-int sha256_init(sha256ctx *ctx)
+void sha256_init(sha256ctx *ctx)
 {
 	/* Initial Hash Values: FIPS-180-2 section 5.3.2 */
 	static uint32_t SHA256_H0[SHA256_DIGEST_SIZE/4] = {
@@ -128,12 +122,8 @@ int sha256_init(sha256ctx *ctx)
 		0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19
 	};
 
-	if (!ctx)
-		return EINVAL;
-
 	memset(ctx, 0, sizeof(sha256ctx));
 	memcpy(ctx->h, SHA256_H0, sizeof(SHA256_H0));
-	return 0;
 }
 
 /*
@@ -151,18 +141,12 @@ int sha256_init(sha256ctx *ctx)
  *     the message.
  *   length: [in]
  *     The length of the message in message_array
- *
- * Returns:
- *   sha Error Code.
  */
-int sha256_update(sha256ctx *context, const uint8_t *message_array,
-				  unsigned int length)
+void sha256_update(sha256ctx *context, const uint8_t *message_array,
+				   unsigned int length)
 {
-	if (!length)
-		return 0;
-
-	if (!context || !message_array)
-		return EINVAL;
+	if (length == 0)
+		return;
 
 	context->len += length;
 
@@ -173,8 +157,6 @@ int sha256_update(sha256ctx *context, const uint8_t *message_array,
 
 		message_array++;
 	}
-
-	return 0;
 }
 
 /*
@@ -250,25 +232,15 @@ static inline void SHA256PadMessage(sha256ctx *context)
  *     The context to use to calculate the SHA hash.
  *   Message_Digest: [out]
  *     Where the digest is returned.
- *
- * Returns:
- *   sha Error Code.
  */
-int sha256_final(sha256ctx *ctx, uint8_t *digest)
+void sha256_final(sha256ctx *ctx, uint8_t *digest)
 {
-	int i;
-
-	if (!ctx || !digest)
-		return EINVAL;
-
 	SHA256PadMessage(ctx);
 
-	for (i = 0; i < SHA256_DIGEST_SIZE; ++i)
+	for (int i = 0; i < SHA256_DIGEST_SIZE; ++i)
 		digest[i] = (uint8_t)(ctx->h[i>>2] >> 8 * (3 - (i & 0x03)));
 
 	memset(ctx, 0, sizeof(sha256ctx)); /* zeroize */
-
-	return 0;
 }
 
 /*
@@ -360,24 +332,30 @@ static void SHA256ProcessMessageBlock(sha256ctx *context)
 	context->index = 0;
 }
 
-char *sha256str(uint8_t *digest, char *str)
+/* Convenience function to convert a digest to a string. The str
+ * argument must be at least (SHA256_DIGEST_SIZE * 2 + 1) = 65 bytes.
+ */
+char *sha256str(const uint8_t *digest, char *str)
 {
-	int i;
+	char *p = str;
 
-	for (i = 0; i < SHA256_DIGEST_SIZE * 2; i += 2, ++digest)
-		sprintf(str + i, "%02x", *digest);
+	for (int i = 0; i < SHA256_DIGEST_SIZE * 2; i += 2, ++digest) {
+		*p++ = tohex[(*digest >> 4) & 0xf];
+		*p++ = tohex[*digest & 0xf];
+	}
+	*p++ = 0;
 
 	return str;
 }
 
-int sha256(const void *data, int len, uint8_t *digest)
+/* Compute a sha256 message digest. The digest arg should be
+ * SHA256_DIGEST_SIZE.
+ */
+void sha256(const void *data, int len, uint8_t *digest)
 {
 	sha256ctx ctx;
-	int rc;
 
 	sha256_init(&ctx);
-	rc = sha256_update(&ctx, data, len);
-	if (rc == 0)
-		rc = sha256_final(&ctx, digest);
-	return rc;
+	sha256_update(&ctx, data, len);
+	sha256_final(&ctx, digest);
 }
