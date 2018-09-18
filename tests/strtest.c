@@ -127,6 +127,77 @@ static void test_strconcat(void)
 	assert(strcmp(str, "hello and world") == 0);
 }
 
+static void test_strfmt(void)
+{
+	char str1[1024], str2[1024];
+	int n1, n2;
+
+	n1 = strfmt  (str1, sizeof(str1), "%06ld", 123456789123456789ul);
+	n2 = snprintf(str2, sizeof(str2), "%06ld", 123456789123456789ul);
+	assert(n1 == n2);
+	assert(strcmp(str1, str2) == 0);
+
+	n1 = strfmt  (str1, sizeof(str1), "%06d", 123);
+	n2 = snprintf(str2, sizeof(str2), "%06d", 123);
+	assert(n1 == n2);
+	assert(strcmp(str1, str2) == 0);
+
+	n1 = strfmt  (str1, sizeof(str1), "%d", -123);
+	n2 = snprintf(str2, sizeof(str2), "%d", -123);
+	assert(n1 == n2);
+	assert(strcmp(str1, str2) == 0);
+
+	n1 = strfmt  (str1, sizeof(str1), "%06lu", 123456789123456789ul);
+	n2 = snprintf(str2, sizeof(str2), "%06lu", 123456789123456789ul);
+	assert(n1 == n2);
+	assert(strcmp(str1, str2) == 0);
+
+	n1 = strfmt  (str1, sizeof(str1), "%06u", 123);
+	n2 = snprintf(str2, sizeof(str2), "%06u", 123);
+	assert(n1 == n2);
+	assert(strcmp(str1, str2) == 0);
+
+	n1 = strfmt  (str1, sizeof(str1), "%lx", 123456789123456789ul);
+	n2 = snprintf(str2, sizeof(str2), "%lx", 123456789123456789ul);
+	assert(n1 == n2);
+	assert(strcmp(str1, str2) == 0);
+
+	n1 = strfmt  (str1, sizeof(str1), "%x", 123);
+	n2 = snprintf(str2, sizeof(str2), "%x", 123);
+	assert(n1 == n2);
+	assert(strcmp(str1, str2) == 0);
+
+	n1 = strfmt  (str1, 5, "%6x", 0x123);
+	n2 = snprintf(str2, 5, "%6x", 0x123);
+	assert(n1 == n2);
+	assert(strcmp(str1, str2) == 0);
+
+	n1 = strfmt  (str1, sizeof(str1), "test %s this", "hello world");
+	n2 = snprintf(str2, sizeof(str2), "test %s this", "hello world");
+	assert(n1 == n2);
+	assert(strcmp(str1, str2) == 0);
+
+	n1 = strfmt  (str1, sizeof(str1), "test %5s this", "hello world");
+	n2 = snprintf(str2, sizeof(str2), "test %5s this", "hello world");
+	assert(n1 == n2);
+	assert(strcmp(str1, str2) == 0);
+
+	n1 = strfmt  (str1, sizeof(str1), "test %-29s this", "hello world");
+	n2 = snprintf(str2, sizeof(str2), "test %-29s this", "hello world");
+	assert(n1 == n2);
+	assert(strcmp(str1, str2) == 0);
+
+	n1 = strfmt  (str1, sizeof(str1), "test %29s this", "hello world");
+	n2 = snprintf(str2, sizeof(str2), "test %29s this", "hello world");
+	assert(n1 == n2);
+	assert(strcmp(str1, str2) == 0);
+
+	n1 = strfmt  (str1, 10, "test %s this", "hello world");
+	n2 = snprintf(str2, 10, "test %s this", "hello world");
+	assert(n1 == n2);
+	assert(strcmp(str1, str2) == 0);
+}
+
 #ifdef TESTALL
 int str_main(void)
 #else
@@ -144,6 +215,8 @@ int main(int argc, char *argv[])
 	}
 
 	test_strconcat();
+
+	test_strfmt();
 #endif
 
 #ifndef TESTALL

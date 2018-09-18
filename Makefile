@@ -30,6 +30,7 @@ CFILES += mkdir-p.c md5.c ip.c copy.c binary.c samdb.c time.c
 CFILES += arg-helpers.c xorshift.c must.c readproc.c base64.c
 CFILES += crc16.c file.c dumpstack.c sha256.c aes128.c aes128-cbc.c
 CFILES += tsc.c cpuid.c safecpy.c slackware.c is-elf.c globals.c
+CFILES += strfmt.c
 
 O := $(addprefix $(BDIR)/, $(CFILES:.c=.o))
 
