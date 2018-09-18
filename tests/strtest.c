@@ -196,6 +196,26 @@ static void test_strfmt(void)
 	n2 = snprintf(str2, 10, "test %s this", "hello world");
 	assert(n1 == n2);
 	assert(strcmp(str1, str2) == 0);
+
+#ifndef TESTALL
+#if 0
+	memset(str2, 'x', 64);
+	str2[64] = 0;
+
+	struct timeval start;
+	gettimeofday(&start, NULL);
+	for (int i = 0; i < 20000000; ++i)
+		snprintf(str1, sizeof(str1), "%s %d %d", str2, 1234, 5678);
+	unsigned long delta = delta_timeval_now(&start);
+	printf("%luus (%fns)\n", delta, (double)delta / 20000000.0 * 1000.0);
+
+	gettimeofday(&start, NULL);
+	for (int i = 0; i < 20000000; ++i)
+		strfmt(str1, sizeof(str1), "%s %d %d", str2, 1234, 5678);
+	delta = delta_timeval_now(&start);
+	printf("%luus (%fns)\n", delta, (double)delta / 20000000.0 * 1000.0);
+#endif
+#endif
 }
 
 #ifdef TESTALL
@@ -220,7 +240,7 @@ int main(int argc, char *argv[])
 #endif
 
 #ifndef TESTALL
-#if 1
+#if 0
 	char dst[256], src[256];
 	struct timeval start;
 	gettimeofday(&start, NULL);
