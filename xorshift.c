@@ -13,20 +13,21 @@
 static xorshift_seed_t global_seed;
 static int seeded;
 
-int xorshift_seed(xorshift_seed_t *seed)
+void xorshift_seed(xorshift_seed_t *seed)
 {
 #ifdef WIN32
 	HCRYPTPROV hProv;
 #endif
-	int rc = -1;
 
-	if (!seed)
+	if (!seed) {
 		seed = &global_seed;
+		seeded = 1;
+	}
 
 #ifdef WIN32
 	if (CryptAcquireContext(&hProv, NULL, NULL, PROV_RSA_AES, 0))
 		if (CryptGenRandom(hProv, sizeof(*seed), (BYTE *)seed))
-			rc = 0;
+			return;
 #else
 	int n, fd = open("/dev/urandom", O_RDONLY);
 	if (fd >= 0) {
@@ -34,26 +35,19 @@ int xorshift_seed(xorshift_seed_t *seed)
 			n = read(fd, seed, sizeof(xorshift_seed_t));
 		while (n != sizeof(xorshift_seed_t));
 		close(fd);
-		rc = 0;
+		return;
 	}
 #endif
 
-	if (rc == 0 && seed == &global_seed)
-		seeded = 1;
-
-	return rc;
-}
-
-void must_xorshift_seed(xorshift_seed_t *seed)
-{
-	if (xorshift_seed(seed)) {
-		if (must_helper)
-			must_helper("xorshift_seed", 0);
-		else {
-			printf("WARNING: Unable to get seed\n");
-			exit(1);
-		}
-	}
+	/* Default to rand. rand() on windows is only 15 bits... so make
+	 * everybody suffer. Seriously, you shouldn't get here.
+	 */
+	struct timeval now;
+	gettimeofday(&now, NULL);
+	srand(now.tv_sec ^ (now.tv_usec << 8));
+	uint8_t *p = (uint8_t *)seed;
+	for (int i = 0; i < sizeof(*seed); ++i)
+		*p++ = rand();
 }
 
 uint64_t xorshift128plus_r(xorshift_seed_t *seed)
@@ -69,6 +63,6 @@ uint64_t xorshift128plus_r(xorshift_seed_t *seed)
 uint64_t xorshift128plus(void)
 {
 	if (!seeded)
-		must_xorshift_seed(&global_seed);
+		xorshift_seed(&global_seed);
 	return xorshift128plus_r(&global_seed);
 }

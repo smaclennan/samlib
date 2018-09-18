@@ -348,13 +348,12 @@ uint64_t xorshift128plus_r(xorshift_seed_t *seed); /* thread safe version */
 /* The seed arg is where to put the seed for xorshift128plus_r(). For
  * xorshift128plus() just pass NULL.
  *
- * Note: xorshift128plus() will self-seed, but will exit if seeding fails.
+ * Note: xorshift128plus() will self-seed,
  */
-int xorshift_seed(xorshift_seed_t *seed);
-void must_xorshift_seed(xorshift_seed_t *seed);
+void xorshift_seed(xorshift_seed_t *seed);
 
 /* Somebody didn't like the names... so nicer names. */
-static inline void sam_srand(void) { must_xorshift_seed(NULL); }
+static inline void sam_srand(void) { xorshift_seed(NULL); }
 static inline uint64_t sam_rand(void) { return xorshift128plus(); }
 
 /* If must_helper is set, and any of the must_* functions fail, then
