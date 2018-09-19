@@ -222,7 +222,7 @@ int strfmt_ap(char *str, int len, const char *fmt, va_list ap)
 				if (flags & SAW_LONG)
 					hex2str(va_arg(ap, unsigned long), tmp);
 				else
-					hex2str(va_arg(ap, unsigned long), tmp);
+					hex2str(va_arg(ap, unsigned), tmp);
 				outnum(&out, tmp, flags);
 				break;
 			default:
