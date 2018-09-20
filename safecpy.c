@@ -36,21 +36,6 @@ int safecat(char *dst, const char *src, int dstsize)
 	return __copy(dst, src, dstsize);
 }
 
-int safe_snprintf(char *dst, int dstsize, const char *fmt, ...)
-{
-	if (dstsize <= 0) return 0;
-
-	va_list ap;
-	va_start(ap, fmt);
-	int n = vsnprintf(dst, dstsize, fmt, ap);
-	va_end(ap);
-
-	if (n > dstsize)
-		n = dstsize;
-
-	return n;
-}
-
 #if defined(__linux__) || defined(WIN32)
 size_t strlcpy(char *dst, const char *src, size_t dstsize)
 {

@@ -48,10 +48,10 @@ char *nice_duration(unsigned long duration, char *str, int len)
 		if (duration >= check[i]) {
 			d = duration / check[i];
 			duration -= d * check[i];
-			n += safe_snprintf(str + n, len - n, "%d%c", d, fmt[i]);
+			n += strfmt(str + n, len - n, "%d%c", d, fmt[i]);
 		}
 	if (duration || n == 0)
-		n += safe_snprintf(str + n, len - n, "%lus", duration);
+		n += strfmt(str + n, len - n, "%lus", duration);
 
 	return str;
 }

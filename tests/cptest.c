@@ -51,7 +51,7 @@ static int test_tmpfilename(void)
 		rc = 1;
 	}
 
-	snprintf(path, sizeof(path), "%s/test", tmp);
+	strfmt(path, sizeof(path), "%s/test", tmp);
 
 	char *fname = tmpfilename("test");
 	if (strcmp(fname, path)) {

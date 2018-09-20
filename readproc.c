@@ -14,7 +14,7 @@ static int readproc(pid_t pid, const char *file, char *buf, int len)
 
 	*buf = 0;
 
-	snprintf(fname, sizeof(fname), "/proc/%u/%s", pid, file);
+	strfmt(fname, sizeof(fname), "/proc/%u/%s", pid, file);
 	fd = open(fname, O_RDONLY);
 	if (fd < 0)
 		return -1;
