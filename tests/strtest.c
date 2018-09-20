@@ -197,6 +197,11 @@ static void test_strfmt(void)
 	assert(n1 == n2);
 	assert(strcmp(str1, str2) == 0);
 
+	n1 = strfmt  (str1, sizeof(str1), "%s%c%s%c", "hello", ' ',  "world", '.');
+	n2 = snprintf(str2, sizeof(str2), "%s%c%s%c", "hello", ' ',  "world", '.');
+	assert(n1 == n2);
+	assert(strcmp(str1, str2) == 0);
+
 #ifndef TESTALL
 #if 1
 	memset(str2, 'x', 64);

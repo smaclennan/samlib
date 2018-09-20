@@ -204,6 +204,10 @@ int strfmt_ap(char *str, int len, const char *fmt, va_list ap)
 			case 's':
 				outstr(&out, va_arg(ap, char *), flags);
 				break;
+			case 'c':
+				// char is promoted to int in ...
+				outchar(&out, va_arg(ap, int));
+				break;
 			case 'd':
 				if (flags & SAW_LONG)
 					int2str(va_arg(ap, long), tmp);
@@ -242,7 +246,7 @@ int strfmt_ap(char *str, int len, const char *fmt, va_list ap)
 
 /** Poor man's snprintf.
  *
- * Supports a subset of printf: %s, %d, %u, %x, %l[dux]. Format can
+ * Supports a subset of printf: %s, %c, %d, %u, %x, %l[dux]. Format can
  * contain a width and a minus (-) for left justify. Numbers starting
  * with 0 and a width are zero padded.
  *
