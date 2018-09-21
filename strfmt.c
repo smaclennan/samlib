@@ -8,6 +8,9 @@
 #define SAW_LONG		0x400000
 
 struct outbuff {
+#ifdef BUFFERED
+	struct buff *buff;
+#endif
 	char *str;
 	int len;
 	int n;
@@ -105,6 +108,13 @@ static void outmemset(struct outbuff *out, char c, int size)
 {
 	if (size > 0) {
 		out->n += size;
+#ifdef BUFFERED
+		if (out->buff) {
+			for (int i = 0; i < size; ++i)
+				binsert(out->buff, c);
+			return;
+		}
+#endif
 		size = MIN(size, out->len);
 		if (size > 0) {
 			memset(out->str, c, size);
@@ -118,6 +128,13 @@ static void outmemcpy(struct outbuff *out, const char *str, int size)
 {
 	if (size > 0) {
 		out->n += size;
+#ifdef BUFFERED
+		if (out->buff) {
+			for (int i = 0; i < size; ++i)
+				binsert(out->buff, str[i]);
+			return;
+		}
+#endif
 		size = MIN(size, out->len);
 		if (size > 0) {
 			memcpy(out->str, str, size);
@@ -130,6 +147,12 @@ static void outmemcpy(struct outbuff *out, const char *str, int size)
 static void outchar(struct outbuff *out, char ch)
 {
 	out->n++;
+#ifdef BUFFERED
+	if (out->buff) {
+		binsert(out->buff, ch);
+		return;
+	}
+#endif
 	if (out->len > 0) {
 		*out->str++ = ch;
 		--out->len;
@@ -168,17 +191,9 @@ static void outnum(struct outbuff *out, const char *s, unsigned flags)
  * @param ap The va_list.
  * @return The number of bytes in the source string (like snprintf).
  */
-int strfmt_ap(char *str, int len, const char *fmt, va_list ap)
+static int __strfmt(struct outbuff *out, const char *fmt, va_list ap)
 {
-	struct outbuff out;
 	char tmp[22];
-
-	if (len < 1)
-		return 0;
-
-	out.str = str;
-	out.len = len - 1; // leave room for NULL
-	out.n = 0;
 
 	while (*fmt) {
 		if (*fmt == '%') {
@@ -202,46 +217,63 @@ int strfmt_ap(char *str, int len, const char *fmt, va_list ap)
 			}
 			switch (*fmt) {
 			case 's':
-				outstr(&out, va_arg(ap, char *), flags);
+				outstr(out, va_arg(ap, char *), flags);
 				break;
 			case 'c':
 				// char is promoted to int in ...
-				outchar(&out, va_arg(ap, int));
+				outchar(out, va_arg(ap, int));
 				break;
 			case 'd':
 				if (flags & SAW_LONG)
 					int2str(va_arg(ap, long), tmp);
 				else
 					int2str(va_arg(ap, int), tmp);
-				outnum(&out, tmp, flags);
+				outnum(out, tmp, flags);
 				break;
 			case 'u':
 				if (flags & SAW_LONG)
 					uint2str(va_arg(ap, unsigned long), tmp);
 				else
 					uint2str(va_arg(ap, unsigned), tmp);
-				outnum(&out, tmp, flags);
+				outnum(out, tmp, flags);
 				break;
 			case 'x':
 				if (flags & SAW_LONG)
 					hex2str(va_arg(ap, unsigned long), tmp);
 				else
 					hex2str(va_arg(ap, unsigned), tmp);
-				outnum(&out, tmp, flags);
+				outnum(out, tmp, flags);
 				break;
 			default:
-				outchar(&out, '%');
+				outchar(out, '%');
 				fmt = save;
 			}
 		} else
-			outchar(&out, *fmt);
+			outchar(out, *fmt);
 		++fmt;
 	}
 
 	/* We leave room for the NULL */
-	*out.str = 0;
+	*out->str = 0;
 
-	return out.n;
+	return out->n;
+}
+
+/** Lower level interface to strfmt() when you already have the va_list.
+ * @param str The output string.
+ * @param len The length of the output string.
+ * @param fmt The output format.
+ * @param ap The va_list.
+ * @return The number of bytes in the source string (like snprintf).
+ */
+int strfmt_ap(char *str, int len, const char *fmt, va_list ap)
+{
+	struct outbuff out = { .str = str, .len = len - 1, .n = 0 };
+
+	if (len < 1)
+		return 0;
+
+	return __strfmt(&out, fmt, ap);
 }
 
 /** Poor man's snprintf.
