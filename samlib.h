@@ -384,8 +384,11 @@ size_t strlcat(char *dst, const char *src, size_t dstsize);
 #endif
 int strconcat(char *str, int len, ...);
 char *int2str(long val, char *out);
-char *yint2str(unsigned long val, char *out);
+char *uint2str(unsigned long val, char *out);
 char *hex2str(unsigned long val, char *out);
+char *_int2str(long val, char *out);
+char *_uint2str(unsigned long val, char *out);
+char *_hex2str(unsigned long val, char *out);
 int strfmt(char *str, int len, const char *fmt, ...);
 int strfmt_ap(char *str, int len, const char *fmt, va_list ap);
 
