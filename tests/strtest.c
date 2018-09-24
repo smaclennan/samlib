@@ -127,6 +127,20 @@ static void test_strconcat(void)
 	assert(strcmp(str, "hello and world") == 0);
 }
 
+// This gets around the stupid gcc 5.3.0 snprintf truncation
+// warning. I *know* it is truncated, that is the point of the test!
+// Do NOT make this static!
+int hack_snprintf(char *str, int size, const char *format, ...)
+{
+	va_list ap;
+
+	va_start(ap, format);
+	int n = vsnprintf(str, size, format, ap);
+	va_end(ap);
+
+	return n;
+}
+
 static void test_strfmt(void)
 {
 	char str1[1024], str2[1024];
@@ -167,8 +181,8 @@ static void test_strfmt(void)
 	assert(n1 == n2);
 	assert(strcmp(str1, str2) == 0);
 
-	n1 = strfmt  (str1, 5, "%6x", 0x123);
-	n2 = snprintf(str2, 5, "%6x", 0x123);
+	n1 = strfmt  (str1, sizeof(str1), "%6x", 0x123);
+	n2 = snprintf(str2, sizeof(str2), "%6x", 0x123);
 	assert(n1 == n2);
 	assert(strcmp(str1, str2) == 0);
 
@@ -193,7 +207,7 @@ static void test_strfmt(void)
 	assert(strcmp(str1, str2) == 0);
 
 	n1 = strfmt  (str1, 10, "test %s this", "hello world");
-	n2 = snprintf(str2, 10, "test %s this", "hello world");
+	n2 = hack_snprintf(str2, 10, "test %s this", "hello world");
 	assert(n1 == n2);
 	assert(strcmp(str1, str2) == 0);
 
