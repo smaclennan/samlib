@@ -1,4 +1,5 @@
 #include "samlib.h"
+#include <fcntl.h>
 
 /* RFC 1321 */
 
@@ -180,6 +181,7 @@ void md5_final(md5ctx *ctx, uint8_t *hash)
 	memset(ctx, 0, sizeof(md5ctx));
 }
 
+/* str needs to be MD5_DIGEST_LEN * 2 + 1 */
 char *md5str(uint8_t *hash, char *str)
 {
 	char *p = str;
@@ -200,4 +202,36 @@ void md5(const void *data, int len, uint8_t *hash)
 	md5_init(&ctx);
 	md5_update(&ctx, data, len);
 	md5_final(&ctx, hash);
+}
+
+int _md5sum(int fd, uint8_t *hash)
+{
+	char buf[64 * 1024];
+	int n;
+	md5ctx ctx;
+
+	md5_init(&ctx);
+	while ((n = read(fd, buf, sizeof(buf))) > 0)
+		md5_update(&ctx, buf, n);
+	md5_final(&ctx, hash);
+
+	if (n) {
+		errno = EIO;
+		return -1;
+	}
+
+	return 0;
+}
+
+int md5sum(const char *fname, uint8_t *hash)
+{
+	int fd = open(fname, O_RDONLY);
+	if (fd < 0)
+		return -1;
+
+	int rc = _md5sum(fd, hash);
+
+	close(fd);
+
+	return rc;
 }

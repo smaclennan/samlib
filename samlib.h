@@ -230,6 +230,8 @@ void md5_init(md5ctx *ctx);
 void md5_update(md5ctx *ctx, const void *data, int len);
 void md5_final(md5ctx *ctx, uint8_t *hash);
 char *md5str(uint8_t *hash, char *str);
+int md5sum(const char *fname, uint8_t *hash);
+int _md5sum(int fd, uint8_t *hash);
 
 /* sha256 functions */
 
