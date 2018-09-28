@@ -105,3 +105,10 @@ int timeval_delta2(const struct timeval *t1,
 		rc = timeval_delta(t2, t1, delta);
 	return rc;
 }
+
+unsigned mbs(unsigned long bytes, unsigned long useconds)
+{
+	double mb = (double)bytes / 1048576.0;
+	double sec = (double)useconds / 1000000.0;
+	return (unsigned)(mb / sec + 0.5);
+}

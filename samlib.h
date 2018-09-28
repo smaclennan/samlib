@@ -159,6 +159,9 @@ int timeval_delta2(const struct timeval *t1,
 				   const struct timeval *t2,
 				   struct timeval *delta);
 
+/* MB/s */
+unsigned mbs(unsigned long bytes, unsigned long useconds);
+
 /* The opaque walkfile structure. If you pass NULL to the walkfile
  * functions they will use a builtin global. For multi-threaded apps
  * you must supply a walkfile struct.
