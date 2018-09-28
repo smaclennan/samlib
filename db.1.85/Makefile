@@ -2,7 +2,7 @@
 
 include ../Rules.mk
 
-CFLAGS	+= -D__DBINTERFACE_PRIVATE
+CFLAGS	+= -D__DBINTERFACE_PRIVATE -I..
 
 CFILES	:= db.c mpool.c
 CFILES	+= bt_close.c bt_conv.c bt_delete.c bt_get.c bt_open.c \

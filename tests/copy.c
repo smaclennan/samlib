@@ -37,6 +37,13 @@ static void setup(int i)
 	}
 }
 
+#ifndef MIN
+#define MIN(a, b) ((a) <= (b) ? (a) : (b))
+#endif
+#ifndef MAX
+#define MAX(a, b) ((a) >= (b) ? (a) : (b))
+#endif
+
 #ifdef TESTALL
 int copy_main(void)
 #else

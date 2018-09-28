@@ -33,6 +33,8 @@ static struct test {
 #ifndef TESTALL
 #include "../md5.c"
 
+char buf[64 * 1024];
+
 int main(void)
 #else
 static int md5_main(void)
@@ -59,6 +61,23 @@ static int md5_main(void)
 			rc = 1;
 		}
 	}
+
+#ifndef TESTALL
+	struct timeval start, end;
+	unsigned long ii, delta, loops = 40000;
+	md5ctx ctx;
+
+	gettimeofday(&start, NULL);
+	for (ii = 0; ii < loops; ++ii) {
+		md5_init(&ctx);
+		md5_update(&ctx, buf, sizeof(buf));
+		md5_final(&ctx, hash);
+	}
+	gettimeofday(&end, NULL);
+
+	delta = delta_timeval(&start, &end);
+	printf("md5 %umb/s\n", mbs(sizeof(buf) * loops, delta));
+#endif
 
 	return rc;
 }

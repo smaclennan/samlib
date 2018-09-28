@@ -1,13 +1,8 @@
 # -*- mode: Makefile -*-
-.PHONY: all check install clean
+.PHONY: first-rule all check install clean
 
 ifeq ($(shell uname -m), x86_64)
 LIBDIR ?= /usr/lib64
-endif
-
-# This works for gcc and clang
-ifneq ($(shell $(CC) -v 2>&1 | fgrep "Target: x86_64"),)
-AES ?= -maes
 endif
 
 PREFIX ?= /usr
@@ -16,6 +11,11 @@ LIBDIR ?= $(PREFIX)/lib
 INCDIR ?= $(PREFIX)/include
 
 include ./Rules.mk
+
+# This works for gcc and clang
+ifneq ($(shell $(CC) -v 2>&1 | fgrep "Target: x86_64"),)
+AES ?= -maes
+endif
 
 MFLAGS += CC=$(CC) LD=$(LD) BDIR=$(BDIR) --no-print-directory
 
@@ -34,7 +34,12 @@ CFILES += strfmt.c
 
 O := $(addprefix $(BDIR)/, $(CFILES:.c=.o))
 
-all: $(BDIR) $(EXTRA) $(BDIR)/libsamlib.a $(BDIR)/libsamthread.a
+first-rule: $(BDIR) $(EXTRA) $(BDIR)/libsamlib.a $(BDIR)/libsamthread.a
+ifeq ($(CROSS_COMPILE),)
+	$(QUIET_MAKE)$(MAKE) $(MFLAGS) -C tests
+endif
+
+all:	first-rule
 	$(QUIET_MAKE)$(MAKE) $(MFLAGS) -C tests
 	$(QUIET_MAKE)$(MAKE) $(MFLAGS) -C utils
 
@@ -59,7 +64,7 @@ $(BDIR)/aes128-cbc.o: aes128-cbc.c
 $(BDIR)/libsamthread.a: $(BDIR)/samthread.o $(BDIR)/mutex.o
 	$(QUIET_AR)$(AR) cr $@ $+
 
-install:
+install: all
 	mkdir -p $(DESTDIR)$(BINDIR)
 	mkdir -p $(DESTDIR)$(INCDIR)
 	mkdir -p $(DESTDIR)$(LIBDIR)

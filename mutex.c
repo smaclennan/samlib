@@ -95,6 +95,7 @@ void mutex_unlock(mutex_t *mutex)
 }
 
 #else
+#include <stdlib.h>
 
 mutex_t *mutex_create(void)
 {

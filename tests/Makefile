@@ -7,7 +7,7 @@ include ../Rules.mk
 #LIBS += -ldb
 
 # Define for pthreads
-LIBS += -lpthread
+#LIBS += -lpthread
 
 # For gcov
 #CFLAGS += -coverage

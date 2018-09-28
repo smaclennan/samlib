@@ -65,6 +65,8 @@ int cpu_info(char *vendor, int *family, int *model, int *stepping)
 		*model = (regs[0] >> 16) & 0xff;
 	if (stepping) /* revision */
 		*stepping = regs[0] & 0xf;
+
+	return 0;
 }
 #else
 int cpuid(uint32_t id, uint32_t *regs) { return -1; }

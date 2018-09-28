@@ -1,6 +1,15 @@
 #CC = clang -fno-color-diagnostics
+CC = gcc
 
+ifeq ($(CROSS_COMPILE),)
 BDIR ?= $(shell uname -m)
+else
+# uname -m really doesn't make sense for cross compiling
+BDIR ?= $(ARCH)
+
+CC := $(CROSS_COMPILE)$(CC)
+LD := $(CROSS_COMPILE)$(LD)
+endif
 
 V	      = @
 Q	      = $(V:1=)

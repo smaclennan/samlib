@@ -163,7 +163,8 @@ static void outmemset(struct outbuff *out, char c, int size)
 			return;
 		}
 #endif
-		size = MIN(size, out->len);
+		if (size > out->len)
+			size = out->len;
 		if (size > 0) {
 			memset(out->str, c, size);
 			out->str += size;
@@ -183,7 +184,8 @@ static void outmemcpy(struct outbuff *out, const char *str, int size)
 			return;
 		}
 #endif
-		size = MIN(size, out->len);
+		if (size > out->len)
+			size = out->len;
 		if (size > 0) {
 			memcpy(out->str, str, size);
 			out->str += size;

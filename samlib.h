@@ -516,6 +516,7 @@ static inline int is_power_of_2(unsigned x)
 }
 
 #ifdef __QNXNTO__
+#include <stdio.h>
 ssize_t getline(char **lineptr, size_t *n, FILE *stream);
 #endif
 
