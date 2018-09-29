@@ -123,7 +123,13 @@ static int do_dir(struct walkfile_struct *walk, const char *dname, struct stat *
 
 	struct dirent *ent;
 	while ((ent = readdir(dir))) {
-		if (*ent->d_name == '.') continue;
+		if (*ent->d_name == '.') {
+			if (walk->flags & WALK_DOTFILES) {
+				if (ent->d_name[1] == 0 || strcmp(ent->d_name, "..") == 0)
+					continue;
+			} else
+				continue;
+		}
 
 		if (strcmp(dname, "/"))
 			n = strconcat(path, sizeof(path), dname, "/", ent->d_name, NULL);

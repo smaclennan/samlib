@@ -197,6 +197,7 @@ int walkfiles(struct walkfile_struct *walk, const char *path,
 #define WALK_XDEV 2
 
 #define WALK_NO_SUBDIRS 4
+#define WALK_DOTFILES   8
 
 /* Adds a regular expression of paths to ignore. */
 void add_ignore(struct walkfile_struct *walk, const char *str);
