@@ -49,6 +49,8 @@ int readcmd(int (*line_func)(char *line, void *data), void *data, const char *fm
 		}
 	}
 
+	free(line);
+
 	int status = pclose(pfp);
 	if (rc == 0) {
 #ifndef WIN32

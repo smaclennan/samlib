@@ -87,38 +87,6 @@ void closedir(DIR *dir)
 	free(dir);
 }
 
-#define CHUNKSIZE 128
-
-int getline(char **line, int *len, FILE *fp)
-{
-	int ch = 0, i = 0;
-
-	while (1) {
-		if (i >= *len) {
-			char *p = realloc(*line, *len + CHUNKSIZE);
-			if (!p)
-				return EOF;
-			*line = p;
-			*len += CHUNKSIZE;
-		}
-
-		if (ch == '\n') {
-			*(*line + i) = 0;
-			return 1;
-		}
-
-		ch = fgetc(fp);
-		if (ch == EOF) {
-			if (i == 0)
-				return EOF;
-			*(*line + i) = 0;
-			return i;
-		}
-
-		*(*line + i++) = ch;
-	}
-}
-
 /* Windows uses Jan 1 1601, Unix uses Jan 1 1970 */
 #define FILETIME2UNIXTIME 11644473600LL
 

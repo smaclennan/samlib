@@ -6,43 +6,38 @@
 
 #include "samlib.h"
 
-#ifdef __QNXNTO__
-#define GETLINE_INCREMENT 128 /* real getline 120 */
+#if defined(WIN32) || defined(__QNXNTO__)
+#define GETLINE_INCREMENT 128
 
 /* Simple getline implementation */
-ssize_t getline(char **lineptr, size_t *n, FILE *stream)
+int getline(char **line, int *n, FILE *fp)
 {
-	char *p;
+	int ch, i = 0;
 
-	if (!*lineptr) {
-		*lineptr = malloc(GETLINE_INCREMENT);
-		if (!*lineptr) {
-			errno = ENOMEM;
-			return -1;
+	while (1) {
+		if (i >= *len) {
+			char *p = realloc(*line, *len + CHUNKSIZE);
+			if (!p)
+				return EOF;
+			*line = p;
+			*len += CHUNKSIZE;
 		}
-		*n = GETLINE_INCREMENT;
-	}
 
-	if (!fgets(*lineptr, *n, stream)) {
-		errno = feof(stream) ? 0 : EIO;
-		return -1;
-	}
-
-	while (!(p = strchr(*lineptr, '\n')) && !feof(stream)) {
-		char *new = realloc(*lineptr, *n + GETLINE_INCREMENT);
-		if (!new) {
-			errno = ENOMEM;
-			return -1;
+		ch = fgetc(fp);
+		if (ch == EOF) {
+			if (i == 0)
+				return EOF;
+			*(*line + i) = 0;
+			return i;
 		}
-		*lineptr = new;
-		if (!fgets(*lineptr + *n - 1, GETLINE_INCREMENT + 1, stream)) {
-			errno = feof(stream) ? 0 : EIO;
-			return -1;
-		}
-		*n += GETLINE_INCREMENT;
-	}
 
-	return strlen(*lineptr);
+		*(*line + i++) = ch;
+
+		if (ch == '\n') {
+			*(*line + i) = 0;
+			return 1;
+		}
+	}
 }
 #endif
 
