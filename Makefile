@@ -12,6 +12,8 @@ INCDIR ?= $(PREFIX)/include
 
 include ./Rules.mk
 
+CFLAGS += -DWANT_FLOATS
+
 # This works for gcc and clang
 ifneq ($(shell $(CC) -v 2>&1 | fgrep "Target: x86_64"),)
 AES ?= -maes
