@@ -6,13 +6,6 @@
 
 #include "samlib.h"
 
-/* Default line function, mainly for debugging. */
-static int out_line(char *line, void *data)
-{
-	puts(line);
-	return 0;
-}
-
 #ifdef __QNXNTO__
 #define GETLINE_INCREMENT 128 /* real getline 120 */
 
@@ -73,8 +66,10 @@ int readfile(int (*line_func)(char *line, void *data), void *data,
 	size_t len = 0;
 	int rc = 0;
 
-	if (!line_func)
-		line_func = out_line;
+	if (!line_func) {
+		errno = EINVAL;
+		return -1;
+	}
 
 	while (getline(&line, &len, fp) != EOF) {
 		if ((p = strrchr(line, '\n')))

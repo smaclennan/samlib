@@ -12,7 +12,7 @@ static void must_fail(const char *what, int size)
 	if (must_helper)
 		must_helper(what, size);
 	else {
-		puts("Out of memory.");
+		fputs("Out of memory.\n", stderr);
 		exit(1);
 	}
 }

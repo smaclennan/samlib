@@ -25,7 +25,7 @@ unsigned long get_duration(const char *str)
 	case 0:
 		return (unsigned long)t;
 	default:
-		printf("Invalid size %s\n", e);
+		fprintf(stderr, "Invalid size %s\n", e);
 		exit(1);
 	}
 }
@@ -84,7 +84,7 @@ uint64_t get_mem_len(const char *str)
 	case 0:
 		return len;
 	default:
-		printf("Invalid size %s\n", e);
+		fprintf(stderr, "Invalid size %s\n", e);
 		exit(1);
 	}
 }

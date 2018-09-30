@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "samlib.h"
 
 /* Indirect stringification.  Doing two levels allows the parameter to be a

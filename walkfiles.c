@@ -40,14 +40,10 @@ void add_ignore(struct walkfile_struct *walk, const char *str)
 {
 	walk_ignores;
 
-	struct ignore *ignore = calloc(1, sizeof(struct ignore));
-	if (!ignore) {
-		puts("out of memory");
-		exit(1);
-	}
+	struct ignore *ignore = must_calloc(1, sizeof(struct ignore));
 
 	if (regcomp(&ignore->regex, str, REG_EXTENDED)) {
-		printf("Invalid regex '%s'\n", str);
+		fprintf(stderr, "Invalid regex '%s'\n", str);
 		exit(1);
 	}
 
@@ -136,13 +132,13 @@ static int do_dir(struct walkfile_struct *walk, const char *dname, struct stat *
 		else
 			n = strconcat(path, sizeof(path), "/", ent->d_name, NULL);
 		if (n >= sizeof(path)) {
-			printf("PATH TRUNCATED: %s/%s\n", dname, ent->d_name);
+			fprintf(stderr, "PATH TRUNCATED: %s/%s\n", dname, ent->d_name);
 			error = 1;
 			continue;
 		}
 
 		if (check_ignores(walk, path)) {
-			if (walk_verbose) printf("Ignoring: %s\n", path);
+			if (walk_verbose) fprintf(stderr, "Ignoring: %s\n", path);
 			continue;
 		}
 
@@ -160,7 +156,7 @@ static int do_dir(struct walkfile_struct *walk, const char *dname, struct stat *
 				if (walk->flags & WALK_XDEV)
 					if (dbuf->st_dev != sbuf.st_dev) {
 						if (walk_verbose)
-							printf("Skipping dir %s\n", path);
+							fprintf(stderr, "Skipping dir %s\n", path);
 						break;
 					}
 				error |= do_dir(walk, path, &sbuf);
@@ -168,7 +164,8 @@ static int do_dir(struct walkfile_struct *walk, const char *dname, struct stat *
 			break;
 		default:
 			if ((match & walk->flags & S_IFMT) != match) {
-				if (walk_verbose) printf("Special %s (0%o)\n", path, match);
+				if (walk_verbose)
+					fprintf(stderr, "Special %s (0%o)\n", path, match);
 				break;
 			}
 			/* fall thru */
@@ -176,7 +173,7 @@ static int do_dir(struct walkfile_struct *walk, const char *dname, struct stat *
 			if (check_filters(walk, ent->d_name))
 				error |= walk->file_func(path, &sbuf);
 			else if (walk_verbose)
-				printf("Skipping %s\n", ent->d_name);
+				fprintf(stderr, "Skipping %s\n", ent->d_name);
 		}
 	}
 
@@ -215,7 +212,7 @@ int walkfiles(struct walkfile_struct *walk, const char *path,
 
 	walk->flags |= flags; /* add in user flags */
 	if (walk_verbose)
-		printf("walk flags 0%o\n", walk->flags);
+		fprintf(stderr, "walk flags 0%o\n", walk->flags);
 
 	if (S_ISDIR(sbuf.st_mode))
 		return do_dir(walk, path, &sbuf);

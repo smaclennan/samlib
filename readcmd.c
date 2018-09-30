@@ -10,13 +10,6 @@
 
 #include "samlib.h"
 
-/* Default line function, mainly for debugging. */
-static int out_line(char *line, void *data)
-{
-	puts(line);
-	return 0;
-}
-
 /* Read a pipe command a line at a time calling line_func() for each
  * line. Removes the NL from the line. If line_func() returns
  * non-zero, it will stop reading the file and return 1.
@@ -34,8 +27,10 @@ int readcmd(int (*line_func)(char *line, void *data), void *data, const char *fm
 	int rc = 0;
 	va_list ap;
 
-	if (!line_func)
-		line_func = out_line;
+	if (!line_func) {
+		errno = EINVAL;
+		return -1;
+	}
 
 	va_start(ap, fmt);
 	vsnprintf(cmd, sizeof(cmd), fmt, ap);
