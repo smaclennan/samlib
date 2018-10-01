@@ -235,7 +235,7 @@ static void outnum(struct outbuff *out, const char *s, unsigned flags)
 }
 
 #ifdef WANT_FLOATS
-#define FIXED_SIZE 16
+#define FIXED_SIZE 20
 #define FIXED_MASK ((1 << FIXED_SIZE) - 1)
 
 static int double2fixed(double val, int *f)
@@ -258,7 +258,7 @@ static int double2fixed(double val, int *f)
 		bit_val >>= 1;
 	}
 
-	*f = result / 10;
+	*f = (result + 5) / 10;
 	l >>= FIXED_SIZE;
 
 	return neg ? -l : l;
