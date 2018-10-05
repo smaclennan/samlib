@@ -23,4 +23,3 @@ clean:
 	rm -f ${LIBDB} *.o
 	rm -f *.gcno *.gcda
 	rm -rf $(BDIR)
-	$(MAKE) $(MFLAGS) -C test clean
