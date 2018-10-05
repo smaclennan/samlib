@@ -63,7 +63,7 @@ dbopen(fname, flags, mode, type, openinfo)
 	const void *openinfo;
 {
 
-#define	DB_FLAGS	(DB_LOCK | DB_SHMEM | DB_TXN)
+#define	DB_FLAGS	(DB_LOCK)
 #define	USE_OPEN_FLAGS							\
 	(O_CREAT | O_EXCL | O_EXLOCK | O_NONBLOCK | O_RDONLY |		\
 	 O_RDWR | O_SHLOCK | O_TRUNC)
@@ -73,14 +73,6 @@ dbopen(fname, flags, mode, type, openinfo)
 		case DB_BTREE:
 			return (__bt_open(fname, flags & USE_OPEN_FLAGS,
 				mode, openinfo, flags & DB_FLAGS));
-#if 0
-		case DB_HASH:
-			return (__hash_open(fname, flags & USE_OPEN_FLAGS,
-			    mode, openinfo, flags & DB_FLAGS));
-		case DB_RECNO:
-			return (__rec_open(fname, flags & USE_OPEN_FLAGS,
-				mode, openinfo, flags & DB_FLAGS));
-#endif
 		default: /* compiler shutup */
 			break;
 		}

@@ -377,8 +377,6 @@ typedef struct _btree {
 #define	R_RDONLY	0x02000		/* read-only file */
 
 #define	B_DB_LOCK	0x04000		/* DB_LOCK specified. */
-#define	B_DB_SHMEM	0x08000		/* DB_SHMEM specified. */
-#define	B_DB_TXN	0x10000		/* DB_TXN specified. */
 	uint32_t flags;
 } BTREE;
 

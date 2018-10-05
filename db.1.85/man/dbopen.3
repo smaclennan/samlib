@@ -89,15 +89,6 @@ O_RDONLY, O_RDWR, O_SHLOCK and O_TRUNC flags are meaningful.
 .\"If concurrent access isn't needed or the database is read-only this
 .\"flag should not be set, as it tends to have an associated performance
 .\"penalty.
-.\".TP
-.\"DB_SHMEM
-.\"Place the underlying memory pool used by the database in shared
-.\"memory.
-.\"Necessary for concurrent access.
-.\".TP
-.\"DB_TXN
-.\"Support transactions in the database.
-.\"The DB_LOCK and DB_SHMEM flags must be set as well.
 .PP
 The
 .I type
@@ -226,24 +217,6 @@ R_CURSOR
 Replace the key/data pair referenced by the cursor.
 The cursor must have previously been initialized.
 .TP
-R_IAFTER
-Append the data immediately after the data referenced by
-.IR key ,
-creating a new key/data pair.
-The record number of the appended key/data pair is returned in the
-.I key
-structure.
-(Applicable only to the DB_RECNO access method.)
-.TP
-R_IBEFORE
-Insert the data immediately before the data referenced by
-.IR key ,
-creating a new key/data pair.
-The record number of the inserted key/data pair is returned in the
-.I key
-structure.
-(Applicable only to the DB_RECNO access method.)
-.TP
 R_NOOVERWRITE
 Enter the new key/data pair only if the key does not previously exist.
 .TP
@@ -256,12 +229,6 @@ cursor to reference it.
 R_SETCURSOR is available only for the DB_BTREE and DB_RECNO access
 methods because it implies that the keys have an inherent order
 which does not change.
-.IP
-R_IAFTER and R_IBEFORE are available only for the DB_RECNO
-access method because they each imply that the access method is able to
-create new keys.
-This is only true if the keys are ordered and independent, record numbers
-for example.
 .IP
 The default behavior of the
 .I put
@@ -356,17 +323,6 @@ routine has no effect and will always succeed.
 .IP
 The flag value may be set to the following value:
 .RS
-.TP
-R_RECNOSYNC
-If the DB_RECNO access method is being used, this flag causes
-the sync routine to apply to the btree file which underlies the
-recno file, not the recno file itself.
-(See the
-.I bfname
-field of the
-.IR recno (3)
-manual page for more information.)
-.RE
 .IP
 .I Sync
 routines return -1 on error (setting

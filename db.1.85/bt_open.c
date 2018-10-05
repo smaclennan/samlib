@@ -330,10 +330,6 @@ __bt_open(fname, flags, mode, openinfo, dflags)
 	/* Global flags. */
 	if (dflags & DB_LOCK)
 		F_SET(t, B_DB_LOCK);
-	if (dflags & DB_SHMEM)
-		F_SET(t, B_DB_SHMEM);
-	if (dflags & DB_TXN)
-		F_SET(t, B_DB_TXN);
 
 	return (dbp);
 
