@@ -36,7 +36,7 @@
 #endif
 
 #define SAMLIB_MAJOR 1
-#define SAMLIB_MINOR 6
+#define SAMLIB_MINOR 7
 
 extern const char *samlib_version;
 extern const char *samlib_marker;
@@ -334,7 +334,7 @@ void free_interfaces(char **ifnames, int n);
 /* The flags are for the DB->open() function. */
 int db_open(const char *dbname, uint32_t flags, void **dbh);
 int db_close(void *dbh);
-int db_put(void *dbh, const char *keystr, void *val, int len, unsigned flags);
+int db_put(void *dbh, const char *keystr, void *val, int len);
 int db_put_str(void *dbh, const char *keystr, const char *valstr);
 int db_put_raw(void *dbh, const void *key, int klen, void *val, int len, unsigned flags);
 int db_get(void *dbh, const char *keystr, void *val, int len);

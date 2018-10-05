@@ -120,17 +120,17 @@ int db_put_raw(void *dbh, const void *key, int klen, void *val, int len, unsigne
 }
 
 /* Returns 0 on success */
-int db_put(void *dbh, const char *keystr, void *val, int len, unsigned flags)
+int db_put(void *dbh, const char *keystr, void *val, int len)
 {
-	return db_put_raw(dbh, keystr, strlen(keystr) + 1, val, len, flags);
+	return db_put_raw(dbh, keystr, strlen(keystr) + 1, val, len, 0);
 }
 
 int db_put_str(void *dbh, const char *keystr, const char *valstr)
 {
 	if (valstr)
-		return db_put(dbh, (char *)keystr, (char *)valstr, strlen(valstr) + 1, 0);
+		return db_put_raw(dbh, (char *)keystr, strlen(keystr), (char *)valstr, strlen(valstr) + 1, 0);
 	else
-		return db_put(dbh, keystr, NULL, 0, 0);
+		return db_put_raw(dbh, keystr, strlen(keystr), NULL, 0, 0);
 }
 
 /* Returns val len on success */
