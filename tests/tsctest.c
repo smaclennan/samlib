@@ -1,12 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-// SAM #include <unistd.h>
-#include <fcntl.h>
-#include <ctype.h>
-#include <errno.h>
 #include "../samlib.h"
+
+#define SLEEPY_TIME 888000ul
 
 #ifdef TESTALL
 int tsc_main(void)
@@ -14,32 +10,48 @@ int tsc_main(void)
 int main(void)
 #endif
 {
-	char name[13];
-	cpu_info(name, NULL, NULL, NULL);
+	int rc = 0;
 
 	uint64_t divisor;
 	switch (tsc_divisor(&divisor)) {
 	case 0:
-		printf("%s %lx\n", name, divisor);
+		printf("tsc divisor %lu\n", divisor);
 		break;
 	case EINVAL:
-		printf("%s %lx but not constant\n", name, divisor);
+		printf("tsc divisor %lu but not constant\n", divisor);
 		break;
 	case -1:
+		printf("tsc not supported\n");
 		return 0; /* not a supported arch */
 	default:
-		printf("%s: unexpected return\n", name);
+		printf("tsc divisor: unexpected return\n");
 		return 1;
 	}
 
-	uint64_t start = rdtsc();
-	usleep(88000); /* 88 ms */
-	uint64_t delta = delta_tsc(start);
-	/* Give it +/- 1 ms */
-	if (delta < (88000 - 1000) || delta > (88000 + 1000)) {
-		printf("TSC: Expected 88000 got %lu\n", delta);
-		return 1;
+	struct timeval tv_start, tv_end;
+	uint64_t start, end;
+
+	gettimeofday(&tv_start, NULL);
+	start = rdtsc();
+	usleep(SLEEPY_TIME);
+	end = rdtsc();
+	gettimeofday(&tv_end, NULL);
+
+	uint64_t delta = (end - start) / divisor;
+	/* Give it +/- 200us */
+	if (delta < (SLEEPY_TIME - 200) || delta > (SLEEPY_TIME + 200)) {
+		printf("TSC: Expected %lu got %lu\n", SLEEPY_TIME, delta);
+		rc = 1;
 	}
 
-	return 0;
+	uint64_t delta1 = delta_timeval(&tv_start, &tv_end);
+	/* Give it +/- 200us */
+	if (delta1 < (SLEEPY_TIME - 200) || delta1 > (SLEEPY_TIME + 200)) {
+		printf("TV: Expected %lu got %lu\n", SLEEPY_TIME, delta1);
+		rc = 1;
+	}
+
+	printf("Deltas: TSC %ld TV %ld\n", SLEEPY_TIME - delta, SLEEPY_TIME - delta1);
+
+	return rc;
 }

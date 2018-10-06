@@ -3,26 +3,22 @@
 #include <errno.h>
 #include "samlib.h"
 
-#if defined(__x86_64__) || defined(__i386__) || defined(WIN32)
+#if defined(__x86_64__) || defined(__i386__)
 
+/* Using a timing loop has been found to be much more accurate than
+ * using the clock speed. However, it does take longer... 1 second
+ * with the default values. Making CAL_TIME smaller looses
+ * accuracy. Since you only need to call this once, the defaults are
+ * probably a good trade off.
+ *
+ * As of 2018, the defaults make this more accurate than
+ * gettimeofday() on my laptop.
+ */
 int tsc_divisor(uint64_t *divisor)
 {
-#ifdef WIN32
-	LARGE_INTEGER val;
-
-	if (QueryPerformanceFrequency(&val)) {
-		if (divisor)
-			*divisor = val.QuadPart / 1000;
-		return 0;
-	} else {
-		if (divisor)
-			*divisor = 1;
-		return ENOENT;
-	}
-#else
-	char name[49], *p;
 	int rc = EINVAL;
 
+	char name[49];
 	int family, model;
 	cpu_info(name, &family, &model, NULL);
 
@@ -45,32 +41,22 @@ int tsc_divisor(uint64_t *divisor)
 	}
 
 	if (divisor) {
-		*divisor = 1;
+#define N_LOOPS  4
+#define CAL_TIME 250000
+		uint64_t total = 0;
 
-		unsigned int *v = (unsigned int *)name;
-		cpuid(0x80000002, v);
-		cpuid(0x80000003, v + 4);
-		cpuid(0x80000004, v + 8);
-		name[48] = 0;
+		for (int i = 0; i < N_LOOPS; ++i) {
+			uint64_t start = rdtsc();
+			// nanosleep() made no difference here
+			usleep(CAL_TIME);
+			uint64_t end = rdtsc();
+			total += end - start;
+		}
 
-		if (!(p = strchr(name, '@')))
-			return rc;
-
-		double d = strtod(p + 1, &p);
-		while (isspace(*p)) ++p;
-		if (strncasecmp(p, "ghz", 3) == 0) {
-			d *= 1000000000.0;
-		} else if (strncasecmp(p, "mhz", 3) == 0) {
-			d *= 1000000.0;
-		} else
-			return rc;
-
-		/* Probably could compensate for this above */
-		*divisor = d / 1000000; /* us */
+		*divisor = (total + (CAL_TIME / 2)) / (CAL_TIME * N_LOOPS);
 	}
 
 	return rc;
-#endif
 }
 #elif defined(__aarch64__)
 int tsc_divisor(uint64_t *divisor)
@@ -80,6 +66,21 @@ int tsc_divisor(uint64_t *divisor)
 		*divisor /= 1000000;
 	}
 	return 0;
+}
+#elif defined(WIN32)
+int tsc_divisor(uint64_t *divisor)
+{
+	LARGE_INTEGER val;
+
+	if (QueryPerformanceFrequency(&val)) {
+		if (divisor)
+			*divisor = val.QuadPart / 1000;
+		return 0;
+	} else {
+		if (divisor)
+			*divisor = 1;
+		return ENOENT;
+	}
 }
 #else
 int tsc_divisor(uint64_t *divisor) { if (divisor) *divisor = 1; return -1; }
