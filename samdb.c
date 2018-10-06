@@ -22,7 +22,7 @@
 #define GET_DATA
 #else
 #define SET_DATA do {						\
-		data_dbt.data = val;				\
+		data_dbt.data = (void *)val;		\
 		data_dbt.size = len;				\
 	} while (0)
 
@@ -99,7 +99,7 @@ int db_close(void *dbh)
 	return 0;
 }
 
-int db_put_raw(void *dbh, const void *key, int klen, void *val, int len, unsigned flags)
+int db_put_raw(void *dbh, const void *key, int klen, const void *val, int len, unsigned flags)
 {
 	DBT key_dbt, data_dbt;
 	GET_DB(dbh);
@@ -120,7 +120,7 @@ int db_put_raw(void *dbh, const void *key, int klen, void *val, int len, unsigne
 }
 
 /* Returns 0 on success */
-int db_put(void *dbh, const char *keystr, void *val, int len)
+int db_put(void *dbh, const char *keystr, const void *val, int len)
 {
 	return db_put_raw(dbh, keystr, strlen(keystr) + 1, val, len, 0);
 }
@@ -128,9 +128,9 @@ int db_put(void *dbh, const char *keystr, void *val, int len)
 int db_put_str(void *dbh, const char *keystr, const char *valstr)
 {
 	if (valstr)
-		return db_put_raw(dbh, (char *)keystr, strlen(keystr), (char *)valstr, strlen(valstr) + 1, 0);
+		return db_put_raw(dbh, keystr, strlen(keystr) + 1, valstr, strlen(valstr) + 1, 0);
 	else
-		return db_put_raw(dbh, keystr, strlen(keystr), NULL, 0, 0);
+		return db_put_raw(dbh, keystr, strlen(keystr) + 1, NULL, 0, 0);
 }
 
 /* Returns val len on success */
