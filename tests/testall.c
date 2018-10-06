@@ -7,7 +7,6 @@
 #include "crc16test.c"
 #include "dbtest.c"
 #include "md5test.c"
-// #include "random.c"
 #include "readfile.c"
 #include "readproctest.c"
 #include "sha256test.c"
@@ -17,7 +16,6 @@
 #include "spinlock.c"
 #include "aes-test.c"
 #include "aes-stress.c"
-#include "mmap-test.c"
 #include "strtest.c"
 
 
@@ -35,7 +33,6 @@ int main(int argc, char *argv[])
 	rc |= crc16_main();
 	rc |= db_main();
 	rc |= md5_main();
-	rc |= mmap_main();
 	rc |= readfile_main();
 	rc |= readproc_main();
 	rc |= sha256_main();
