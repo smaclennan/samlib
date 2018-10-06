@@ -42,6 +42,7 @@ static char sccsid[] = "@(#)db.c	8.4 (Berkeley) 2/21/94";
 #include <stddef.h>
 
 #include "include/db.h"
+#include "samlib.h"
 
 #ifndef O_EXLOCK			/* 4.4BSD extension. */
 #define	O_EXLOCK	0
@@ -63,16 +64,15 @@ dbopen(fname, flags, mode, type, openinfo)
 	const void *openinfo;
 {
 
-#define	DB_FLAGS	(DB_LOCK)
 #define	USE_OPEN_FLAGS							\
 	(O_CREAT | O_EXCL | O_EXLOCK | O_NONBLOCK | O_RDONLY |		\
 	 O_RDWR | O_SHLOCK | O_TRUNC)
 
-	if ((flags & ~(USE_OPEN_FLAGS | DB_FLAGS)) == 0)
+	if ((flags & ~(USE_OPEN_FLAGS | DB_LOCK)) == 0)
 		switch (type) {
 		case DB_BTREE:
 			return (__bt_open(fname, flags & USE_OPEN_FLAGS,
-				mode, openinfo, flags & DB_FLAGS));
+				mode, openinfo, flags & DB_LOCK));
 		default: /* compiler shutup */
 			break;
 		}

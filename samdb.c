@@ -1,33 +1,8 @@
 #include <stdlib.h>
-#ifdef HAVE_DB_H
-#include <db.h>
-#else
 /* Hardcoded to make sure we get the right file */
 #undef __DBINTERFACE_PRIVATE
 #include "db.1.85/include/db.h"
-#endif
-
 #include "samlib.h"
-
-/* DB_VERSION_MAJOR is not defined in FreeBSD. */
-
-#ifdef DB_DBT_USERMEM
-#define SET_DATA do {						\
-		data_dbt.data = val;				\
-		data_dbt.size = len;				\
-		data_dbt.ulen = len;				\
-		data_dbt.flags = DB_DBT_USERMEM;	\
-	} while (0)
-
-#define GET_DATA
-#else
-#define SET_DATA do {						\
-		data_dbt.data = (void *)val;		\
-		data_dbt.size = len;				\
-	} while (0)
-
-#define GET_DATA memcpy(val, data_dbt.data, len)
-#endif
 
 static DB *global_db;
 
@@ -37,13 +12,8 @@ static DB *global_db;
 
 static inline void dbclose(DB *db)
 {
-	if (db) {
-#ifdef DB_VERSION_MAJOR
-		db->close(db, 0);
-#else
+	if (db)
 		db->close(db);
-#endif
-	}
 }
 
 static void db_close_global(void)
@@ -61,19 +31,9 @@ int db_open(const char *dbname, uint32_t flags, void **dbh)
 	if (!dbh && global_db)
 		return -EBUSY;
 
-#ifdef DB_VERSION_MAJOR
-	int rc = db_create(&db, NULL, 0);
-	if (rc)
-		return rc;
-
-	rc = db->open(db, NULL, dbname, NULL, DB_BTREE, flags, 0664);
-	if (rc)
-		return rc;
-#else
 	db = dbopen(dbname, flags, 0664, DB_BTREE, NULL);
 	if (!db)
 		return errno;
-#endif
 
 	if (dbh)
 		*dbh = db;
@@ -109,14 +69,12 @@ int db_put_raw(void *dbh, const void *key, int klen, const void *val, int len, u
 
 	key_dbt.data = (void *)key;
 	key_dbt.size = klen;
-	if (len)
-		SET_DATA;
+	if (len) {
+		data_dbt.data = (void *)val;
+		data_dbt.size = len;
+	}
 
-#ifdef DB_VERSION_MAJOR
-	return db->put(db, NULL, &key_dbt, &data_dbt, flags);
-#else
 	return db->put(db, &key_dbt, &data_dbt, flags);
-#endif
 }
 
 /* Returns 0 on success */
@@ -146,20 +104,17 @@ int db_get_raw(void *dbh, const void *key, int klen, void *val, int len)
 	key_dbt.data = (void *)key;
 	key_dbt.size = klen;
 
-	SET_DATA;
+	data_dbt.data = (void *)val;
+	data_dbt.size = len;
 
-#ifdef DB_VERSION_MAJOR
-	rc = db->get(db, NULL, &key_dbt, &data_dbt, 0);
-#else
 	rc = db->get(db, &key_dbt, &data_dbt, 0);
-#endif
 	if (rc)
 		return rc < 0 ? rc : -rc;
 
 	if (len > data_dbt.size)
 		len = data_dbt.size;
 
-	GET_DATA;
+	memcpy(val, data_dbt.data, len);
 
 	return len;
 }
@@ -198,11 +153,7 @@ int db_peek(void *dbh, const char *keystr)
 	key.data = (char *)keystr;
 	key.size = strlen(keystr) + 1;
 
-#ifdef DB_VERSION_MAJOR
-	return db->get(db, NULL, &key, NULL, 0);
-#else
 	return db->get(db, &key, NULL, 0);
-#endif
 }
 
 int db_del(void *dbh, const char *keystr)
@@ -215,40 +166,11 @@ int db_del(void *dbh, const char *keystr)
 	key.data = (char *)keystr;
 	key.size = strlen(key.data) + 1;
 
-#ifdef DB_VERSION_MAJOR
-	return db->del(db, NULL, &key, 0);
-#else
 	return db->del(db, &key, 0);
-#endif
 }
 
 int db_walk(void *dbh, int (*walk_func)(const char *key, void *data, int len))
 {
-#ifdef DB_VERSION_MAJOR
-	DBT key, data;
-	DBC *dbc;
-	int rc = 0;
-	GET_DB(dbh);
-
-	if (!walk_func)
-		return -EINVAL;
-
-	if ((rc = db->cursor(db, NULL, &dbc, 0))) {
-		dbclose(db);
-		return rc;
-	}
-
-	memset(&key, 0, sizeof(key));
-	memset(&data, 0, sizeof(data));
-
-	while (dbc->c_get(dbc, &key, &data, DB_NEXT) == 0)
-		if ((rc = walk_func(key.data, data.data, data.size)))
-			break;
-
-	dbc->c_close(dbc);
-
-	return rc;
-#else
 	DBT key, data;
 	int rc = 0, flag = R_FIRST;
 	GET_DB(dbh);
@@ -266,5 +188,4 @@ int db_walk(void *dbh, int (*walk_func)(const char *key, void *data, int len))
 	}
 
 	return rc;
-#endif
 }

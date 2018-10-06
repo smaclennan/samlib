@@ -319,7 +319,7 @@ uint32_t get_address4(const char *hostname);
 int get_interfaces(char **ifname, int n, uint64_t *state);
 void free_interfaces(char **ifnames, int n);
 
-/* DB functions - requires -ldb
+/* DB functions
  *
  * These functions implement a simple interface to Berkley DB btree
  * implementation. The dbh is defined as void so that users of other
@@ -327,12 +327,10 @@ void free_interfaces(char **ifnames, int n);
  * installed). If dbh is NULL, a global DB handle is used.
  */
 
-#ifndef DB_CREATE
-#define DB_CREATE (O_CREAT | O_RDWR)
-#endif
-
-/* The flags are for the DB->open() function. */
+/* The flags are the same as open() + DB_LOCK */
 int db_open(const char *dbname, uint32_t flags, void **dbh);
+#define DB_CREATE (O_CREAT | O_RDWR)
+#define DB_LOCK 0x10000000
 int db_close(void *dbh);
 int db_put(void *dbh, const char *keystr, const void *val, int len);
 int db_put_str(void *dbh, const char *keystr, const char *valstr);

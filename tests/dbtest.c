@@ -6,9 +6,6 @@
 #include <ctype.h>
 #include <errno.h>
 #include <assert.h>
-#ifdef HAVE_DB_H
-#include <db.h>
-#endif
 #include "../samlib.h"
 
 static int db_walk_strings(const char *key, void *data, int len)

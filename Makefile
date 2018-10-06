@@ -21,10 +21,6 @@ endif
 
 MFLAGS += CC=$(CC) LD=$(LD) BDIR=$(BDIR) --no-print-directory
 
-# Uncomment for system db rather than builtin
-#CFLAGS += -DHAVE_DB_H
-#DBLIB = -ldb
-# And comment this out
 EXTRA_OBJ = db.1.85/$(BDIR)/db.1.85.o
 
 CFILES := version.c readfile.c readcmd.c do-system.c walkfiles.c

@@ -82,20 +82,6 @@ typedef struct {
 
 typedef enum { DB_BTREE } DBTYPE;
 
-/*
- * !!!
- * The following flags are included in the dbopen(3) call as part of the
- * open(2) flags.  In order to avoid conflicts with the open flags, start
- * at the top of the 16 or 32-bit number space and work our way down.  If
- * the open flags were significantly expanded in the future, it could be
- * a problem.  Wish I'd left another flags word in the dbopen call.
- */
-#if UINT_MAX > 65535
-#define	DB_LOCK		0x20000000	/* Do locking. */
-#else
-#define	DB_LOCK		    0x2000	/* Do locking. */
-#endif
-
 /* Access method description structure. */
 #ifdef WIN32
 #undef close
