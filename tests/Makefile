@@ -36,6 +36,7 @@ dbbtest: dbtest.c ../samdb.c ../db.1.85/$(BDIR)/db.1.85.o
 readproctest: readproctest.c ../readproc.c
 aes-test: aes-test.c ../aes128.c
 aes-stress: aes-stress.c ../aes128.c
+tsctest: tsctest.c ../tsc.c
 strtest: strtest.c ../safecpy.c ../strfmt.c
 
 threadtest: threadtest.c ../$(BDIR)/libsamthread.a
