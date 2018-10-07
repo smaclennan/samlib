@@ -76,7 +76,7 @@ void *must_mmap_file(int size, int prot, int flags, int fd)
 		flags = MAP_SHARED;
 
 	void *mem = mmap(NULL, size, prot, flags, fd, 0);
-	if (!mem)
+	if (mem ==MAP_FAILED)
 		must_fail("mmap file", size);
 	return mem;
 #else

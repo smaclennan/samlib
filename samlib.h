@@ -515,6 +515,19 @@ static inline int is_power_of_2(unsigned x)
 	return x != 0 && !(x & (x - 1));
 }
 
+/* My attempt at a socket library */
+
+#define SOCK_NONBLOCKING	1 /* listen, accept, connect */
+#define SOCK_LOCAL			2 /* listen on 127.0.0.1 only */
+
+/* server side commands */
+int socket_listen(int port, int flags);
+int socket_accept(int sock, char *ip, int flags);
+
+/* client side commands */
+int socket_connect(const char *hostname, const char *port, int flags);
+
+
 #ifdef __QNXNTO__
 #include <stdio.h>
 ssize_t getline(char **lineptr, size_t *n, FILE *stream);
