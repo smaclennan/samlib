@@ -12,27 +12,14 @@ endif
 
 LIBS += ../$(BDIR)/libsamlib.a
 
-ALL := ipaddr find-dups meminfo mkfilesz pkg prepro serial
-ALL += strip-comments strip-comments2 udp-echo udpping md5sum
+ALL := ipaddr pkg serial udpping
 
 all: $(ALL)
 
 ipaddr: ipaddr.c
 	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
 
-udp-echo: udp-echo.c
-	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
-
 udpping: udpping.c
-	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
-
-find-dups: find-dups.c
-	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
-
-mkfilesz: mkfilesz.c
-	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
-
-md5sum: md5sum.c
 	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
 
 %: %.c
