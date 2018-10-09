@@ -103,7 +103,7 @@ static int try_connect(struct addrinfo *r, int *deferred, int flags)
 }
 
 /* Supports ipv6 */
-int socket_connect(const char *hostname, const char *port, int flags)
+int socket_connect(const char *hostname, uint16_t port, int flags)
 {
 	int sock = -1, deferred;
 	struct addrinfo hints, *result, *r;
@@ -112,7 +112,9 @@ int socket_connect(const char *hostname, const char *port, int flags)
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_socktype = SOCK_STREAM;
 
-	if (getaddrinfo(hostname, port, &hints, &result))
+	char portstr[8];
+	uint2str(port, portstr);
+	if (getaddrinfo(hostname, portstr, &hints, &result))
 		return -1;
 
 	for (r = result; r; r = r->ai_next) {
