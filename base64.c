@@ -40,9 +40,9 @@ static const char pad = '=';
  */
 static void encode_block(char *dst, const uint8_t *src)
 {
-	*dst++ = alphabet[(src[0] >> 2) & 0x3f];
-	*dst++ = alphabet[((src[0] & 3) << 4) | ((src[1] >> 4) & 0x3f)];
-	*dst++ = alphabet[((src[1] << 2) & 0x3c) | ((src[2] >> 6) & 3)];
+	*dst++ = alphabet[src[0] >> 2];
+	*dst++ = alphabet[((src[0] << 4) & 0x30) | (src[1] >> 4)];
+	*dst++ = alphabet[((src[1] << 2) & 0x3c) | (src[2] >> 6)];
 	*dst++ = alphabet[src[2] & 0x3f];
 }
 
