@@ -111,6 +111,28 @@ unsigned nice_mem_len(uint64_t size, char *ch)
 	return size;
 }
 
+char *nicer_mem_len(uint64_t size, char *str, int len)
+{
+	if (size >= (1ul << 30)) {
+		if ((size & ((1UL << 30) - 1)) == 0)
+			snprintf(str, len, "%luG", size >> 30);
+		else
+			snprintf(str, len, "%.1fG", (double)size / (double)(1ul << 30));
+	} else if (size >= (1ul << 20)) {
+		if ((size & ((1UL << 20) - 1)) == 0)
+			snprintf(str, len, "%luM", size >> 20);
+		else
+			snprintf(str, len, "%.1fM", (double)size / (double)(1ul << 20));
+	} else if (size >= (1ul << 10)) {
+		if ((size & ((1UL << 10) - 1)) == 0)
+			snprintf(str, len, "%luK", size >> 10);
+		else
+			snprintf(str, len, "%.1fK", (double)size / (double)(1ul << 10));
+	} else
+		snprintf(str, len, "%lu", size);
+	return str;
+}
+
 /* Adds commas. Not thread safe */
 char *nice_number(long number)
 {   /* largest 64 bit decimal, with commas, is 26 + 1 */

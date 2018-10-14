@@ -58,6 +58,7 @@ char *nice_duration(unsigned long duration, char *str, int len);
 uint64_t get_mem_len(const char *str);
 
 unsigned nice_mem_len(uint64_t size, char *ch);
+char *nicer_mem_len(uint64_t size, char *str, int len);
 
 /* Adds commas. Not thread safe */
 char *nice_number(long number);
