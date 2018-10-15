@@ -122,7 +122,9 @@ int main(int argc, char *argv[])
 
 	gettimeofday(&start, NULL);
 	for (i = 0; i < loops; ++i)
-		AES_CBC_decrypt(&ctx, buf, sizeof(buf), output);
+		AES_CBC_encrypt(&ctx, buf, sizeof(buf), output);
+	if (ctx.have_hw)
+		printf("HW ");
 	gettimeofday(&end, NULL);
 
 	delta = delta_timeval(&start, &end);
@@ -139,6 +141,8 @@ int main(int argc, char *argv[])
 	gettimeofday(&end, NULL);
 
 	delta = delta_timeval(&start, &end);
+	if (ctx.have_hw)
+		printf("HW ");
 	printf("CBC 256 Decrypt %luus  %.0fns\n", delta, (double)delta * 1000.0 / loops);
 #endif
 
