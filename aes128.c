@@ -72,7 +72,7 @@ static const unsigned char Rcon[11] = {
 
 
 // expand the key
-static void expandKey(unsigned char *expandedKey, const unsigned char *key)
+/* SAM static */ void expandKey(unsigned char *expandedKey, const unsigned char *key)
 {
   unsigned short ii, buf1;
 

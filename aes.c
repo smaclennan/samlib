@@ -752,7 +752,7 @@ static inline void xor_buf(const uint64_t *in, uint64_t *out)
  * https://www.intel.com/content/dam/doc/white-paper/advanced-encryption-standard-new-instructions-set-paper.pdf
  */
 
-extern int hw_aes_support; // SAM DBG
+extern int hw_aes_support; // SAM FIXME
 
 static int cpu_supports_aes(void)
 {
@@ -765,15 +765,13 @@ static int cpu_supports_aes(void)
 	return hw_aes_support;
 }
 
-static void AES_HW_encrypt(aes128_ctx *ctx, const void *in, void *out, unsigned long length)
+static void AES_HW_encrypt(aes128_ctx *ctx, const void *in, void *out, unsigned long blocks)
 {
 	__m128i feedback, data;
 	int i, j;
 
-	length /= AES_BLOCK_SIZE;
-
 	feedback = _mm_loadu_si128((__m128i*)ctx->ivec);
-	for (i = 0; i < length; i++) {
+	for (i = 0; i < blocks; i++) {
 		data = _mm_loadu_si128 (&((__m128i*)in)[i]);
 		feedback = _mm_xor_si128(data, feedback);
 		feedback = _mm_xor_si128(feedback, ((__m128i*)ctx->roundkey)[0]);
@@ -787,15 +785,13 @@ static void AES_HW_encrypt(aes128_ctx *ctx, const void *in, void *out, unsigned 
 	_mm_storeu_si128 ((__m128i*)ctx->ivec, feedback);
 }
 
-static void AES_HW_decrypt(aes128_ctx *ctx, const void *in, void *out, unsigned long length)
+static void AES_HW_decrypt(aes128_ctx *ctx, const void *in, void *out, unsigned long blocks)
 {
 	__m128i data, last_in, feedback;
 	int i, j;
 
-	length /= AES_BLOCK_SIZE;
-
 	feedback = _mm_loadu_si128 ((__m128i*)ctx->ivec);
-	for (i = 0; i < length; i++) {
+	for (i = 0; i < blocks; i++) {
 		last_in =_mm_loadu_si128(&((__m128i*)in)[i]);
 		data = _mm_xor_si128(last_in,((__m128i*)ctx->roundkey)[0]);
 		for(j = 1; j < ctx->Nr; j++)
@@ -832,6 +828,8 @@ static void AES128_expand_key(void *key)
 }
 #endif
 
+		extern void expandKey(unsigned char *expandedKey, const unsigned char *key);
+
 
 /*******************
 * AES - CBC
@@ -841,28 +839,27 @@ int AES_CBC_init_ctx(aes128_ctx *ctx, const void *key, const void *iv, int keysi
 	if (!key || !iv)
 		return EINVAL;
 
-
 	memset(ctx, 0, sizeof(aes128_ctx));
+
+#if AES_HW
+	if (cpu_supports_aes() && keysize == 128) { // SAM FIXME
+		ctx->have_hw = 2 | !!encrypt;
+		expandKey(ctx->roundkey, key);
+		if (encrypt == 0)
+			/* extra work for decrypt - reverse the key */
+			AES128_expand_key(ctx->roundkey);
+	} else
+#endif
+		aes_key_setup(key, (uint32_t *)ctx->roundkey, keysize);
+
 	ctx->keysize = keysize;
+	memcpy(ctx->ivec, iv, AES_BLOCK_SIZE);
 
 	switch (keysize) {
 	case 128: ctx->Nr = 10; break;
 	case 256: ctx->Nr = 14; break;
 	default: return EINVAL;
 	}
-
-	aes_key_setup(key, (uint32_t *)ctx->roundkey, keysize);
-	memcpy(ctx->ivec, iv, AES_BLOCK_SIZE);
-	// SAM ctx->ivptr = ctx->ivec;
-
-#if AES_HW
-	if (cpu_supports_aes() && keysize == 128) { // SAM FIXME
-		ctx->have_hw = 2 | !!encrypt;
-		if (encrypt == 0)
-			/* extra work for decrypt - reverse the key */
-			AES128_expand_key(ctx->roundkey);
-	}
-#endif
 
 	return 0;
 
@@ -873,26 +870,24 @@ int AES_CBC_encrypt(aes128_ctx *ctx, const void *in, size_t in_len, void *out)
 	if (in_len & (AES_BLOCK_SIZE - 1))
 		return EINVAL;
 
+	int blocks = in_len / AES_BLOCK_SIZE;
+
 #if AES_HW
 	if (ctx->have_hw) {
 		if ((ctx->have_hw & 1) == 0)
 			return EACCES;
-		AES_HW_encrypt(ctx, in, out, in_len);
+		AES_HW_encrypt(ctx, in, out, blocks);
 		return 0;
 	}
 #endif
 
-	uint8_t buf_in[AES_BLOCK_SIZE], buf_out[AES_BLOCK_SIZE];
-	int blocks, idx;
+	uint8_t buf_in[AES_BLOCK_SIZE];
 
-	blocks = in_len / AES_BLOCK_SIZE;
-
-	for (idx = 0; idx < blocks; idx++) {
+	for (int idx = 0; idx < blocks; idx++) {
 		memcpy(buf_in, in, AES_BLOCK_SIZE);
 		xor_buf(ctx->ivec, (uint64_t *)buf_in);
-		aes_encrypt(buf_in, buf_out, (uint32_t *)ctx->roundkey, ctx->keysize);
-		memcpy(out, buf_out, AES_BLOCK_SIZE);
-		memcpy(ctx->ivec, buf_out, AES_BLOCK_SIZE);
+		aes_encrypt(buf_in, out, (uint32_t *)ctx->roundkey, ctx->keysize);
+		memcpy(ctx->ivec, out, AES_BLOCK_SIZE);
 
 		in += AES_BLOCK_SIZE;
 		out += AES_BLOCK_SIZE;
@@ -903,26 +898,21 @@ int AES_CBC_encrypt(aes128_ctx *ctx, const void *in, size_t in_len, void *out)
 
 int AES_CBC_decrypt(aes128_ctx *ctx, const void *in, size_t in_len, void *out)
 {
-	uint8_t buf_in[AES_BLOCK_SIZE], buf_out[AES_BLOCK_SIZE];
-	int blocks, idx;
+	int blocks = in_len / AES_BLOCK_SIZE;
 
 #if AES_HW
 	if (ctx->have_hw) {
 		if ((ctx->have_hw & 1) == 1)
 			return EACCES;
-		AES_HW_decrypt(ctx, in, out, in_len);
+		AES_HW_decrypt(ctx, in, out, blocks);
 		return 0;
 	}
 #endif
 
-	blocks = in_len / AES_BLOCK_SIZE;
-
-	for (idx = 0; idx < blocks; idx++) {
-		memcpy(buf_in, in, AES_BLOCK_SIZE);
-		aes_decrypt(buf_in, buf_out, (uint32_t *)ctx->roundkey, ctx->keysize);
-		xor_buf(ctx->ivec, (uint64_t *)buf_out);
-		memcpy(out, buf_out, AES_BLOCK_SIZE);
-		memcpy(ctx->ivec, buf_in, AES_BLOCK_SIZE);
+	for (int idx = 0; idx < blocks; idx++) {
+		aes_decrypt(in, out, (uint32_t *)ctx->roundkey, ctx->keysize);
+		xor_buf(ctx->ivec, (uint64_t *)out);
+		memcpy(ctx->ivec, in, AES_BLOCK_SIZE);
 
 		in += AES_BLOCK_SIZE;
 		out += AES_BLOCK_SIZE;
