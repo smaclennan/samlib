@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 	delta = delta_timeval(&start, &end);
 	if (ctx.have_hw)
 		printf("HW ");
-	printf("ECB Encrypt %luus  %.0fns\n", delta, (double)delta * 1000.0 / loops);
+	printf("ECB 128 Encrypt %luus  %.0fns\n", delta, (double)delta * 1000.0 / loops);
 #endif
 
 #if 1
@@ -83,37 +83,63 @@ int main(int argc, char *argv[])
 	delta = delta_timeval(&start, &end);
 	if (ctx.have_hw)
 		printf("HW ");
-	printf("ECB Decrypt %luus  %.0fns\n", delta, (double)delta * 1000.0 / loops);
+	printf("ECB 128 Decrypt %luus  %.0fns\n", delta, (double)delta * 1000.0 / loops);
 #endif
 
 #if 1
-	AES128_init_ctx(&ctx, key, iv, 1);
+	AES_CBC_init_ctx(&ctx, key, iv, 128, 1);
 	if (software_only) ctx.have_hw = 0;
 
 	gettimeofday(&start, NULL);
 	for (i = 0; i < loops; ++i)
-		AES128_CBC_encrypt_buffer(&ctx, output, buf, sizeof(buf));
+		AES_CBC_encrypt(&ctx, buf, sizeof(buf), output);
 	gettimeofday(&end, NULL);
 
 	delta = delta_timeval(&start, &end);
 	if (ctx.have_hw)
 		printf("HW ");
-	printf("CBC Encrypt %luus  %.0fns\n", delta, (double)delta * 1000.0 / loops);
+	printf("CBC 128 Encrypt %luus  %.0fns\n", delta, (double)delta * 1000.0 / loops);
 #endif
 
 #if 1
-	AES128_init_ctx(&ctx, key, iv, 0);
+	AES_CBC_init_ctx(&ctx, key, iv, 128, 0);
 	if (software_only) ctx.have_hw = 0;
 
 	gettimeofday(&start, NULL);
 	for (i = 0; i < loops; ++i)
-		AES128_CBC_decrypt_buffer(&ctx, output, buf, sizeof(buf));
+		AES_CBC_decrypt(&ctx, buf, sizeof(buf), output);
 	gettimeofday(&end, NULL);
 
 	delta = delta_timeval(&start, &end);
 	if (ctx.have_hw)
 		printf("HW ");
-	printf("CBC Decrypt %luus  %.0fns\n", delta, (double)delta * 1000.0 / loops);
+	printf("CBC 128 Decrypt %luus  %.0fns\n", delta, (double)delta * 1000.0 / loops);
+#endif
+
+#if 1
+	AES_CBC_init_ctx(&ctx, key, iv, 256, 1);
+	if (software_only) ctx.have_hw = 0;
+
+	gettimeofday(&start, NULL);
+	for (i = 0; i < loops; ++i)
+		AES_CBC_decrypt(&ctx, buf, sizeof(buf), output);
+	gettimeofday(&end, NULL);
+
+	delta = delta_timeval(&start, &end);
+	printf("CBC 256 Encrypt %luus  %.0fns\n", delta, (double)delta * 1000.0 / loops);
+#endif
+
+#if 1
+	AES_CBC_init_ctx(&ctx, key, iv, 256, 0);
+	if (software_only) ctx.have_hw = 0;
+
+	gettimeofday(&start, NULL);
+	for (i = 0; i < loops; ++i)
+		AES_CBC_decrypt(&ctx, buf, sizeof(buf), output);
+	gettimeofday(&end, NULL);
+
+	delta = delta_timeval(&start, &end);
+	printf("CBC 256 Decrypt %luus  %.0fns\n", delta, (double)delta * 1000.0 / loops);
 #endif
 
 	return 0;

@@ -26,9 +26,9 @@ EXTRA_OBJ = db.1.85/$(BDIR)/db.1.85.o
 CFILES := version.c readfile.c readcmd.c do-system.c walkfiles.c
 CFILES += mkdir-p.c md5.c ip.c copy.c binary.c samdb.c time.c
 CFILES += arg-helpers.c xorshift.c must.c readproc.c base64.c
-CFILES += crc16.c file.c dumpstack.c sha256.c aes128.c aes128-cbc.c
+CFILES += crc16.c file.c dumpstack.c sha256.c aes128.c
 CFILES += tsc.c cpuid.c safecpy.c slackware.c is-elf.c globals.c
-CFILES += strfmt.c socket.c
+CFILES += strfmt.c socket.c aes.c
 
 O := $(addprefix $(BDIR)/, $(CFILES:.c=.o))
 
@@ -56,6 +56,9 @@ $(BDIR)/aes128.o: aes128.c
 	$(QUIET_CC)$(CC) $(CFLAGS) $(AES) -c $< -o $@
 
 $(BDIR)/aes128-cbc.o: aes128-cbc.c
+	$(QUIET_CC)$(CC) $(CFLAGS) $(AES) -c $< -o $@
+
+$(BDIR)/aes.o: aes.c
 	$(QUIET_CC)$(CC) $(CFLAGS) $(AES) -c $< -o $@
 
 # Threading - Linux only
