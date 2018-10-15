@@ -14,6 +14,11 @@
 #define AES_HW 1
 #endif
 
+#ifdef AES_HW
+#define ECB
+#include "aes-x86.c"
+#endif
+
 /* TI_aes.c from:
 https://www.element14.com/community/docs/DOC-17134/l/aes128-a-c-implementation-for-encryption-and-decryption-source-code
  */
@@ -364,92 +369,6 @@ static void aes_decr(unsigned char *state, unsigned char *expandedKey)
 					   End of AES128
  **************************************************************/
 
-/* We expose this as a global for aes-test */
-int hw_aes_support = -1;
-
-#if AES_HW
-#include <wmmintrin.h>
-
-/* Originally from:
- * https://www.intel.com/content/dam/doc/white-paper/advanced-encryption-standard-new-instructions-set-paper.pdf
- */
-
-static int cpu_supports_aes(void)
-{
-	if (hw_aes_support == -1) {
-		uint32_t regs[4];
-		cpuid(1, regs);
-		hw_aes_support = !!(regs[2] & (1 << 25)); /* bit 25 is aes */
-	}
-
-	return hw_aes_support;
-}
-
-/* Unrolling the loop is a big win for ECB... but not for CBC */
-static void AES128_ECB_encrypt_block(const void *in,
-									 void *out,
-									 const void *key)
-{
-	__m128i tmp, *key128 = (__m128i *)key;
-
-	tmp = _mm_loadu_si128((__m128i *)in);
-	tmp = _mm_xor_si128(tmp, key128[0]);
-	tmp = _mm_aesenc_si128(tmp, key128[1]);
-	tmp = _mm_aesenc_si128(tmp, key128[2]);
-	tmp = _mm_aesenc_si128(tmp, key128[3]);
-	tmp = _mm_aesenc_si128(tmp, key128[4]);
-	tmp = _mm_aesenc_si128(tmp, key128[5]);
-	tmp = _mm_aesenc_si128(tmp, key128[6]);
-	tmp = _mm_aesenc_si128(tmp, key128[7]);
-	tmp = _mm_aesenc_si128(tmp, key128[8]);
-	tmp = _mm_aesenc_si128(tmp, key128[9]);
-	tmp = _mm_aesenclast_si128(tmp, key128[10]);
-	_mm_storeu_si128((__m128i *)out, tmp);
-}
-
-static void AES128_ECB_decrypt_block(const void *in,
-									 void *out,
-									 const void *key)
-{
-	__m128i tmp, *key128 = (__m128i *)key;
-
-	tmp = _mm_loadu_si128((__m128i *)in);
-	tmp = _mm_xor_si128(tmp, key128[0]);
-	tmp = _mm_aesdec_si128(tmp, key128[1]);
-	tmp = _mm_aesdec_si128(tmp, key128[2]);
-	tmp = _mm_aesdec_si128(tmp, key128[3]);
-	tmp = _mm_aesdec_si128(tmp, key128[4]);
-	tmp = _mm_aesdec_si128(tmp, key128[5]);
-	tmp = _mm_aesdec_si128(tmp, key128[6]);
-	tmp = _mm_aesdec_si128(tmp, key128[7]);
-	tmp = _mm_aesdec_si128(tmp, key128[8]);
-	tmp = _mm_aesdec_si128(tmp, key128[9]);
-	tmp = _mm_aesdeclast_si128(tmp, key128[10]);
-	_mm_storeu_si128 ((__m128i *)out, tmp);
-}
-
-static void AES128_expand_key(void *key)
-{
-	ALIGN16 unsigned char temp_key[16 * 11];
-	__m128i *Key_Schedule = (__m128i *)key;
-	__m128i *Temp_Key_Schedule = (__m128i *)temp_key;
-
-	memcpy(temp_key, key, sizeof(temp_key));
-
-	Key_Schedule[10] = Temp_Key_Schedule[0];
-	Key_Schedule[9] = _mm_aesimc_si128(Temp_Key_Schedule[1]);
-	Key_Schedule[8] = _mm_aesimc_si128(Temp_Key_Schedule[2]);
-	Key_Schedule[7] = _mm_aesimc_si128(Temp_Key_Schedule[3]);
-	Key_Schedule[6] = _mm_aesimc_si128(Temp_Key_Schedule[4]);
-	Key_Schedule[5] = _mm_aesimc_si128(Temp_Key_Schedule[5]);
-	Key_Schedule[4] = _mm_aesimc_si128(Temp_Key_Schedule[6]);
-	Key_Schedule[3] = _mm_aesimc_si128(Temp_Key_Schedule[7]);
-	Key_Schedule[2] = _mm_aesimc_si128(Temp_Key_Schedule[8]);
-	Key_Schedule[1] = _mm_aesimc_si128(Temp_Key_Schedule[9]);
-	Key_Schedule[0] = Temp_Key_Schedule[10];
-}
-#endif
-
 /* Public functions */
 
 int AES128_init_ctx(aes128_ctx *ctx, const void *key, const void *iv, int encrypt)
@@ -459,22 +378,15 @@ int AES128_init_ctx(aes128_ctx *ctx, const void *key, const void *iv, int encryp
 
 	memset(ctx, 0, sizeof(aes128_ctx));
 
-	expandKey(ctx->roundkey, key);
-
-	if (iv) {
-		memcpy(ctx->ivec, iv, AES128_KEYLEN);
-		ctx->ivptr = ctx->ivec;
-	}
-
 #if AES_HW
 	if (cpu_supports_aes()) {
 		ctx->have_hw = 2 | !!encrypt;
-		if (encrypt == 0)
-			/* extra work for decrypt - reverse the key */
-			AES128_expand_key(ctx->roundkey);
+		AES_expand_key(key, ctx->roundkey, 128, encrypt);
+		return 0;
 	}
 #endif
 
+	expandKey(ctx->roundkey, key);
 	return 0;
 }
 
@@ -502,4 +414,14 @@ void AES128_ECB_decrypt(aes128_ctx *ctx, const void *input, void *output)
 		memcpy(output, input, 16);
 		aes_decr(output, ctx->roundkey);
 	}
+}
+
+// For testing
+int AES128_set_hw(int hw)
+{
+#if AES_HW
+	return aes_set_hw(hw);
+#else
+	return ENOSYS;
+#endif
 }
