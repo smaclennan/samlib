@@ -267,7 +267,8 @@ static void AES_CBC_encrypt_blocks(aes_cbc_ctx *ctx, const void *in, void *out, 
 		data = _mm_loadu_si128 (&((__m128i*)in)[i]);
 		feedback = _mm_xor_si128(data, feedback);
 		feedback = _mm_xor_si128(feedback, ((__m128i*)ctx->roundkey)[0]);
-		for(j = 1; j < ctx->Nr; j++)
+		// unrolling this loop made no measurable difference
+		for (j = 1; j < ctx->Nr; j++)
 			feedback = _mm_aesenc_si128(feedback, ((__m128i*)ctx->roundkey)[j]);
 		feedback = _mm_aesenclast_si128(feedback, ((__m128i*)ctx->roundkey)[j]);
 		_mm_storeu_si128(&((__m128i*)out)[i], feedback);
