@@ -171,7 +171,7 @@ static void AES128_expand_key(void *key, int nr)
 	Key_Schedule[0] = Temp_Key_Schedule[nr];
 }
 
-/* API */
+/* Public functions */
 
 static int aes_set_hw(int hw)
 {
@@ -257,7 +257,7 @@ static void AES128_ECB_decrypt_block(const void *in,
 #endif
 
 #ifdef CBC
-static void AES_HW_encrypt(aes_cbc_ctx *ctx, const void *in, void *out, unsigned long blocks)
+static void AES_CBC_encrypt_blocks(aes_cbc_ctx *ctx, const void *in, void *out, unsigned long blocks)
 {
 	__m128i feedback, data;
 	int i, j;
@@ -277,7 +277,7 @@ static void AES_HW_encrypt(aes_cbc_ctx *ctx, const void *in, void *out, unsigned
 	_mm_storeu_si128 ((__m128i*)ctx->ivec, feedback);
 }
 
-static void AES_HW_decrypt(aes_cbc_ctx *ctx, const void *in, void *out, unsigned long blocks)
+static void AES_CBC_decrypt_blocks(aes_cbc_ctx *ctx, const void *in, void *out, unsigned long blocks)
 {
 	__m128i data, last_in, feedback;
 	int i, j;

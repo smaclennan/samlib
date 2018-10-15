@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 		software_only = 1;
 #endif
 
-	AES128_init_ctx(&ctx, key, NULL, 1);
+	AES128_init_ctx(&ctx, key, 1);
 	if (software_only) ctx.have_hw = 0;
 	loops = ctx.have_hw ? LOOPS_HW : LOOPS_SW;
 	if (RUNNING_ON_VALGRIND) {
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 #endif
 
 #if 1
-	AES128_init_ctx(&ctx, key, NULL, 0);
+	AES128_init_ctx(&ctx, key, 0);
 	if (software_only) ctx.have_hw = 0;
 
 	gettimeofday(&start, NULL);

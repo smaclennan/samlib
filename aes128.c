@@ -371,7 +371,7 @@ static void aes_decr(unsigned char *state, unsigned char *expandedKey)
 
 /* Public functions */
 
-int AES128_init_ctx(aes128_ctx *ctx, const void *key, const void *iv, int encrypt)
+int AES128_init_ctx(aes128_ctx *ctx, const void *key, int encrypt)
 {
 	if (!key)
 		return EINVAL;
@@ -393,27 +393,27 @@ int AES128_init_ctx(aes128_ctx *ctx, const void *key, const void *iv, int encryp
 void AES128_ECB_encrypt(aes128_ctx *ctx, const void *input, void *output)
 {
 #if AES_HW
-	if (ctx->have_hw)
+	if (ctx->have_hw) {
 		AES128_ECB_encrypt_block(input, output, ctx->roundkey);
-	else
-#endif
-	{
-		memcpy(output, input, 16);
-		aes_encr(output, ctx->roundkey);
+		return;
 	}
+#endif
+
+	memcpy(output, input, 16);
+	aes_encr(output, ctx->roundkey);
 }
 
 void AES128_ECB_decrypt(aes128_ctx *ctx, const void *input, void *output)
 {
 #if AES_HW
-	if (ctx->have_hw)
+	if (ctx->have_hw) {
 		AES128_ECB_decrypt_block(input, output, ctx->roundkey);
-	else
-#endif
-	{
-		memcpy(output, input, 16);
-		aes_decr(output, ctx->roundkey);
+		return;
 	}
+#endif
+
+	memcpy(output, input, 16);
+	aes_decr(output, ctx->roundkey);
 }
 
 // For testing

@@ -37,7 +37,7 @@ static int test_encrypt_ecb(void)
   aes128_ctx ctx;
   int rc;
 
-  AES128_init_ctx(&ctx, key, NULL, 1);
+  AES128_init_ctx(&ctx, key, 1);
   AES128_ECB_encrypt(&ctx, in, buffer);
 
   rc = memcmp(out, buffer, 16);
@@ -51,7 +51,7 @@ static int test_decrypt_ecb(void)
   aes128_ctx ctx;
   int rc;
 
-  AES128_init_ctx(&ctx, key, NULL, 0);
+  AES128_init_ctx(&ctx, key, 0);
 
   AES128_ECB_decrypt(&ctx, out, buffer);
 

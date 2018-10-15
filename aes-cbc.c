@@ -790,7 +790,7 @@ int AES_CBC_encrypt(aes_cbc_ctx *ctx, const void *in, size_t in_len, void *out)
 	if (ctx->have_hw) {
 		if ((ctx->have_hw & 1) == 0)
 			return EACCES;
-		AES_HW_encrypt(ctx, in, out, blocks);
+		AES_CBC_encrypt_blocks(ctx, in, out, blocks);
 		return 0;
 	}
 #endif
@@ -818,7 +818,7 @@ int AES_CBC_decrypt(aes_cbc_ctx *ctx, const void *in, size_t in_len, void *out)
 	if (ctx->have_hw) {
 		if ((ctx->have_hw & 1) == 1)
 			return EACCES;
-		AES_HW_decrypt(ctx, in, out, blocks);
+		AES_CBC_decrypt_blocks(ctx, in, out, blocks);
 		return 0;
 	}
 #endif

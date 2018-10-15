@@ -36,7 +36,7 @@
 #endif
 
 #define SAMLIB_MAJOR 1
-#define SAMLIB_MINOR 7
+#define SAMLIB_MINOR 8
 
 extern const char *samlib_version;
 extern const char *samlib_marker;
@@ -273,7 +273,7 @@ typedef struct aes128_ctx {
 } aes128_ctx;
 
 /* These deal with a AES128_KEYLEN sized block at a time. Zero pad if necessary. */
-int AES128_init_ctx(aes128_ctx *ctx, const void *key, const void *iv, int encrypt);
+int AES128_init_ctx(aes128_ctx *ctx, const void *key, int encrypt);
 void AES128_ECB_encrypt(aes128_ctx *ctx, const void *input, void *output);
 void AES128_ECB_decrypt(aes128_ctx *ctx, const void *input, void *output);
 
