@@ -146,7 +146,15 @@ void sha256_update(sha256ctx *context, const uint8_t *message_array,
 
 	context->len += length;
 
-	while (length--) {
+	if (context->index == 0)
+		while (length >= SHA256_Message_Block_Size) {
+			memcpy(context->block, message_array, SHA256_Message_Block_Size);
+			SHA256ProcessMessageBlock(context);
+			message_array += SHA256_Message_Block_Size;
+			length -= SHA256_Message_Block_Size;
+		}
+
+	while (length-- > 0) {
 		context->block[context->index++] = *message_array & 0xFF;
 		if (context->index == SHA256_Message_Block_Size)
 			SHA256ProcessMessageBlock(context);
