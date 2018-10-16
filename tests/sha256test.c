@@ -127,5 +127,19 @@ static int sha256_main(void)
 			free(in);
 	}
 
+#ifndef TESTALL
+	char buf[4 * 1024];
+	struct timeval start, end;
+	unsigned long ii, delta, loops = 60000;
+
+	gettimeofday(&start, NULL);
+	for (ii = 0; ii < loops; ++ii)
+		sha256(buf, sizeof(buf), digest);
+	gettimeofday(&end, NULL);
+
+	delta = delta_timeval(&start, &end);
+	printf("sha256 %.3fus %umb/s\n", (double)delta / (double)loops, mbs(sizeof(buf) * loops, delta));
+#endif
+
 	return rc;
 }

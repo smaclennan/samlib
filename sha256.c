@@ -69,25 +69,21 @@
 /* Define the SHA shift and rotate right macro */
 #define SHA256_SHR(bits,word)      ((word) >> (bits))
 
-#if defined(WIN32) || !defined(__x86_64__)
-/* gcc knows to convert this pattern to a ror, clang does not */
-#define SHA256_ROTR(bits, word)						\
-	(((word) >> (bits)) | ((word) << (32 - (bits))))
-#else
+#ifdef __clang__
 /* Note: bits must be a constant */
 static inline uint32_t SHA256_ROTR(uint8_t bits, uint32_t word)
 {   /* We need at least -O for the asm code to work */
-#ifdef __DEBUG__
-	return ((word >> bits) | (word << (32 - bits)));
-#else
 	uint32_t res;
 	asm ("mov %2, %0;\n" /* Don't clobber word */
 		 "ror %1, %0;\n"
 		 : "=r" (res)
 		 : "n" (bits), "r" (word));
 	return res;
-#endif
 }
+#else
+/* gcc knows to convert this pattern to a ror, clang does not */
+#define SHA256_ROTR(bits, word)						\
+	(((word) >> (bits)) | ((word) << (32 - (bits))))
 #endif
 
 /* Define the SHA SIGMA and sigma macros */
@@ -280,20 +276,39 @@ static void SHA256ProcessMessageBlock(sha256ctx *context)
 		0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
 		0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 	};
-	int        t, t4;                   /* Loop counter */
+	int        t;                       /* Loop counter */
 	uint32_t   temp1, temp2;            /* Temporary word value */
 	uint32_t   W[64];                   /* Word sequence */
 	uint32_t   A, B, C, D, E, F, G, H;  /* Word buffers */
 
 	/*
 	 * Initialize the first 16 words in the array W
+	 * This is worth unrolling
 	 */
-	for (t = t4 = 0; t < 16; t++, t4 += 4)
-		W[t] = (((uint32_t)context->block[t4]) << 24) |
-			(((uint32_t)context->block[t4 + 1]) << 16) |
-			(((uint32_t)context->block[t4 + 2]) << 8) |
-			(((uint32_t)context->block[t4 + 3]));
+#define CB_INIT(t4) \
+	((((uint32_t)context->block[t4]) << 24) |		 \
+	 (((uint32_t)context->block[t4 + 1]) << 16) |	 \
+	 (((uint32_t)context->block[t4 + 2]) << 8) |	 \
+	 (((uint32_t)context->block[t4 + 3])))
 
+	W[0] = CB_INIT(0);
+	W[1] = CB_INIT(4);
+	W[2] = CB_INIT(8);
+	W[3] = CB_INIT(12);
+	W[4] = CB_INIT(16);
+	W[5] = CB_INIT(20);
+	W[6] = CB_INIT(24);
+	W[7] = CB_INIT(28);
+	W[8] = CB_INIT(32);
+	W[9] = CB_INIT(36);
+	W[10] = CB_INIT(40);
+	W[11] = CB_INIT(44);
+	W[12] = CB_INIT(48);
+	W[13] = CB_INIT(52);
+	W[14] = CB_INIT(56);
+	W[15] = CB_INIT(60);
+
+	/* This is not worth unrolling */
 	for (t = 16; t < 64; t++)
 		W[t] = SHA256_sigma1(W[t-2]) + W[t-7] +
 			SHA256_sigma0(W[t-15]) + W[t-16];
