@@ -268,6 +268,7 @@ void sha256_final(sha256ctx *ctx, uint8_t *digest)
  */
 static void SHA256ProcessMessageBlock(sha256ctx *context)
 {
+#if 1
 	/* Constants defined in FIPS-180-2, section 4.2.2 */
 	static const uint32_t K[64] = {
 		0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b,
@@ -284,6 +285,7 @@ static void SHA256ProcessMessageBlock(sha256ctx *context)
 		0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
 		0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 	};
+#endif
 	int        t;                       /* Loop counter */
 	uint32_t   temp1, temp2;            /* Temporary word value */
 	uint32_t   W[64];                   /* Word sequence */
@@ -330,6 +332,7 @@ static void SHA256ProcessMessageBlock(sha256ctx *context)
 	G = context->h[6];
 	H = context->h[7];
 
+#if 1
 	for (t = 0; t < 64; t++) {
 		temp1 = H + SHA256_SIGMA1(E) + SHA_Ch(E,F,G) + K[t] + W[t];
 		temp2 = SHA256_SIGMA0(A) + SHA_Maj(A,B,C);
@@ -342,6 +345,79 @@ static void SHA256ProcessMessageBlock(sha256ctx *context)
 		B = A;
 		A = temp1 + temp2;
 	}
+#else
+	// this implements the message block process by unrolling the loop calls
+#define UNROLL( a, b, c, d, e, f, g, h, Wi, Ki ) \
+		temp1 = h + SHA256_SIGMA1(e) + SHA_Ch(e, f, g) + Ki + W[Wi]; \
+		temp2 = SHA256_SIGMA0(a) + SHA_Maj(a, b, c); \
+		d += temp1; \
+		h = temp1 + temp2
+
+	UNROLL( A, B, C, D, E, F, G, H, 0,  0x428a2f98 );
+	UNROLL( H, A, B, C, D, E, F, G, 1,  0x71374491 );
+	UNROLL( G, H, A, B, C, D, E, F, 2,  0xb5c0fbcf );
+	UNROLL( F, G, H, A, B, C, D, E, 3,  0xe9b5dba5 );
+	UNROLL( E, F, G, H, A, B, C, D, 4,  0x3956c25b );
+	UNROLL( D, E, F, G, H, A, B, C, 5,  0x59f111f1 );
+	UNROLL( C, D, E, F, G, H, A, B, 6,  0x923f82a4 );
+	UNROLL( B, C, D, E, F, G, H, A, 7,  0xab1c5ed5 );
+	UNROLL( A, B, C, D, E, F, G, H, 8,  0xd807aa98 );
+	UNROLL( H, A, B, C, D, E, F, G, 9,  0x12835b01 );
+	UNROLL( G, H, A, B, C, D, E, F, 10, 0x243185be );
+	UNROLL( F, G, H, A, B, C, D, E, 11, 0x550c7dc3 );
+	UNROLL( E, F, G, H, A, B, C, D, 12, 0x72be5d74 );
+	UNROLL( D, E, F, G, H, A, B, C, 13, 0x80deb1fe );
+	UNROLL( C, D, E, F, G, H, A, B, 14, 0x9bdc06a7 );
+	UNROLL( B, C, D, E, F, G, H, A, 15, 0xc19bf174 );
+	UNROLL( A, B, C, D, E, F, G, H, 16, 0xe49b69c1 );
+	UNROLL( H, A, B, C, D, E, F, G, 17, 0xefbe4786 );
+	UNROLL( G, H, A, B, C, D, E, F, 18, 0x0fc19dc6 );
+	UNROLL( F, G, H, A, B, C, D, E, 19, 0x240ca1cc );
+	UNROLL( E, F, G, H, A, B, C, D, 20, 0x2de92c6f );
+	UNROLL( D, E, F, G, H, A, B, C, 21, 0x4a7484aa );
+	UNROLL( C, D, E, F, G, H, A, B, 22, 0x5cb0a9dc );
+	UNROLL( B, C, D, E, F, G, H, A, 23, 0x76f988da );
+	UNROLL( A, B, C, D, E, F, G, H, 24, 0x983e5152 );
+	UNROLL( H, A, B, C, D, E, F, G, 25, 0xa831c66d );
+	UNROLL( G, H, A, B, C, D, E, F, 26, 0xb00327c8 );
+	UNROLL( F, G, H, A, B, C, D, E, 27, 0xbf597fc7 );
+	UNROLL( E, F, G, H, A, B, C, D, 28, 0xc6e00bf3 );
+	UNROLL( D, E, F, G, H, A, B, C, 29, 0xd5a79147 );
+	UNROLL( C, D, E, F, G, H, A, B, 30, 0x06ca6351 );
+	UNROLL( B, C, D, E, F, G, H, A, 31, 0x14292967 );
+	UNROLL( A, B, C, D, E, F, G, H, 32, 0x27b70a85 );
+	UNROLL( H, A, B, C, D, E, F, G, 33, 0x2e1b2138 );
+	UNROLL( G, H, A, B, C, D, E, F, 34, 0x4d2c6dfc );
+	UNROLL( F, G, H, A, B, C, D, E, 35, 0x53380d13 );
+	UNROLL( E, F, G, H, A, B, C, D, 36, 0x650a7354 );
+	UNROLL( D, E, F, G, H, A, B, C, 37, 0x766a0abb );
+	UNROLL( C, D, E, F, G, H, A, B, 38, 0x81c2c92e );
+	UNROLL( B, C, D, E, F, G, H, A, 39, 0x92722c85 );
+	UNROLL( A, B, C, D, E, F, G, H, 40, 0xa2bfe8a1 );
+	UNROLL( H, A, B, C, D, E, F, G, 41, 0xa81a664b );
+	UNROLL( G, H, A, B, C, D, E, F, 42, 0xc24b8b70 );
+	UNROLL( F, G, H, A, B, C, D, E, 43, 0xc76c51a3 );
+	UNROLL( E, F, G, H, A, B, C, D, 44, 0xd192e819 );
+	UNROLL( D, E, F, G, H, A, B, C, 45, 0xd6990624 );
+	UNROLL( C, D, E, F, G, H, A, B, 46, 0xf40e3585 );
+	UNROLL( B, C, D, E, F, G, H, A, 47, 0x106aa070 );
+	UNROLL( A, B, C, D, E, F, G, H, 48, 0x19a4c116 );
+	UNROLL( H, A, B, C, D, E, F, G, 49, 0x1e376c08 );
+	UNROLL( G, H, A, B, C, D, E, F, 50, 0x2748774c );
+	UNROLL( F, G, H, A, B, C, D, E, 51, 0x34b0bcb5 );
+	UNROLL( E, F, G, H, A, B, C, D, 52, 0x391c0cb3 );
+	UNROLL( D, E, F, G, H, A, B, C, 53, 0x4ed8aa4a );
+	UNROLL( C, D, E, F, G, H, A, B, 54, 0x5b9cca4f );
+	UNROLL( B, C, D, E, F, G, H, A, 55, 0x682e6ff3 );
+	UNROLL( A, B, C, D, E, F, G, H, 56, 0x748f82ee );
+	UNROLL( H, A, B, C, D, E, F, G, 57, 0x78a5636f );
+	UNROLL( G, H, A, B, C, D, E, F, 58, 0x84c87814 );
+	UNROLL( F, G, H, A, B, C, D, E, 59, 0x8cc70208 );
+	UNROLL( E, F, G, H, A, B, C, D, 60, 0x90befffa );
+	UNROLL( D, E, F, G, H, A, B, C, 61, 0xa4506ceb );
+	UNROLL( C, D, E, F, G, H, A, B, 62, 0xbef9a3f7 );
+	UNROLL( B, C, D, E, F, G, H, A, 63, 0xc67178f2 );
+#endif
 
 	context->h[0] += A;
 	context->h[1] += B;
