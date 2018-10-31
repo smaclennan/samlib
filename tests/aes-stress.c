@@ -124,8 +124,6 @@ int main(int argc, char *argv[])
 	gettimeofday(&start, NULL);
 	for (i = 0; i < loops; ++i)
 		AES_CBC_encrypt(&cbc, buf, sizeof(buf), output);
-	if (ctx.have_hw)
-		printf("HW ");
 	gettimeofday(&end, NULL);
 
 	delta = delta_timeval(&start, &end);
