@@ -15,6 +15,7 @@ struct ignore {
 
 struct filter {
 	char *pat;
+	regex_t regex;
 	struct filter *next;
 };
 
@@ -77,10 +78,25 @@ void add_filter(struct walkfile_struct *walk, const char *pat)
 		if (strcmp(f->pat, pat) == 0)
 			return;
 
-	f = calloc(1, sizeof(struct filter));
-	if (f) f->pat = strdup(pat);
-	if (!f || !f->pat) {
-		puts("out of memory");
+	f = must_calloc(1, sizeof(struct filter));
+	f->pat = must_strdup(pat);
+
+	f->next = filters;
+	if (walk)
+		walk->filters = f;
+	else
+		global_walkfiles.filters = f;
+}
+
+void add_filter_re(struct walkfile_struct *walk, const char *regex)
+{
+	struct filter *f;
+	walk_filters;
+
+	f = must_calloc(1, sizeof(struct filter));
+
+	if (regcomp(&f->regex, regex, REG_EXTENDED)) {
+		fprintf(stderr, "Invalid regex '%s'\n", regex);
 		exit(1);
 	}
 
@@ -96,10 +112,15 @@ int check_filters(struct walkfile_struct *walk, const char *fname)
 	walk_filters;
 	if (!filters) return 1;
 
-	struct filter *f;
-	for (f = filters; f; f = f->next)
-		if (fnmatch(f->pat, fname, 0) == 0)
-			return 1;
+	regmatch_t pmatch[1];
+	for (struct filter *f = filters; f; f = f->next)
+		if (f->pat) {
+			if (fnmatch(f->pat, fname, 0) == 0)
+				return 1;
+		} else {
+			if (regexec(&f->regex, fname, 1, pmatch, 0) == 0)
+				return 1;
+		}
 
 	return 0;
 }
@@ -150,6 +171,11 @@ static int do_dir(struct walkfile_struct *walk, const char *dname, struct stat *
 		}
 
 		match = sbuf.st_mode & S_IFMT;
+		if (walk->flags & WALK_ONE_DIR) {
+			if (match == S_IFDIR)
+				// treat directories as normal files
+				match = S_IFREG;
+		}
 		switch (match) {
 		case S_IFDIR:
 			if (!(walk->flags & WALK_NO_SUBDIRS)) {

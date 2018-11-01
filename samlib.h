@@ -200,6 +200,11 @@ int walkfiles(struct walkfile_struct *walk, const char *path,
 #define WALK_NO_SUBDIRS 4
 #define WALK_DOTFILES   8
 
+/* This walks the one specified directory returning all files and
+ * subdirs but not decending into the subdirs.
+ */
+#define WALK_ONE_DIR	0x10
+
 /* Adds a regular expression of paths to ignore. */
 void add_ignore(struct walkfile_struct *walk, const char *str);
 
@@ -210,6 +215,11 @@ int check_ignores(struct walkfile_struct *walk, const char *path);
  * regular expressions.
  */
 void add_filter(struct walkfile_struct *walk, const char *pat);
+
+/* Sets a filter to match on every file. This uses regular expressions
+ * because sometimes file globbing is not enough.
+ */
+void add_filter_re(struct walkfile_struct *walk, const char *regex);
 
 /* Check if the file name matches a filter */
 int check_filters(struct walkfile_struct *walk, const char *fname);
