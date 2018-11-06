@@ -60,9 +60,12 @@ int readprocstat(pid_t pid, struct procstat_min *stat)
 	if (n <= 0)
 		return n;
 
-	if (sscanf(buf, "%d %s %c %d %d %d",
+	if (sscanf(buf, "%d %s %c %d %d %d %*d %*d %*u "
+			   "%*u %*u %*u %*u %*u %*u %*u "
+			   "%*u %*u %*u %*u %*u %llu",
 			   &stat->pid, stat->comm, &stat->state,
-			   &stat->ppid, &stat->pgrp, &stat->session) != 6)
+			   &stat->ppid, &stat->pgrp, &stat->session,
+			   &stat->starttime) != 7)
 		return 1; /* can't happen */
 
 	return 0;

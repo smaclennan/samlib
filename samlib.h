@@ -464,6 +464,7 @@ struct procstat_min {
 	pid_t ppid;
 	pid_t pgrp;
 	pid_t session;
+	unsigned long long starttime;
 };
 
 int readprocstat(pid_t pid, struct procstat_min *stat);
