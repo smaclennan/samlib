@@ -88,6 +88,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;__DBINTERFACE_PRIVATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -129,7 +130,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\aes128-cbc.c" />
+    <ClCompile Include="..\aes-cbc.c" />
     <ClCompile Include="..\aes128.c" />
     <ClCompile Include="..\arg-helpers.c" />
     <ClCompile Include="..\base64.c" />
@@ -139,7 +140,6 @@
     <ClCompile Include="..\crc16.c" />
     <ClCompile Include="..\db.1.85\bt_close.c" />
     <ClCompile Include="..\db.1.85\bt_conv.c" />
-    <ClCompile Include="..\db.1.85\bt_debug.c" />
     <ClCompile Include="..\db.1.85\bt_delete.c" />
     <ClCompile Include="..\db.1.85\bt_get.c" />
     <ClCompile Include="..\db.1.85\bt_open.c" />
@@ -155,9 +155,11 @@
     <ClCompile Include="..\do-system.c" />
     <ClCompile Include="..\dumpstack.c" />
     <ClCompile Include="..\file.c" />
+    <ClCompile Include="..\globals.c" />
     <ClCompile Include="..\md5.c" />
     <ClCompile Include="..\mkdir-p.c" />
     <ClCompile Include="..\must.c" />
+    <ClCompile Include="..\mutex.c" />
     <ClCompile Include="..\readcmd.c" />
     <ClCompile Include="..\readfile.c" />
     <ClCompile Include="..\readproc.c" />
@@ -165,6 +167,7 @@
     <ClCompile Include="..\samdb.c" />
     <ClCompile Include="..\samthread.c" />
     <ClCompile Include="..\sha256.c" />
+    <ClCompile Include="..\strfmt.c" />
     <ClCompile Include="..\time.c" />
     <ClCompile Include="..\tsc.c" />
     <ClCompile Include="..\version.c" />

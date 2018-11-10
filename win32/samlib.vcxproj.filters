@@ -95,9 +95,6 @@
     <ClCompile Include="..\db.1.85\bt_conv.c">
       <Filter>db files</Filter>
     </ClCompile>
-    <ClCompile Include="..\db.1.85\bt_debug.c">
-      <Filter>db files</Filter>
-    </ClCompile>
     <ClCompile Include="..\db.1.85\bt_delete.c">
       <Filter>db files</Filter>
     </ClCompile>
@@ -137,9 +134,6 @@
     <ClCompile Include="..\tsc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\aes128-cbc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\safecpy.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -147,6 +141,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\cpuid.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\aes-cbc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\globals.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\strfmt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\mutex.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -803,8 +803,8 @@ int AES_CBC_encrypt(aes_cbc_ctx *ctx, const void *in, size_t in_len, void *out)
 		aes_encrypt(buf_in, out, (uint32_t *)ctx->roundkey, ctx->keysize);
 		memcpy(ctx->ivec, out, AES_BLOCK_SIZE);
 
-		in += AES_BLOCK_SIZE;
-		out += AES_BLOCK_SIZE;
+		WIN32_COERCE in += AES_BLOCK_SIZE;
+		WIN32_COERCE out += AES_BLOCK_SIZE;
 	}
 
 	return 0;
@@ -828,8 +828,8 @@ int AES_CBC_decrypt(aes_cbc_ctx *ctx, const void *in, size_t in_len, void *out)
 		xor_buf(ctx->ivec, (uint64_t *)out);
 		memcpy(ctx->ivec, in, AES_BLOCK_SIZE);
 
-		in += AES_BLOCK_SIZE;
-		out += AES_BLOCK_SIZE;
+		WIN32_COERCE in += AES_BLOCK_SIZE;
+		WIN32_COERCE out += AES_BLOCK_SIZE;
 	}
 
 	return 0;

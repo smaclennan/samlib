@@ -81,7 +81,7 @@ mutex_t *mutex_create(void)
 void mutex_destroy(mutex_t **mutex)
 {
 	CloseHandle((HANDLE)*mutex);
-	*mutex = INVALID_HANDLE;
+	*mutex = INVALID_HANDLE_VALUE;
 }
 
 void mutex_lock(mutex_t *mutex)

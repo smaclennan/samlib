@@ -15,12 +15,12 @@ int getline(char **line, int *n, FILE *fp)
 	int ch, i = 0;
 
 	while (1) {
-		if (i >= *len) {
-			char *p = realloc(*line, *len + CHUNKSIZE);
+		if (i >= *n - 1) {
+			char *p = realloc(*line, *n + GETLINE_INCREMENT);
 			if (!p)
 				return EOF;
 			*line = p;
-			*len += CHUNKSIZE;
+			*n += GETLINE_INCREMENT;
 		}
 
 		ch = fgetc(fp);
