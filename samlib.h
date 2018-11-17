@@ -300,6 +300,23 @@ int AES_CBC_init_ctx(aes_cbc_ctx *ctx, const void *key, const void *iv, int keys
 int AES_CBC_encrypt(aes_cbc_ctx *ctx, const void *in, size_t in_len, void *out);
 int AES_CBC_decrypt(aes_cbc_ctx *ctx, const void *in, size_t in_len, void *out);
 
+/* TEA (Tiny Encryption Algorithm) */
+
+/* Size of an encrypt or decrypt block */
+#define TEA_BAG_SIZE 8  // 64 bits
+#define TEA_KEY_SIZE 16 // 128 bits
+
+/* The output will be tea_bag_size(len), so make sure data has room. */
+void tea_encrypt(const void *key, void *data, int len);
+/* len should always be multiple of TEA_BAG_SIZE. Will silently ignore
+ * extra bytes.
+ */
+void tea_decrypt(const void *key, void *data, int len);
+/* Given an input length, return the encrypted length. i.e. rounds up
+ * to TEA_BAG_SIZE. Efficient: uses no mod, multiply, or divide.
+ */
+int tea_bag_size(int len);
+
 /* base64 functions */
 
 /* If this is set to non-zero than the url safe alphabet is used for
