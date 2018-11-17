@@ -30,8 +30,7 @@ void tea_encrypt(const void *key, void *data, int len)
 	}
 
 	if (len > 0) {
-		uint32_t v[2];
-		memset(v, 0, TEA_BAG_SIZE);
+		uint32_t v[2] = { 0 };
 		memcpy(v, data, len);
 		encrypt_block((uint32_t *)key, v);
 		memcpy(data, v, TEA_BAG_SIZE);
