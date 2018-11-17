@@ -1,5 +1,10 @@
 #include "samlib.h"
 
+/* Notes:
+ * - Unrolling the loops does not help.
+ * - HW assisted AES is much faster :(
+ */
+
 #define TEA_CONSTANT 0x9e3779b9u /* key schedule constant */
 
 static void encrypt_block(const uint32_t *k, uint32_t *v)
