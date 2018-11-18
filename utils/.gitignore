@@ -1,13 +1,5 @@
 ipaddr
-find-dups
-imgsize
-md5sum
-meminfo
-mkfilesz
+myps
 pkg
-prepro
 serial
-strip-comments
-strip-comments2
-udp-echo
 udpping

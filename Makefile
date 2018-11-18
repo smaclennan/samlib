@@ -73,6 +73,7 @@ install: all
 	install -m644 $(BDIR)/libsamthread.a $(DESTDIR)$(LIBDIR)/libsamthread.a
 	install utils/ipaddr $(DESTDIR)$(BINDIR)/ipaddr
 	install utils/imgsize.py $(DESTDIR)$(BINDIR)/imgsize
+	install utils/myps $(DESTDIR)$(BINDIR)/myps
 
 # sparse cannot handle aes128*.c
 check:

@@ -10,9 +10,10 @@ ifneq ($(findstring nto-qnx,$(shell $(CC) -dumpmachine)),)
 LIBS += -lsocket
 endif
 
-LIBS += ../$(BDIR)/libsamlib.a
+SAMLIB = ../$(BDIR)/libsamlib.a
+LIBS += $(SAMLIB)
 
-ALL := ipaddr pkg serial udpping
+ALL := ipaddr pkg serial udpping myps
 
 all: $(ALL)
 
@@ -23,7 +24,7 @@ udpping: udpping.c
 	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
 
 %: %.c
-	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $<
+	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(SAMLIB)
 
 $(ALL): ../$(BDIR)/libsamlib.a ../samlib.h
 
