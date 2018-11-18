@@ -37,7 +37,7 @@ int readproccmdline(pid_t pid, char *buf, int len)
 	int i, n = readproc(pid, "cmdline", buf, len);
 
 	if (n > 0)
-		for (i = 0; i < n; ++i)
+		for (i = 0; i < n - 1; ++i)
 			if (buf[i] == 0)
 				buf[i] = ' ';
 
