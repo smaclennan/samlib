@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 	int c, rc = 0;
 	unsigned what = 0;
 
-	while ((c = getopt(argc, argv, "abgmsh")) != EOF)
+	while ((c = getopt(argc, argv, "abgmish")) != EOF)
 		switch (c) {
 		case 'i':
 			what |= W_ADDRESS;
