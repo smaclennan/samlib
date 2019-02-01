@@ -25,6 +25,7 @@
 #include <fcntl.h>
 #include <sys/poll.h>
 
+static FILE *logfp;
 
 static int set_speed(int speed)
 {
@@ -61,6 +62,9 @@ static void cleanup(void)
 	tcsetattr(0,  TCSANOW, &oldtty); // restore stdin
 	tcsetattr(fd, TCSANOW, &oldserial); // restore serial port
 	close(fd);
+
+	if (logfp)
+		fclose(logfp);
 
 	puts("\n\nBye!");
 }
@@ -99,15 +103,25 @@ static void handle_serial(void)
 	char c;
 	int n;
 
-	if((n = read(fd, &c, 1)) == 1)
+	if((n = read(fd, &c, 1)) == 1) {
 		n = write(1, &c, 1);
-	else if(n == 0) {
+		if (logfp)
+			fwrite(&c, 1, 1, logfp);
+	} else if(n == 0) {
 		printf("EOF on serial port\n");
 		exit(1);
 	} else
 		perror("read serial");
 }
 
+static void open_log(const char *logname)
+{
+	logfp = fopen(logname, "w");
+	if (!logfp) {
+		perror(logname);
+		exit(1);
+	}
+}
 
 int main(int argc, char *argv[])
 {
@@ -117,9 +131,10 @@ int main(int argc, char *argv[])
 	struct pollfd ufds[2];
 	static struct termios settty;
 
-	while((c = getopt(argc, argv, "b:")) != EOF)
+	while((c = getopt(argc, argv, "b:l:")) != EOF)
 		switch(c) {
 		case 'b': speed = set_speed(strtol(optarg, 0, 0)); break;
+		case 'l': open_log(optarg); break;
 		default: puts("Sorry!"); exit(1);
 		}
 
