@@ -28,7 +28,8 @@ int mkdir_p(const char *dir)
 		*p++ = '/';
 	}
 
-	if (mkdir(dir, mode) == 0)
+	/* We could get EEXIST for mkdir_p("a/b/") */
+	if (mkdir(dir, mode) == 0 || errno == EEXIST)
 		rc = 0;
 
 failed:
