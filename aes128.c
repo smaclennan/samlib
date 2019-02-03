@@ -14,9 +14,11 @@
 #define AES_HW 1
 #endif
 
-#ifdef AES_HW
+#if defined(AES_HW) && defined(__GNUC__) // includes clang
 #define ECB
 #include "aes-x86.c"
+#else
+#undef AES_HW
 #endif
 
 /* TI_aes.c from:

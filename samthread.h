@@ -78,7 +78,7 @@ static inline void spin_lock(spinlock_t *lock)
 #ifdef WIN32
 	while (InterlockedCompareExchange(lock, 1, 0))
 		sched_yield();
-#else
+#elif defined(__GNUC__)
 	while (!__sync_bool_compare_and_swap(lock, 0, 1))
 		sched_yield();
 #endif

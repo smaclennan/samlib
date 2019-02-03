@@ -8,6 +8,40 @@
 #define unlikely(x)     __builtin_expect((x), 0)
 #define likely(x)       __builtin_expect((x), 1)
 
+#if defined(__x86__) || defined(__x86_64__)
+static inline void atomic_inc(int *v)
+{
+	asm volatile("lock incl %0" : "=m" (*v) : "m" (*v));
+}
+
+static __inline__ void atomic_dec(int *v)
+{
+	asm volatile("lock decl %0" : "=m" (*v) : "m" (*v));
+}
+
+static inline int atomic_exchange(int *ptr, int old, int new)
+{
+	int ret;
+	asm volatile("lock cmpxchgl %2,%1"
+			     : "=a" (ret), "+m" (*ptr)
+			     : "r" (new), "0" (old)
+			     : "memory");
+	return ret;
+}
+#else
+static inline void atomic_inc(int *v)
+{
+	__sync_add_and_fetch(v, 1);
+}
+
+static inline void atomic_decc(int *v)
+{
+	__sync_sub_and_fetch(v, 1);
+}
+
+#define atomic_exchange __sync_val_compare_and_swap
+#endif
+
 static inline int futex(int *futex, int op, int val)
 {
 	return syscall(__NR_futex, futex, op, val, NULL);
@@ -42,14 +76,14 @@ void mutex_lock(mutex_t *mutex)
 		return;
 
 	/* Optimize for the non-contended state */
-	if (likely(__sync_val_compare_and_swap(&mutex->state, 0, 1) == 0))
+	if (likely(atomic_exchange(&mutex->state, 0, 1) == 0))
 		return;
 
-	__sync_add_and_fetch(&mutex->count, 1);
+	atomic_inc(&mutex->count);
 	while (1) {
-		int r = __sync_val_compare_and_swap(&mutex->state, 0, 1);
+		int r = atomic_exchange(&mutex->state, 0, 1);
 		if (r == 0) {
-			__sync_sub_and_fetch(&mutex->count, 1);
+			atomic_dec(&mutex->count);
 			return;
 		}
 
@@ -64,7 +98,7 @@ void mutex_unlock(mutex_t *mutex)
 	if (unlikely(!mutex))
 		return;
 
-	int r = __sync_val_compare_and_swap(&mutex->state, 1, 0);
+	int r = atomic_exchange(&mutex->state, 1, 0);
 	if (unlikely(r != 1 || mutex->count != 0)) {
 		mutex->state = 0;
 		futex(&mutex->state, FUTEX_WAKE_PRIVATE, 1);
