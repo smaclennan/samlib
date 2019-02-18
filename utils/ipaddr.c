@@ -19,6 +19,8 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
 #include "../samlib.h"
 
 #ifndef WIN32
@@ -32,6 +34,7 @@
 #define W_GATEWAY  (1 << 4)
 #define W_GUESSED  (1 << 5)
 #define W_ALL	   (1 << 6)
+#define W_FLAGS    (1 << 7)
 
 #define MAX_INTERFACES 16 /* arbitrary and huge */
 
@@ -47,6 +50,28 @@ static int maskcnt(unsigned mask)
 	}
 
 	return count;
+}
+
+static char *ip_flags(const char *ifname)
+{
+	static char flagstr[64];
+	struct ifreq ifreq;
+
+	int sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if (sock < 0)
+		return "failed";
+
+	memset(&ifreq, 0, sizeof(ifreq));
+	strlcpy(ifreq.ifr_name, ifname, IF_NAMESIZE);
+	if (ioctl(sock, SIOCGIFFLAGS, &ifreq)) {
+		return "Failed";
+	}
+
+	strcpy(flagstr, (ifreq.ifr_flags & IFF_UP) ? "UP" : "DOWN");
+	if (ifreq.ifr_flags & IFF_RUNNING)
+		strcat(flagstr, ",RUNNING");
+
+	return flagstr;
 }
 
 static int check_one(const char *ifname, int state, unsigned what)
@@ -100,6 +125,12 @@ static int check_one(const char *ifname, int state, unsigned what)
 		printf("%s", inet_ntoa(gw));
 	}
 
+	if (what & W_FLAGS) {
+		if (n++)
+			putchar(' ');
+		printf("<%s>", ip_flags(ifname));
+	}
+
 	if (n) {
 		if (what & W_GUESSED)
 			printf(" (%s)", ifname);
@@ -113,6 +144,7 @@ static void usage(int rc)
 {
 	fputs("usage: ipaddr [-abgims] [interface]\n"
 		  "where: -i displays IP address (default)\n"
+		  "		  -f display up and running flags\n"
 		  "       -g displays gateway\n"
 		  "       -m displays network mask\n"
 		  "       -s displays subnet\n"
@@ -130,13 +162,16 @@ int main(int argc, char *argv[])
 	int c, rc = 0;
 	unsigned what = 0;
 
-	while ((c = getopt(argc, argv, "abgmish")) != EOF)
+	while ((c = getopt(argc, argv, "abfgmish")) != EOF)
 		switch (c) {
 		case 'i':
 			what |= W_ADDRESS;
 			break;
 		case 'b':
 			what |= W_BITS;
+			break;
+		case 'f':
+			what |= W_FLAGS;
 			break;
 		case 'g':
 			what |= W_GATEWAY;
