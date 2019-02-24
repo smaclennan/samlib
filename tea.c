@@ -1,5 +1,7 @@
 #include "samlib.h"
 
+/* Tiny Encryption Algorithm (TEA) */
+
 /* Notes:
  * - Unrolling the loops does not help.
  * - HW assisted AES is much faster :(
