@@ -59,7 +59,6 @@ static void decrypt_block(const uint32_t *k, uint32_t *v)
 	v[0] = v0; v[1] = v1;
 }
 
-/* If out is NULL, decrypt in place */
 void tea_decrypt(const void *key, void *data, int len)
 {
 	while (len >= TEA_BAG_SIZE) {
