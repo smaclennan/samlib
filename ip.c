@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <ifaddrs.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -38,58 +39,8 @@ static int get_gateway(const char *ifname, struct in_addr *gateway)
 	fclose(fp);
 	return 1;
 }
-
-static int check_state(const char *name)
-{
-	char buff[64];
-	int fd;
-
-	strconcat(buff, sizeof(buff), "/sys/class/net/", name, "/operstate", NULL);
-	fd = open(buff, O_RDONLY);
-	if (fd >= 0) {
-		int n = read(fd, buff, sizeof(buff));
-		close(fd);
-		if (n > 0)
-			return strncmp(buff, "up", 2) == 0;
-	}
-	return 0; /* down */
-}
-
-/* Skips the loopback interface */
-int get_interfaces(char **ifnames, int n, uint64_t *state)
-{
-	if (state) {
-		*state = 0;
-		if (n > 64) n = 64;
-	}
-
-	int i = 0;
-	DIR *dir = opendir("/sys/class/net");
-	if (!dir)
-		return -ENOENT;
-
-	struct dirent *ent;
-	while ((ent = readdir(dir)) && i < n)
-		if (*ent->d_name != '.' && strcmp(ent->d_name, "lo")) {
-			ifnames[i] = strdup(ent->d_name);
-			if (!ifnames[i])
-				goto oom;
-			if (state)
-				*state |= check_state(ent->d_name) << i;
-			++i;
-		}
-
-	closedir(dir);
-	return i;
-
-oom:
-	closedir(dir);
-	free_interfaces(ifnames, i);
-	return -ENOMEM;
-}
-
 #else
-#include <ctype.h>
+#include <ctype.h> // isspace()
 
 /* Returns 0 on success, < 0 for errors, and > 0 if ifname not found.
  * The gateway arg can be NULL.
@@ -123,40 +74,52 @@ static int get_gateway(const char *ifname, struct in_addr *gateway)
 	return 1;
 
 }
+#endif
+
+void free_interfaces(char **ifnames, int n)
+{
+	for (int i = 0; i < n; ++i)
+		free(ifnames[i]);
+	free(ifnames);
+}
 
 /* Skips the loopback interface */
-int get_interfaces(char **ifnames, int n, uint64_t *state)
+int get_interfaces(char ***ifnames, uint64_t *state)
 {
-	/* Fall back to ifconfig */
-	FILE *pfp = popen("ifconfig -a", "r");
-	if (!pfp)
-		return -ENOENT;
+	struct ifaddrs *ifa;
+	int i = 0;
+	char **names = NULL;
 
-	if (state) {
-		*state = 0;
-		if (n > 64) n = 64;
+	if (state) *state = 0;
+
+	if (getifaddrs(&ifa))
+		return -errno;
+
+	for (struct ifaddrs *p = ifa; p; p = p->ifa_next) {
+		if (p->ifa_addr->sa_family != AF_INET || (p->ifa_flags & IFF_LOOPBACK))
+			continue;
+
+		names = realloc(names, sizeof(char *) * (i + 1));
+		if (!names)
+			goto oom;
+		names[i] = strdup(p->ifa_name);
+		if (!names[i])
+			goto oom;
+		if (state && (p->ifa_flags & IFF_UP))
+			*state |= 1 << i;
+		++i;
 	}
 
-	int i = 0;
-	char line[128];
-	while (fgets(line, sizeof(line), pfp))
-		if (!isspace(*line) && strncmp(line, "lo", 2) && i < n) {
-			if (state)
-				*state |= (strstr(line, "UP") != NULL) << i;
-			ifnames[i] = strdup(strtok(line, ":"));
-			if (!ifnames[i])
-				goto oom;
-			++i;
-		}
-
-	pclose(pfp);
+	*ifnames = names;
+	freeifaddrs(ifa);
 	return i;
 
 oom:
-	free_interfaces(ifnames, i);
+	free_interfaces(names, i);
+	freeifaddrs(ifa);
+	*ifnames = NULL;
 	return -ENOMEM;
 }
-#endif
 
 /* Returns 0 on success. The args addr and/or mask and/or gw can be NULL. */
 int ip_addr(const char *ifname,
@@ -244,14 +207,4 @@ uint32_t get_address4(const char *hostname)
 		return ntohl(*(uint32_t *)host->h_addr);
 	else
 		return 0;
-}
-
-void free_interfaces(char **ifnames, int n)
-{
-	int i;
-
-	for (i = 0; i < n; ++i) {
-		free(ifnames[i]);
-		ifnames[i] = NULL;
-	}
 }

@@ -352,7 +352,7 @@ uint32_t get_address4(const char *hostname);
  * interfaces.  Interface names are malloced and must be freed. state
  * is a bitmask of interface up or down and can be null.
  */
-int get_interfaces(char **ifname, int n, uint64_t *state);
+int get_interfaces(char ***ifname, uint64_t *state);
 void free_interfaces(char **ifnames, int n);
 
 /* DB functions

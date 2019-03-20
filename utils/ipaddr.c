@@ -36,8 +36,6 @@
 #define W_ALL	   (1 << 6)
 #define W_FLAGS    (1 << 7)
 
-#define MAX_INTERFACES 16 /* arbitrary and huge */
-
 /* This is so fast, it is not worth optimizing. */
 static int maskcnt(unsigned mask)
 {
@@ -198,11 +196,11 @@ int main(int argc, char *argv[])
 		while (optind < argc)
 			rc |= check_one(argv[optind++], 0, what);
 	} else {
-		char *ifaces[MAX_INTERFACES];
+		char **ifaces;
 		uint64_t state;
 		int i, n;
 
-		n = get_interfaces(ifaces, MAX_INTERFACES, &state);
+		n = get_interfaces(&ifaces, &state);
 		if (n == 0) {
 			fputs("No interfaces found\n", stderr);
 			return 1;
