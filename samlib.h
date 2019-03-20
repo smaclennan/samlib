@@ -527,6 +527,7 @@ static inline uint64_t rdtsc(void)
 
 int cpuid(uint32_t id, uint32_t *regs);
 int cpu_info(char *vendor, int *family, int *model, int *stepping);
+int processor_brand_string(char *str);
 int tsc_divisor(uint64_t *divisor);
 uint64_t delta_tsc(uint64_t start);
 

@@ -42,6 +42,35 @@ int cpu_info(char *vendor, int *family, int *model, int *stepping)
 
 	return 0;
 }
+
+/* str should be 16 * 3 + 1 = 49 bytes */
+int processor_brand_string(char *str)
+{
+	uint32_t regs[4];
+
+	cpuid(0x80000000, regs);
+	if (regs[0] < 0x80000004)
+		return ENOTSUP;
+
+	cpuid(0x80000002, regs);
+	memcpy(str, regs, sizeof(regs));
+
+	cpuid(0x80000003, regs);
+	memcpy(str + 16, regs, sizeof(regs));
+
+	cpuid(0x80000004, regs);
+	memcpy(str + 32, regs, sizeof(regs));
+
+	str[48] = 0;
+
+	int i;
+	for (i = 0; isspace(str[i]); ++i) ;
+	if (i)
+		// Remove leading spaces
+		memmove(str, str + i, 48 - i);
+
+	return 0;
+}
 #elif defined(__aarch64__)
 int cpuid(uint32_t id, uint32_t *regs)
 {       /* Needs el1 privilege */
@@ -68,7 +97,10 @@ int cpu_info(char *vendor, int *family, int *model, int *stepping)
 
 	return 0;
 }
+
+int processor_brand_string(char *str) { return -1; }
 #else
 int cpuid(uint32_t id, uint32_t *regs) { return -1; }
 int cpu_info(char *vendor, int *family, int *model, int *stepping) { return -1; }
+int processor_brand_string(char *str) { return -1; }
 #endif
