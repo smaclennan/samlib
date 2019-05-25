@@ -40,6 +40,7 @@
 #define W_GUESSED  (1 << 5)
 #define W_ALL	   (1 << 6)
 #define W_FLAGS    (1 << 7)
+#define W_SET      (1 << 8)
 
 #if defined(__linux__)
 /* Returns the size of src */
@@ -167,6 +168,44 @@ failed:
 	return -1;
 }
 
+static int set_ip(const char *ifname, const char *ip, const char *mask)
+{
+	int s = socket(AF_INET, SOCK_DGRAM, 0);
+	if (s == -1)
+		return -1;
+
+	struct ifreq req;
+	memset(&req, 0, sizeof(req));
+
+	strlcpy(req.ifr_name, ifname, IF_NAMESIZE);
+
+	struct sockaddr_in *in = (struct sockaddr_in *)&req.ifr_addr;
+#ifndef __linux__
+	in->sin_len = sizeof(struct sockaddr_in);
+#endif
+	in->sin_family = AF_INET;
+	in->sin_port = 0;
+	in->sin_addr.s_addr = inet_addr(ip);
+
+	if (ioctl(s, SIOCSIFADDR, &req))
+		goto failed;
+
+ 	in->sin_addr.s_addr = inet_addr(mask);
+	if (ioctl(s, SIOCSIFNETMASK, &req))
+		goto failed;
+
+	req.ifr_flags = IFF_UP | IFF_RUNNING;
+	if (ioctl(s, SIOCSIFFLAGS, &req))
+		goto failed;
+
+	close(s);
+	return 0;
+
+failed:
+	close(s);
+	return -1;
+}
+
 static char *ip_flags(const char *ifname)
 {
 	static char flagstr[64];
@@ -258,6 +297,7 @@ static int check_one(const char *ifname, int state, unsigned what)
 static void usage(int rc)
 {
 	fputs("usage: ipaddr [-abgims] [interface]\n"
+		  "       ipaddr -S <interface> <ip> <mask>\n"
 		  "where: -i displays IP address (default)\n"
 		  "		  -f display up and running flags\n"
 		  "       -g displays gateway\n"
@@ -277,7 +317,7 @@ int main(int argc, char *argv[])
 	int c, rc = 0;
 	unsigned what = 0;
 
-	while ((c = getopt(argc, argv, "abfgmish")) != EOF)
+	while ((c = getopt(argc, argv, "abfgmishS")) != EOF)
 		switch (c) {
 		case 'i':
 			what |= W_ADDRESS;
@@ -302,9 +342,24 @@ int main(int argc, char *argv[])
 			break;
 		case 'h':
 			usage(0);
+		case 'S':
+			what |= W_SET;
+			break;
 		default:
 			exit(2);
 		}
+
+	if (what & W_SET) {
+		if ((what & ~W_SET) || argc - optind < 3) {
+			fputs("ipaddr -S <ifname> <ip> <mask>\n", stderr);
+			exit(1);
+		}
+		if (set_ip(argv[optind], argv[optind + 1], argv[optind + 2])) {
+			perror("set_ip");
+			exit(1);
+		}
+		return 0;
+	}
 
 	if ((what & ~(W_BITS | W_ALL)) == 0)
 		what |= W_ADDRESS;
