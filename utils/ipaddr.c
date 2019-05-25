@@ -1,5 +1,5 @@
 /* ipaddr.c - get various IP information
- * Copyright (C) 2012-2017 Sean MacLennan
+ * Copyright (C) 2012-2019 Sean MacLennan
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,14 +18,19 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <dirent.h>
 #include <errno.h>
+#include <ifaddrs.h>
 #include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <net/if.h>
-#include "../samlib.h"
-
-#ifndef WIN32
-#include <arpa/inet.h> /* inet_ntoa */
-#endif
+#include <netdb.h>
 
 #define W_ADDRESS  (1 << 0)
 #define W_MASK     (1 << 1)
@@ -35,6 +40,83 @@
 #define W_GUESSED  (1 << 5)
 #define W_ALL	   (1 << 6)
 #define W_FLAGS    (1 << 7)
+
+#if defined(__linux__)
+/* Returns the size of src */
+size_t strlcpy(char *dst, const char *src, size_t dstlen)
+{
+	int srclen = strlen(src);
+
+	if (dstlen > 0) {
+		if (dstlen > srclen)
+			strcpy(dst, src);
+		else {
+			strncpy(dst, src, dstlen - 1);
+			dst[dstlen - 1] = 0;
+		}
+	}
+
+	return srclen;
+}
+
+/* Returns 0 on success, < 0 for errors, and > 0 if ifname not found.
+ * The gateway arg can be NULL.
+ */
+static int get_gateway(const char *ifname, struct in_addr *gateway)
+{
+	FILE *fp = fopen("/proc/net/route", "r");
+	if (!fp)
+		return -1;
+
+	char line[128], iface[8];
+	uint32_t dest, gw, flags;
+	while (fgets(line, sizeof(line), fp))
+		if (sscanf(line, "%s %x %x %x", iface, &dest, &gw, &flags) == 4 &&
+			strcmp(iface, ifname) == 0 && dest == 0 && (flags & 2)) {
+			fclose(fp);
+			if (gateway)
+				gateway->s_addr = gw;
+			return 0;
+		}
+
+	fclose(fp);
+	return 1;
+}
+
+#else
+
+/* Returns 0 on success, < 0 for errors, and > 0 if ifname not found.
+ * The gateway arg can be NULL.
+ */
+static int get_gateway(const char *ifname, struct in_addr *gateway)
+{
+	/* Fall back to netstat */
+	FILE *pfp = popen("netstat -nr", "r");
+	if (!pfp)
+		return -ENOENT;
+
+	char line[128];
+	while (fgets(line, sizeof(line), pfp))
+		if (strncmp(line, "default", 7) == 0 || strncmp(line, "0.0.0.0", 7) == 0) {
+			if (strstr(line, ifname))
+				pclose(pfp);
+				if (gateway) {
+					struct in_addr addr;
+					char *p = line + 7;
+					while (*p == ' ') ++p;
+					if (inet_aton(p, &addr)) {
+						*gateway = addr;
+						return 0;
+					}
+					return -1;
+				}
+				return 0;
+		}
+
+	pclose(pfp);
+	return 1;
+}
+#endif
 
 /* This is so fast, it is not worth optimizing. */
 static int maskcnt(unsigned mask)
@@ -48,6 +130,41 @@ static int maskcnt(unsigned mask)
 	}
 
 	return count;
+}
+
+/* Returns 0 on success. The args addr and/or mask and/or gw can be NULL. */
+static int ip_addr(const char *ifname,
+				   struct in_addr *addr, struct in_addr *mask, struct in_addr *gw)
+{
+	int s = socket(AF_INET, SOCK_DGRAM, 0);
+	if (s < 0)
+		return -1;
+
+	struct ifreq ifr;
+	strlcpy(ifr.ifr_name, ifname, IFNAMSIZ);
+
+	if (addr) {
+		if (ioctl(s, SIOCGIFADDR, &ifr) < 0)
+			goto failed;
+		*addr = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
+	}
+
+	if (mask) {
+		if (ioctl(s, SIOCGIFNETMASK, &ifr) < 0)
+			goto failed;
+		*mask = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
+	}
+
+	close(s);
+
+	if (gw)
+		return get_gateway(ifname, gw);
+
+	return 0;
+
+failed:
+	close(s);
+	return -1;
 }
 
 static char *ip_flags(const char *ifname)
@@ -196,20 +313,28 @@ int main(int argc, char *argv[])
 		while (optind < argc)
 			rc |= check_one(argv[optind++], 0, what);
 	} else {
-		char **ifaces;
-		uint64_t state;
-		int i, n;
+		struct ifaddrs *ifa;
 
-		n = get_interfaces(&ifaces, &state);
-		if (n == 0) {
-			fputs("No interfaces found\n", stderr);
-			return 1;
+		if (getifaddrs(&ifa)) {
+			perror("getifaddrs");
+			exit(1);
 		}
 
-		for (i = 0; i < n; ++i, state >>= 1)
-			if ((what & W_ALL) || (state & 1))
-				rc |= check_one(ifaces[i], state & 1, what | W_GUESSED);
+		for (struct ifaddrs *p = ifa; p; p = p->ifa_next) {
+			if (p->ifa_addr->sa_family != AF_INET || (p->ifa_flags & IFF_LOOPBACK))
+				continue;
+
+			unsigned up = p->ifa_flags & IFF_UP;
+			if ((what & W_ALL) || up)
+				rc |= check_one(p->ifa_name, up, what | W_GUESSED);
+		}
 	}
 
 	return rc;
 }
+
+/*
+ * Local Variables:
+ * compile-command: "gcc -O2 -Wall ipaddr.c -o ipaddr"
+ * End:
+ */
