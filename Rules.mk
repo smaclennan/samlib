@@ -1,5 +1,5 @@
 #CC = clang -fno-color-diagnostics
-CC = gcc
+#CC = gcc
 
 ifeq ($(CROSS_COMPILE),)
 BDIR ?= $(shell uname -m)

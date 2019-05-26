@@ -15,6 +15,9 @@
 #error You want win32/win32-ip.c
 #endif
 
+/* Undefine this to use netstat */
+#define HAVE_RTMSG
+
 #ifdef __linux__
 /* Returns 0 on success, < 0 for errors, and > 0 if ifname not found.
  * The gateway arg can be NULL.
@@ -38,6 +41,120 @@ static int get_gateway(const char *ifname, struct in_addr *gateway)
 
 	fclose(fp);
 	return 1;
+}
+#elif defined(HAVE_RTMSG)
+#include <net/route.h>
+#include <sys/poll.h>
+#include <sys/sysctl.h>
+
+#define RTM_ADDRS ((1 << RTAX_DST) | (1 << RTAX_NETMASK))
+#define RTM_SEQ 42
+#define RTM_FLAGS (RTF_STATIC | RTF_UP | RTF_GATEWAY)
+#define	READ_TIMEOUT 10
+
+struct rtmsg {
+	struct rt_msghdr hdr;
+	unsigned char data[512];
+};
+
+static int rtmsg_send(int s)
+{
+	struct rtmsg rtmsg;
+
+	memset(&rtmsg, 0, sizeof(rtmsg));
+	rtmsg.hdr.rtm_type = RTM_GET;
+	rtmsg.hdr.rtm_flags = RTM_FLAGS;
+	rtmsg.hdr.rtm_version = RTM_VERSION;
+	rtmsg.hdr.rtm_seq = RTM_SEQ;
+	rtmsg.hdr.rtm_addrs = RTM_ADDRS;
+
+	struct sockaddr_in sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sin_len = sizeof(sa);
+	sa.sin_family = AF_INET;
+
+	/* 0.0.0.0/0 */
+	unsigned char *cp = rtmsg.data;
+	memcpy(cp, &sa, sizeof(sa));
+	cp += sizeof(sa);
+	memcpy(cp, &sa, sizeof(sa));
+	cp += sizeof(sa);
+	rtmsg.hdr.rtm_msglen = cp - (unsigned char *)&rtmsg;
+
+	if (write(s, &rtmsg, rtmsg.hdr.rtm_msglen) < 0)
+		return -1;
+
+	return 0;
+}
+
+static int rtmsg_recv(int s, struct in_addr *gateway)
+{
+	struct rtmsg rtmsg;
+	struct pollfd ufd = { .fd = s, .events = POLLIN };
+
+	do {
+		if (poll(&ufd, 1, READ_TIMEOUT * 1000) <= 0)
+			return -1;
+
+		if (read(s, (char *)&rtmsg, sizeof(rtmsg)) <= 0)
+			return -1;
+	} while (rtmsg.hdr.rtm_type != RTM_GET ||
+			 rtmsg.hdr.rtm_seq != RTM_SEQ ||
+			 rtmsg.hdr.rtm_pid != getpid());
+
+	if (rtmsg.hdr.rtm_version != RTM_VERSION)
+		return -1;
+	if (rtmsg.hdr.rtm_errno)  {
+		errno = rtmsg.hdr.rtm_errno;
+		return -1;
+	}
+
+	unsigned char *cp = rtmsg.data;
+	for (int i = 0; i < RTAX_MAX; i++)
+		if (rtmsg.hdr.rtm_addrs & (1 << i)) {
+			if (i == RTAX_GATEWAY) {
+				*gateway = ((struct sockaddr_in *)cp)->sin_addr;
+				return 0;
+			}
+			cp += SA_SIZE((struct sockaddr *)cp);
+		}
+
+	return 1; /* not found */
+}
+
+/* ifname ignored */
+int get_gateway(const char *ifname, struct in_addr *gateway)
+{
+	int s = socket(PF_ROUTE, SOCK_RAW, 0);
+	if (s < 0)
+		return -1;
+
+	int numfibs;
+	size_t len = sizeof(numfibs);
+	if (sysctlbyname("net.fibs", (void *)&numfibs, &len, NULL, 0) == 0) {
+		int	defaultfib;
+		len = sizeof(defaultfib);
+		if (sysctlbyname("net.my_fibnum", (void *)&defaultfib, &len, NULL, 0) == 0)
+			if (setsockopt(s, SOL_SOCKET, SO_SETFIB, (void *)&defaultfib,
+						   sizeof(defaultfib))) {
+				close(s);
+				return -1;
+			}
+	}
+
+	if (rtmsg_send(s)) {
+		close(s);
+		return -1;
+	}
+
+	int n = rtmsg_recv(s, gateway);
+	if (n) {
+		close(s);
+		return n;
+	}
+
+	close(s);
+	return 0;
 }
 #else
 #include <ctype.h> // isspace()
