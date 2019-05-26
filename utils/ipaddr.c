@@ -171,19 +171,6 @@ static int get_gateway(const char *ifname, struct in_addr *gateway)
 	if (s < 0)
 		return -1;
 
-	int numfibs;
-	size_t len = sizeof(numfibs);
-	if (sysctlbyname("net.fibs", (void *)&numfibs, &len, NULL, 0) == 0) {
-		int	defaultfib;
-		len = sizeof(defaultfib);
-		if (sysctlbyname("net.my_fibnum", (void *)&defaultfib, &len, NULL, 0) == 0)
-			if (setsockopt(s, SOL_SOCKET, SO_SETFIB, (void *)&defaultfib,
-						   sizeof(defaultfib))) {
-				close(s);
-				return -1;
-			}
-	}
-
 	if (rtmsg_send(s)) {
 		close(s);
 		return -1;
