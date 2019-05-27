@@ -30,6 +30,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <net/if.h>
+#include <net/route.h>
 #include <netdb.h>
 
 #define W_ADDRESS  (1 << 0)
@@ -84,6 +85,27 @@ static int get_gateway(const char *ifname, struct in_addr *gateway)
 	return 1;
 }
 
+static int set_gateway(const char *gw)
+{
+	int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+	if (fd == -1)
+		return -1;
+
+	struct rtentry rtreq;
+	memset(&rtreq, 0, sizeof(rtreq));
+	rtreq.rt_flags = (RTF_UP | RTF_GATEWAY);
+
+	rtreq.rt_gateway.sa_family = AF_INET;
+	rtreq.rt_genmask.sa_family = AF_INET;
+	rtreq.rt_dst.sa_family = AF_INET;
+
+	struct sockaddr_in *sa = (struct sockaddr_in*)&rtreq.rt_gateway;
+	sa->sin_addr.s_addr = inet_addr(gw);
+
+	int rc = ioctl(fd, SIOCADDRT, &rtreq);
+	close(fd);
+	return rc;
+}
 #else
 #include <net/route.h>
 #include <sys/poll.h>
@@ -99,30 +121,33 @@ struct rtmsg {
 	unsigned char data[512];
 };
 
-static int rtmsg_send(int s)
+static int rtmsg_send(int s, int cmd, const char *gw)
 {
 	struct rtmsg rtmsg;
 
 	memset(&rtmsg, 0, sizeof(rtmsg));
-	rtmsg.hdr.rtm_type = RTM_GET;
+	rtmsg.hdr.rtm_type = cmd;
 	rtmsg.hdr.rtm_flags = RTM_FLAGS;
 	rtmsg.hdr.rtm_version = RTM_VERSION;
 	rtmsg.hdr.rtm_seq = RTM_SEQ;
 	rtmsg.hdr.rtm_addrs = RTM_ADDRS;
 
-	struct sockaddr_in sa;
-	memset(&sa, 0, sizeof(sa));
-	sa.sin_len = sizeof(sa);
-	sa.sin_family = AF_INET;
+	struct sockaddr_in *sa = (struct sockaddr_in *)rtmsg.data;
+	sa->sin_len = sizeof(struct sockaddr_in); // DST
+	sa->sin_family = AF_INET;
+	++sa;
+	if (cmd != RTM_GET) {                     // GATEWAY
+		rtmsg.hdr.rtm_addrs |= 1 << RTAX_GATEWAY;
+		sa->sin_len = sizeof(struct sockaddr_in);
+		sa->sin_family = AF_INET;
+		sa->sin_addr.s_addr = inet_addr(gw);
+		++sa;
+	}
+	sa->sin_len = sizeof(struct sockaddr_in); // NETMASK
+	sa->sin_family = AF_INET;
+	++sa;
 
-	/* 0.0.0.0/0 */
-	unsigned char *cp = rtmsg.data;
-	memcpy(cp, &sa, sizeof(sa));
-	cp += sizeof(sa);
-	memcpy(cp, &sa, sizeof(sa));
-	cp += sizeof(sa);
-	rtmsg.hdr.rtm_msglen = cp - (unsigned char *)&rtmsg;
-
+	rtmsg.hdr.rtm_msglen = (uintptr_t)sa - (uintptr_t)&rtmsg;
 	if (write(s, &rtmsg, rtmsg.hdr.rtm_msglen) < 0)
 		return -1;
 
@@ -158,7 +183,7 @@ static int rtmsg_recv(int s, struct in_addr *gateway)
 				*gateway = ((struct sockaddr_in *)cp)->sin_addr;
 				return 0;
 			}
-			cp += SA_SIZE((struct sockaddr *)cp);
+			cp += ((struct sockaddr *)cp)->sa_len;
 		}
 
 	return 1; /* not found */
@@ -171,7 +196,7 @@ static int get_gateway(const char *ifname, struct in_addr *gateway)
 	if (s < 0)
 		return -1;
 
-	if (rtmsg_send(s)) {
+	if (rtmsg_send(s, RTM_GET, NULL)) {
 		close(s);
 		return -1;
 	}
@@ -184,6 +209,29 @@ static int get_gateway(const char *ifname, struct in_addr *gateway)
 
 	close(s);
 	return 0;
+}
+
+static int set_gateway(const char *gw)
+{
+	int s = socket(PF_ROUTE, SOCK_RAW, 0);
+	if (s < 0)
+		return -1;
+
+	shutdown(s, SHUT_RD); /* Don't want to read back our messages */
+
+	if (rtmsg_send(s, RTM_ADD, gw) == 0) {
+		close(s);
+		return 0;
+	}
+
+	if (errno == EEXIST)
+		if (rtmsg_send(s, RTM_CHANGE, gw) == 0) {
+			close(s);
+			return 0;
+		}
+
+	close(s);
+	return -1;
 }
 #endif
 
@@ -239,8 +287,10 @@ failed:
 static int set_ip(const char *ifname, const char *ip, const char *mask)
 {
 	int s = socket(AF_INET, SOCK_DGRAM, 0);
-	if (s == -1)
+	if (s == -1) {
+		perror("set_ip socket");
 		return -1;
+	}
 
 	struct ifreq req;
 	memset(&req, 0, sizeof(req));
@@ -252,19 +302,25 @@ static int set_ip(const char *ifname, const char *ip, const char *mask)
 	in->sin_len = sizeof(struct sockaddr_in);
 #endif
 	in->sin_family = AF_INET;
-	in->sin_port = 0;
 	in->sin_addr.s_addr = inet_addr(ip);
 
-	if (ioctl(s, SIOCSIFADDR, &req))
+	errno = 0;
+	if (ioctl(s, SIOCSIFADDR, &req)) {
+		perror("SIOCSIFADDR");
 		goto failed;
+	}
 
  	in->sin_addr.s_addr = inet_addr(mask);
-	if (ioctl(s, SIOCSIFNETMASK, &req))
+	if (ioctl(s, SIOCSIFNETMASK, &req)) {
+		perror("SIOCSIFNETMASK");
 		goto failed;
+	}
 
 	req.ifr_flags = IFF_UP | IFF_RUNNING;
-	if (ioctl(s, SIOCSIFFLAGS, &req))
+	if (ioctl(s, SIOCSIFFLAGS, &req)) {
+		perror("SIOCSIFFLAGS");
 		goto failed;
+	}
 
 	close(s);
 	return 0;
@@ -365,7 +421,7 @@ static int check_one(const char *ifname, int state, unsigned what)
 static void usage(int rc)
 {
 	fputs("usage: ipaddr [-abgims] [interface]\n"
-		  "       ipaddr -S <interface> <ip> <mask>\n"
+		  "       ipaddr -S <interface> <ip> <mask> [gateway]\n"
 		  "where: -i displays IP address (default)\n"
 		  "		  -f display up and running flags\n"
 		  "       -g displays gateway\n"
@@ -418,13 +474,15 @@ int main(int argc, char *argv[])
 		}
 
 	if (what & W_SET) {
-		if ((what & ~W_SET) || argc - optind < 3) {
-			fputs("ipaddr -S <ifname> <ip> <mask>\n", stderr);
+		if ((what & ~W_SET) || argc - optind < 3)
+			usage(1);
+		if (set_ip(argv[optind], argv[optind + 1], argv[optind + 2]))
 			exit(1);
-		}
-		if (set_ip(argv[optind], argv[optind + 1], argv[optind + 2])) {
-			perror("set_ip");
-			exit(1);
+		if ((optind + 3) < argc) {
+			if (set_gateway(argv[optind + 3])) {
+				perror("set_gateway");
+				exit(1);
+			}
 		}
 		return 0;
 	}
