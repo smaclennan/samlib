@@ -267,6 +267,8 @@ static int ip_addr(const char *ifname,
 	}
 
 	if (mask) {
+		// We need this zero for QNX
+		((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr.s_addr = 0;
 		if (ioctl(s, SIOCGIFNETMASK, &ifr) < 0)
 			goto failed;
 		*mask = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
@@ -284,7 +286,7 @@ failed:
 	return -1;
 }
 
-static int set_ip(const char *ifname, const char *ip, const char *mask)
+static int set_ip(const char *ifname, const char *ip, unsigned mask)
 {
 	int s = socket(AF_INET, SOCK_DGRAM, 0);
 	if (s == -1) {
@@ -310,7 +312,7 @@ static int set_ip(const char *ifname, const char *ip, const char *mask)
 		goto failed;
 	}
 
- 	in->sin_addr.s_addr = inet_addr(mask);
+ 	in->sin_addr.s_addr = mask;
 	if (ioctl(s, SIOCSIFNETMASK, &req)) {
 		perror("SIOCSIFNETMASK");
 		goto failed;
@@ -474,12 +476,26 @@ int main(int argc, char *argv[])
 		}
 
 	if (what & W_SET) {
-		if ((what & ~W_SET) || argc - optind < 3)
+		if ((what & ~W_SET) || argc - optind < 2)
 			usage(1);
-		if (set_ip(argv[optind], argv[optind + 1], argv[optind + 2]))
+		char *ifname = argv[optind++];
+		char *ip = argv[optind++];
+		char *p = strchr(ip, '/');
+		unsigned mask = 0;
+		if (p) {
+			*p++ = 0;
+			unsigned bits = strtol(p, NULL, 10);
+			mask = htonl(((1ul << bits) - 1) << (32 - bits));
+		} else if (optind < argc) {
+			mask = inet_addr(argv[optind]);
+			++optind;
+		} else
+			usage(1);
+
+		if (set_ip(ifname, ip, mask))
 			exit(1);
-		if ((optind + 3) < argc) {
-			if (set_gateway(argv[optind + 3])) {
+		if (optind < argc) {
+			if (set_gateway(argv[optind])) {
 				perror("set_gateway");
 				exit(1);
 			}
