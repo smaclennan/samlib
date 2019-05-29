@@ -93,8 +93,42 @@ static int proc_cmp(const void *a, const void *b)
 	return ((struct aproc *)a)->time < ((struct aproc *)b)->time ? -1 : 1;
 }
 
+int do_match(const struct aproc *p, const char *match, int word)
+{
+	char *ptr = strstr(p->cmd, match);
+	if (ptr == NULL)
+		return 0;
+
+	if (word) {
+		if (!(ptr == p->cmd || *(ptr - 1) == '/'))
+			return 0; // mismatch at start
+		ptr += strlen(match);
+		if (*ptr)
+			return 0; // mismatch at end
+	}
+
+	if (p->count > 1)
+		printf("%5d %s (%d)\n", p->pid, p->cmd, p->count);
+	else
+		printf("%5d %s\n", p->pid, p->cmd);
+
+	return 1;
+}
+
 int main(int argc, char *argv[])
 {
+	int c, word = 0, rc = 0;
+	const char *match = NULL;
+
+	while ((c = getopt(argc, argv, "w")) != EOF)
+		if (c == 'w')
+			word = 1;
+
+	if (optind < argc) {
+		match = argv[optind];
+		rc = 1;
+	}
+
 	me = getpid();
 
 	add_filter_re(NULL, "^[0-9]+$");
@@ -105,13 +139,16 @@ int main(int argc, char *argv[])
 	struct aproc *p;
 	int i;
 	for (p = procs, i = 0; i < curproc; ++i, ++p) {
-		if (p->count > 1)
+		if (match) {
+			if (do_match(p, match, word))
+				rc = 0;
+		} else if (p->count > 1)
 			printf("%5d %s (%d)\n", p->pid, p->cmd, p->count);
 		else
 			printf("%5d %s\n", p->pid, p->cmd);
 	}
 
-	return 0;
+	return rc;
 }
 
 /*
