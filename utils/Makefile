@@ -13,14 +13,11 @@ endif
 SAMLIB = ../$(BDIR)/libsamlib.a
 LIBS += $(SAMLIB)
 
-ALL := ipaddr pkg serial udpping myps
+ALL := ipaddr myps
 
 all: $(ALL)
 
 ipaddr: ipaddr.c
-	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
-
-udpping: udpping.c
 	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
 
 %: %.c
