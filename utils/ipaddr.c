@@ -42,6 +42,7 @@
 #define W_ALL	   (1 << 6)
 #define W_FLAGS    (1 << 7)
 #define W_SET      (1 << 8)
+#define W_QUIET    (1 << 9)
 
 #if defined(__linux__)
 /* Returns the size of src */
@@ -363,7 +364,10 @@ static int check_one(const char *ifname, int state, unsigned what)
 		/* gateway is more expensive */
 		gw_ptr = &gw;
 
-	if (ip_addr(ifname, &addr, &mask, gw_ptr)) {
+	int rc = ip_addr(ifname, &addr, &mask, gw_ptr);
+	if (what & W_QUIET)
+		return !!rc;
+	if (rc) {
 		if (errno == EADDRNOTAVAIL) {
 			if (what & W_ALL) {
 				/* not an error, they asked for down interfaces */
@@ -422,7 +426,7 @@ static int check_one(const char *ifname, int state, unsigned what)
 
 static void usage(int rc)
 {
-	fputs("usage: ipaddr [-abgims] [interface]\n"
+	fputs("usage: ipaddr [-abgimsq] [interface]\n"
 		  "       ipaddr -S <interface> <ip> <mask> [gateway]\n"
 		  "where: -i displays IP address (default)\n"
 		  "		  -f display up and running flags\n"
@@ -431,7 +435,9 @@ static void usage(int rc)
 		  "       -s displays subnet\n"
 		  "       -b add bits as /bits to -a and/or -s\n"
 		  "       -a displays all interfaces (even down)\n"
-		  "Interface defaults to eth0.\n"
+		  "       -q quiet, return error code only\n"
+		  "Interface defaults to eth0.\n\n"
+		  "-q returns 0 if the interface (or gw) is up and has an IP address.\n\n"
 		  "Designed to be easily used in scripts. All error output to stderr.\n",
 		  stderr);
 
@@ -443,7 +449,7 @@ int main(int argc, char *argv[])
 	int c, rc = 0;
 	unsigned what = 0;
 
-	while ((c = getopt(argc, argv, "abfgmishS")) != EOF)
+	while ((c = getopt(argc, argv, "abfgmishqS")) != EOF)
 		switch (c) {
 		case 'i':
 			what |= W_ADDRESS;
@@ -470,6 +476,9 @@ int main(int argc, char *argv[])
 			usage(0);
 		case 'S':
 			what |= W_SET;
+			break;
+		case 'q':
+			what |= W_QUIET;
 			break;
 		default:
 			exit(2);
@@ -503,7 +512,7 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	if ((what & ~(W_BITS | W_ALL)) == 0)
+	if ((what & ~(W_BITS | W_ALL | W_QUIET)) == 0)
 		what |= W_ADDRESS;
 
 	if (optind < argc) {
