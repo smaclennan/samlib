@@ -33,16 +33,17 @@
 #include <net/route.h>
 #include <netdb.h>
 
-#define W_ADDRESS  (1 << 0)
-#define W_MASK     (1 << 1)
-#define W_SUBNET   (1 << 2)
-#define W_BITS     (1 << 3)
-#define W_GATEWAY  (1 << 4)
-#define W_GUESSED  (1 << 5)
-#define W_ALL	   (1 << 6)
-#define W_FLAGS    (1 << 7)
-#define W_SET      (1 << 8)
-#define W_QUIET    (1 << 9)
+#define W_ADDRESS  (1 <<  0)
+#define W_MASK     (1 <<  1)
+#define W_SUBNET   (1 <<  2)
+#define W_BITS     (1 <<  3)
+#define W_GATEWAY  (1 <<  4)
+#define W_GUESSED  (1 <<  5)
+#define W_ALL	   (1 <<  6)
+#define W_FLAGS    (1 <<  7)
+#define W_SET      (1 <<  8)
+#define W_QUIET    (1 <<  9)
+#define W_MAC      (1 << 10)
 
 #if defined(__linux__)
 /* Returns the size of src */
@@ -105,6 +106,22 @@ static int set_gateway(const char *gw)
 
 	int rc = ioctl(fd, SIOCADDRT, &rtreq);
 	close(fd);
+	return rc;
+}
+
+static int get_hw_addr(const char *ifname, unsigned char *hwaddr)
+{
+	int sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+	if (sock == -1)
+		return -1;
+
+	struct ifreq ifreq;
+	memset(&ifreq, 0, sizeof(ifreq));
+	strlcpy(ifreq.ifr_name, ifname, IF_NAMESIZE);
+	int rc = ioctl(sock, SIOCGIFHWADDR, &ifreq);
+	close(sock);
+
+	memcpy(hwaddr, ifreq.ifr_hwaddr.sa_data, sizeof(ifreq.ifr_hwaddr.sa_data));
 	return rc;
 }
 #else
@@ -234,6 +251,31 @@ static int set_gateway(const char *gw)
 	close(s);
 	return -1;
 }
+
+static int get_hw_addr(const char *ifname, unsigned char *hwaddr)
+{
+	struct ifaddrs *ifa = NULL;
+	struct sockaddr_dl *sa = NULL;
+
+	if (getifaddrs(&ifa))
+		return -1;
+
+	for (struct ifaddrs *p = ifa; p; p = p->ifa_next) {
+		if (p->ifa_addr->sa_family == AF_LINK &&
+			strcmp(p->ifa_name, ifname) == 0) {
+			sa = (struct sockaddr_dl *)p->ifa_addr;
+			if (sa->sdl_type == 1 || sa->sdl_type == 6) { // ethernet
+				memcpy(hwaddr, LLADDR(sa), sa->sdl_alen);
+				freeifaddrs(ifa);
+				return 0;
+			} else
+				return -1;
+		}
+	}
+
+	errno = ENOENT;
+	return -1;
+}
 #endif
 
 /* This is so fast, it is not worth optimizing. */
@@ -359,6 +401,7 @@ static int check_one(const char *ifname, int state, unsigned what)
 {
 	int n = 0;
 	struct in_addr addr, mask, gw, *gw_ptr = NULL;
+	char mac_str[18];
 
 	if (what & W_GATEWAY)
 		/* gateway is more expensive */
@@ -367,14 +410,27 @@ static int check_one(const char *ifname, int state, unsigned what)
 	int rc = ip_addr(ifname, &addr, &mask, gw_ptr);
 	if (what & W_QUIET)
 		return !!rc;
+
+	if (what & W_MAC) {
+		unsigned char mac[6];
+		if (get_hw_addr(ifname, mac))
+			return 1;
+		for (int i = 0; i < 6; ++i)
+			sprintf(mac_str + (i * 3), "%02x:", mac[i]);
+		mac_str[17] = 0;
+	}
+
 	if (rc) {
 		if (errno == EADDRNOTAVAIL) {
 			if (what & W_ALL) {
 				/* not an error, they asked for down interfaces */
 				if (state)
-					printf("0.0.0.0 (%s)\n", ifname);
+					fputs("0.0.0.0", stdout);
 				else
-					printf("down (%s)\n", ifname);
+					fputs("down", stdout);
+				if (what & W_MAC)
+					printf(" %s", mac_str);
+				printf(" (%s)\n", ifname);
 				return 0;
 			} else if ((what & W_GUESSED) == 0)
 				fprintf(stderr, "%s: No address\n", ifname);
@@ -415,6 +471,12 @@ static int check_one(const char *ifname, int state, unsigned what)
 		printf("<%s>", ip_flags(ifname));
 	}
 
+	if (what & W_MAC) {
+		if (n++)
+			putchar(' ');
+		fputs(mac_str, stdout);
+	}
+
 	if (n) {
 		if (what & W_GUESSED)
 			printf(" (%s)", ifname);
@@ -426,7 +488,7 @@ static int check_one(const char *ifname, int state, unsigned what)
 
 static void usage(int rc)
 {
-	fputs("usage: ipaddr [-abgimsq] [interface]\n"
+	fputs("usage: ipaddr [-abgimsqM] [interface]\n"
 		  "       ipaddr -S <interface> <ip> <mask> [gateway]\n"
 		  "where: -i displays IP address (default)\n"
 		  "		  -f display up and running flags\n"
@@ -436,6 +498,7 @@ static void usage(int rc)
 		  "       -b add bits as /bits to -a and/or -s\n"
 		  "       -a displays all interfaces (even down)\n"
 		  "       -q quiet, return error code only\n"
+		  "       -M display hardware address (mac)\n"
 		  "Interface defaults to eth0.\n\n"
 		  "-q returns 0 if the interface (or gw) is up and has an IP address.\n\n"
 		  "Designed to be easily used in scripts. All error output to stderr.\n",
@@ -449,7 +512,7 @@ int main(int argc, char *argv[])
 	int c, rc = 0;
 	unsigned what = 0;
 
-	while ((c = getopt(argc, argv, "abfgmishqS")) != EOF)
+	while ((c = getopt(argc, argv, "abfgmishqSM")) != EOF)
 		switch (c) {
 		case 'i':
 			what |= W_ADDRESS;
@@ -474,11 +537,14 @@ int main(int argc, char *argv[])
 			break;
 		case 'h':
 			usage(0);
+		case 'q':
+			what |= W_QUIET;
+			break;
 		case 'S':
 			what |= W_SET;
 			break;
-		case 'q':
-			what |= W_QUIET;
+		case 'M':
+			what |= W_MAC;
 			break;
 		default:
 			exit(2);
