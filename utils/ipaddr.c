@@ -28,6 +28,7 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/ether.h>
 #include <arpa/inet.h>
 #include <net/if.h>
 #include <net/route.h>
@@ -121,7 +122,7 @@ static int get_hw_addr(const char *ifname, unsigned char *hwaddr)
 	int rc = ioctl(sock, SIOCGIFHWADDR, &ifreq);
 	close(sock);
 
-	memcpy(hwaddr, ifreq.ifr_hwaddr.sa_data, sizeof(ifreq.ifr_hwaddr.sa_data));
+	memcpy(hwaddr, ifreq.ifr_hwaddr.sa_data, ETHER_ADDR_LEN);
 	return rc;
 }
 #else
@@ -401,7 +402,7 @@ static int check_one(const char *ifname, int state, unsigned what)
 {
 	int n = 0;
 	struct in_addr addr, mask, gw, *gw_ptr = NULL;
-	char mac_str[18];
+	char mac_str[ETHER_ADDR_LEN * 3];
 
 	if (what & W_GATEWAY)
 		/* gateway is more expensive */
@@ -412,12 +413,12 @@ static int check_one(const char *ifname, int state, unsigned what)
 		return !!rc;
 
 	if (what & W_MAC) {
-		unsigned char mac[6];
+		unsigned char mac[ETHER_ADDR_LEN];
 		if (get_hw_addr(ifname, mac))
 			return 1;
-		for (int i = 0; i < 6; ++i)
+		for (int i = 0; i < ETHER_ADDR_LEN; ++i)
 			sprintf(mac_str + (i * 3), "%02x:", mac[i]);
-		mac_str[17] = 0;
+		mac_str[sizeof(mac_str) - 1] = 0;
 	}
 
 	if (rc) {
