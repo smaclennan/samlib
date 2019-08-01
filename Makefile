@@ -39,7 +39,6 @@ endif
 
 all:	first-rule
 	$(QUIET_MAKE)$(MAKE) $(MFLAGS) -C tests
-	$(QUIET_MAKE)$(MAKE) $(MFLAGS) -C utils
 
 $(BDIR)/libsamlib.a: $O $(EXTRA_OBJ)
 	$(QUIET_AR)$(AR) cr $@ $O $(EXTRA_OBJ)
@@ -71,9 +70,6 @@ install: all
 	install -m644 $(BDIR)/libsamlib.a $(DESTDIR)$(LIBDIR)/libsamlib.a
 	install -m644 samthread.h $(DESTDIR)$(INCDIR)/samthread.h
 	install -m644 $(BDIR)/libsamthread.a $(DESTDIR)$(LIBDIR)/libsamthread.a
-	install utils/ipaddr $(DESTDIR)$(BINDIR)/ipaddr
-	install utils/imgsize.py $(DESTDIR)$(BINDIR)/imgsize
-	install utils/myps $(DESTDIR)$(BINDIR)/myps
 
 # sparse cannot handle aes128*.c
 check:
@@ -84,4 +80,3 @@ clean:
 	rm -f *.gcno *.gcda
 	$(MAKE) $(MFLAGS) -C db.1.85 clean
 	$(MAKE) $(MFLAGS) -C tests clean
-	$(MAKE) $(MFLAGS) -C utils clean
