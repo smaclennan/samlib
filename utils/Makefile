@@ -13,12 +13,9 @@ endif
 SAMLIB = ../$(BDIR)/libsamlib.a
 LIBS += $(SAMLIB)
 
-ALL := ipaddr myps
+ALL := myps
 
 all: $(ALL)
-
-ipaddr: ipaddr.c
-	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(LIBS)
 
 %: %.c
 	$(QUIET_CC)$(CC) $(CFLAGS) -o $@ $< $(SAMLIB)
