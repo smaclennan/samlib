@@ -4,7 +4,7 @@
 
 #include "samlib.h"
 
-#ifdef __linux__
+#if defined(__linux__) || defined (__QNX__)
 #include <dirent.h>
 
 static int readproc(pid_t pid, const char *file, char *buf, int len)
@@ -54,13 +54,17 @@ int readproccmd(pid_t pid, char *buf, int len)
 
 int readprocstat(pid_t pid, struct procstat_min *stat)
 {
+#ifdef __QNX__
+	errno = ENOSYS;
+	return -1;
+#else
 	char buf[128];
 
 	int n = readproc(pid, "stat", buf, sizeof(buf));
 	if (n <= 0)
 		return n;
 
-	if (sscanf(buf, "%d %s %c %d %d %d %*d %*d %*u "
+	if (sscanf(buf, "%d (%[^)]) %c %d %d %d %*d %*d %*u "
 			   "%*u %*u %*u %*u %*u %*u %*u "
 			   "%*u %*u %*u %*u %*u %llu",
 			   &stat->pid, stat->comm, &stat->state,
@@ -69,6 +73,7 @@ int readprocstat(pid_t pid, struct procstat_min *stat)
 		return 1; /* can't happen */
 
 	return 0;
+#endif
 }
 
 pid_t _findpid(const char *cmd, pid_t start_pid, char *buf, int len)
