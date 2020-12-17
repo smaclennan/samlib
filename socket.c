@@ -66,8 +66,10 @@ int socket_accept(int sock, char *ip, int flags)
 	int opt = 1;
 	setsockopt(new, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt));
 
+#ifdef SOCK_NONBLOCK
 	if (flags & SOCK_NONBLOCK)
 		return set_nonblocking(new);
+#endif
 
 	return new;
 }

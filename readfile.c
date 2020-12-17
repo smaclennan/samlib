@@ -6,7 +6,7 @@
 
 #include "samlib.h"
 
-#if defined(WIN32) || defined(__QNXNTO__)
+#if defined(WIN32)
 #define GETLINE_INCREMENT 128
 
 /* Simple getline implementation */

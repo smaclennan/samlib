@@ -14,6 +14,11 @@ include ./Rules.mk
 
 CFLAGS += -DWANT_FLOATS
 
+ifeq ($(shell uname -s), QNX)
+# We need gcc or clang for aes
+CC = gcc
+endif
+
 # This works for gcc and clang
 ifneq ($(shell $(CC) -v 2>&1 | fgrep "Target: x86_64"),)
 AES ?= -maes

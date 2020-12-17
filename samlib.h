@@ -565,10 +565,4 @@ int socket_accept(int sock, char *ip, int flags);
 /* client side commands */
 int socket_connect(const char *hostname, uint16_t port, int flags);
 
-
-#ifdef __QNXNTO__
-#include <stdio.h>
-ssize_t getline(char **lineptr, size_t *n, FILE *stream);
-#endif
-
 #endif
