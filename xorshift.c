@@ -14,19 +14,18 @@ static int seeded;
 
 void xorshift_seed(xorshift_seed_t *seed)
 {
-#ifdef WIN32
-	HCRYPTPROV hProv;
-#endif
-
 	if (!seed) {
 		seed = &global_seed;
 		seeded = 1;
 	}
 
 #ifdef WIN32
-	if (CryptAcquireContext(&hProv, NULL, NULL, PROV_RSA_AES, 0))
-		if (CryptGenRandom(hProv, sizeof(*seed), (BYTE *)seed))
-			return;
+	{
+		HCRYPTPROV hProv;
+		if (CryptAcquireContext(&hProv, NULL, NULL, PROV_RSA_AES, 0))
+			if (CryptGenRandom(hProv, sizeof(*seed), (BYTE *)seed))
+				return;
+	}
 #else
 	int n, fd = open("/dev/urandom", O_RDONLY);
 	if (fd >= 0) {
