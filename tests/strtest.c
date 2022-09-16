@@ -143,7 +143,7 @@ int hack_snprintf(char *str, int size, const char *format, ...)
 
 static void test_strfmt(void)
 {
-	char str1[1024], str2[1024];
+	char str1[1042], str2[1024];
 	int n1, n2;
 
 	n1 = strfmt  (str1, sizeof(str1), "%06ld", 123456789123456789ul);
