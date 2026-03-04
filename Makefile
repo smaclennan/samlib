@@ -33,7 +33,7 @@ CFILES += mkdir-p.c md5.c ip.c copy.c binary.c samdb.c time.c
 CFILES += arg-helpers.c xorshift.c must.c readproc.c base64.c
 CFILES += crc16.c file.c dumpstack.c sha256.c aes128.c aes-cbc.c
 CFILES += tsc.c cpuid.c safecpy.c slackware.c is-elf.c globals.c
-CFILES += strfmt.c socket.c tea.c strlcpy.c
+CFILES += strfmt.c socket.c tea.c strlcpy.c random.c
 
 O := $(addprefix $(BDIR)/, $(CFILES:.c=.o))
 
@@ -82,6 +82,6 @@ check:
 
 clean:
 	rm -rf $(BDIR)
-	rm -f *.gcno *.gcda
+	rm -f *.gcno *.gcda rand128
 	$(MAKE) $(MFLAGS) -C db.1.85 clean
 	$(MAKE) $(MFLAGS) -C tests clean

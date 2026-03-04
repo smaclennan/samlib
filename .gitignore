@@ -1,3 +1,4 @@
 *.o
 libsamlib.a
 libsamthread.a
+rand128
