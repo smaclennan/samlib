@@ -185,6 +185,8 @@ static int do_dir(struct walkfile_struct *walk, const char *dname, struct stat *
 							fprintf(stderr, "Skipping dir %s\n", path);
 						break;
 					}
+				if (walk->flags & WALK_INCLUDE_DIRS)
+					error |= walk->file_func(path, &sbuf);
 				error |= do_dir(walk, path, &sbuf);
 			}
 			break;
