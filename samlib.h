@@ -559,6 +559,18 @@ static inline int is_power_of_2(unsigned x)
 	return x != 0 && !(x & (x - 1));
 }
 
+static inline size_t power_of_2(size_t size)
+{
+	size--;
+	size |= size >> 1;
+	size |= size >> 2;
+	size |= size >> 4;
+	size |= size >> 8;
+	size |= size >> 16;
+	size |= size >> 32;
+	return size + 1;
+}
+
 /* My attempt at a socket library */
 
 #define SOCK_NONBLOCKING	1 /* listen, accept, connect */
