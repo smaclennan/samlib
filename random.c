@@ -73,17 +73,7 @@ void finish_seed(void)
 }
 #endif
 
-#if 0 // xorshift128+
-uint64_t rand128(void)
-{
-	uint64_t x = seed[0];
-	uint64_t const y = seed[1];
-	seed[0] = y;
-	x ^= x << 23;
-	seed[1] = x ^ y ^ (x >> 17) ^ (y >> 26);
-	return seed[1] + y;
-}
-#else // xoroshiro128+
+// xoroshiro128+
 static inline uint64_t rotl(const uint64_t x, int k) {
 	return (x << k) | (x >> (64 - k));
 }
@@ -100,7 +90,6 @@ uint64_t rand128(void)
 
 	return result;
 }
-#endif
 
 #ifdef STANDALONE
 #include <stdio.h>
