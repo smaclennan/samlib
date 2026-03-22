@@ -5,10 +5,8 @@
 
 #include "samlib.h"
 
-int mkdir_p(const char *dir)
+int mkdir_p(const char *dir, mode_t mode)
 {
-	mode_t mode = umask(0) ^ 0777;
-
 	if (mkdir(dir, mode) == 0 || errno == EEXIST)
 		return 0; /* done */
 
