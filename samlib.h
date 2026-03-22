@@ -108,7 +108,7 @@ int mktempfile(char *fname, int len);
 char *tmpfilename(const char *fname);
 
 /* This mimics the shell's `mkdir -p' */
-int mkdir_p(const char *dir);
+int mkdir_p(const char *dir, mode_t mode);
 
 int do_system(const char *fmt, ...);
 
@@ -204,6 +204,8 @@ int walkfiles(struct walkfile_struct *walk, const char *path,
  * subdirs but not decending into the subdirs.
  */
 #define WALK_ONE_DIR	0x10
+
+#define WALK_INCLUDE_DIRS	0x20
 
 /* Adds a regular expression of paths to ignore. */
 void add_ignore(struct walkfile_struct *walk, const char *str);
